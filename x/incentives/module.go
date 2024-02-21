@@ -16,11 +16,12 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
+	"github.com/spf13/cobra"
+
 	incentivesmodulev1 "github.com/skip-mev/slinky/api/slinky/incentives/module/v1"
 	"github.com/skip-mev/slinky/x/incentives/client/cli"
 	"github.com/skip-mev/slinky/x/incentives/keeper"
 	"github.com/skip-mev/slinky/x/incentives/types"
-	"github.com/spf13/cobra"
 )
 
 // ConsensusVersion is the x/incentives module's current version, as modules integrate and
@@ -28,9 +29,10 @@ import (
 const ConsensusVersion = 1
 
 var (
-	_ module.AppModule      = AppModule{}
-	_ appmodule.AppModule   = AppModule{}
-	_ module.AppModuleBasic = AppModuleBasic{}
+	_ module.AppModuleBasic = AppModule{}
+	_ module.HasServices    = AppModule{}
+
+	_ appmodule.AppModule = AppModule{}
 )
 
 // AppModuleBasic defines the base interface that the x/incentives module exposes to the
@@ -119,7 +121,7 @@ func (AppModule) IsOnePerModuleType() {}
 // ConsensusVersion implements AppModule/ConsensusVersion.
 func (AppModule) ConsensusVersion() uint64 { return ConsensusVersion }
 
-// RegisterServices registers the module's services with the app's module configurator
+// RegisterServices registers the module's services with the app's module configurator.
 func (am AppModule) RegisterServices(cfc module.Configurator) {
 	// Register the query service.
 	types.RegisterQueryServer(cfc.QueryServer(), keeper.NewQueryServer(am.k))
@@ -163,6 +165,9 @@ type Inputs struct {
 	Config *incentivesmodulev1.Module
 	Cdc    codec.Codec
 	Key    *storetypes.KVStoreKey
+
+	// IncentiveStrategies
+	IncentiveStrategies map[types.Incentive]types.Strategy `optional:"true"`
 }
 
 type Outputs struct {
@@ -175,7 +180,7 @@ type Outputs struct {
 func ProvideModule(in Inputs) Outputs {
 	incentivesKeeper := keeper.NewKeeper(
 		in.Key,
-		nil,
+		in.IncentiveStrategies,
 	)
 
 	m := NewAppModule(in.Cdc, incentivesKeeper)

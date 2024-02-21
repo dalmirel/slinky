@@ -1,0 +1,33 @@
+---
+project_name: slinky
+
+release:
+  github:
+    owner: skip-mev
+    name: slinky
+  prerelease: true
+
+builds:
+  - main: 'cmd/oracle/main.go'
+    goos:
+    - 'linux'
+    - 'darwin'
+archives:
+  - format: tar.gz
+    wrap_in_directory: true
+    format_overrides:
+      - goos: windows
+        format: zip
+    name_template: "{{ .Binary }}-{{ .Version }}-{{ .Os }}-{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}"
+    files:
+      - README.md
+
+snapshot:
+  name_template: SNAPSHOT-{{ .Commit }}
+
+changelog:
+  skip: false
+  use: 'github'
+
+checksum:
+  disable: false

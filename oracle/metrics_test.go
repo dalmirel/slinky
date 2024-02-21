@@ -2,37 +2,35 @@ package oracle_test
 
 import (
 	"context"
-	"errors"
+	"math/big"
 	"testing"
 	"time"
 
-	"cosmossdk.io/log"
-	"github.com/skip-mev/slinky/aggregator"
-	"github.com/skip-mev/slinky/oracle"
-	"github.com/skip-mev/slinky/oracle/metrics"
-	metric_mocks "github.com/skip-mev/slinky/oracle/metrics/mocks"
-	"github.com/skip-mev/slinky/oracle/types"
-	provider_mocks "github.com/skip-mev/slinky/oracle/types/mocks"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
+
+	"github.com/skip-mev/slinky/oracle"
+	metricmocks "github.com/skip-mev/slinky/oracle/metrics/mocks"
+	providertypes "github.com/skip-mev/slinky/providers/types"
+	providermocks "github.com/skip-mev/slinky/providers/types/mocks"
+	oracletypes "github.com/skip-mev/slinky/x/oracle/types"
 )
 
 type OracleMetricsTestSuite struct {
 	suite.Suite
 
 	// mocked providers
-	mockProvider1 *provider_mocks.Provider
-	mockProvider2 *provider_mocks.Provider
+	mockProvider1 *providermocks.Provider[oracletypes.CurrencyPair, *big.Int]
+	mockProvider2 *providermocks.Provider[oracletypes.CurrencyPair, *big.Int]
 
 	// mock metrics
-	mockMetrics *metric_mocks.Metrics
+	mockMetrics *metricmocks.Metrics
 
-	o *oracle.Oracle
+	o oracle.Oracle
 }
 
 const (
-	oracleTicker = time.Second
+	oracleTicker = 1 * time.Second
 	provider1    = "provider1"
 	provider2    = "provider2"
 )
@@ -43,34 +41,51 @@ func TestOracleMetricsTestSuite(t *testing.T) {
 
 func (s *OracleMetricsTestSuite) SetupTest() {
 	// mock providers
-	s.mockProvider1 = provider_mocks.NewProvider(s.T())
-	s.mockProvider2 = provider_mocks.NewProvider(s.T())
+	s.mockProvider1 = providermocks.NewProvider[oracletypes.CurrencyPair, *big.Int](s.T())
+	s.mockProvider1.On("Name").Return("provider1").Maybe()
+
+	s.mockProvider2 = providermocks.NewProvider[oracletypes.CurrencyPair, *big.Int](s.T())
+	s.mockProvider2.On("Name").Return("provider2").Maybe()
 
 	// mock metrics
-	s.mockMetrics = metric_mocks.NewMetrics(s.T())
+	s.mockMetrics = metricmocks.NewMetrics(s.T())
 
-	s.o = oracle.New(
-		log.NewNopLogger(),
-		oracleTicker,
-		[]types.Provider{s.mockProvider1, s.mockProvider2},
-		aggregator.ComputeMedian(),
-		s.mockMetrics,
+	var err error
+	s.o, err = oracle.New(
+		oracle.WithUpdateInterval(oracleTicker),
+		oracle.WithProviders(
+			[]providertypes.Provider[oracletypes.CurrencyPair, *big.Int]{
+				s.mockProvider1,
+				s.mockProvider2,
+			},
+		),
+		oracle.WithMetrics(s.mockMetrics),
 	)
+	s.Require().NoError(err)
 }
 
-// test Tick metrics are updated correctly
+// TearDownTest is run after each test in the suite.
+func (s *OracleMetricsTestSuite) TearDownTest(_ *testing.T) {
+	checkFn := func() bool {
+		return !s.o.IsRunning()
+	}
+	s.Eventually(checkFn, 5*time.Second, 100*time.Millisecond)
+}
+
+// test Tick metrics are updated correctly.
 func (s *OracleMetricsTestSuite) TestTickMetric() {
 	// expect tick to be called
 	s.mockMetrics.On("AddTick").Return()
-	s.mockMetrics.On("AddProviderResponse", provider1, mock.Anything).Return()
-	s.mockMetrics.On("AddProviderResponse", provider2, mock.Anything).Return()
-	s.mockMetrics.On("ObserveProviderResponseLatency", provider1, mock.Anything).Return()
-	s.mockMetrics.On("ObserveProviderResponseLatency", provider2, mock.Anything).Return()
 
-	s.mockProvider1.On("GetPrices", mock.Anything).Return(nil, nil)
-	s.mockProvider2.On("GetPrices", mock.Anything).Return(nil, nil)
 	s.mockProvider1.On("Name").Return("provider1")
+	s.mockProvider1.On("Start", mock.Anything).Return(nil)
+	s.mockProvider1.On("Type").Return(providertypes.API)
+	s.mockProvider1.On("GetData").Return(nil)
+
 	s.mockProvider2.On("Name").Return("provider2")
+	s.mockProvider2.On("Start", mock.Anything).Return(nil)
+	s.mockProvider2.On("Type").Return(providertypes.API)
+	s.mockProvider2.On("GetData").Return(nil, nil)
 
 	// wait for a tick on the oracle
 	go func() {
@@ -78,67 +93,7 @@ func (s *OracleMetricsTestSuite) TestTickMetric() {
 	}()
 
 	// wait for a tick
-	time.Sleep(2 * oracleTicker)
-
-	// assert expectations
-	s.mockMetrics.AssertExpectations(s.T())
-	s.o.Stop()
-}
-
-// test ProviderResponseMetric from a provider the metrics are updated correctly
-func (s *OracleMetricsTestSuite) TestProviderResponseMetric() {
-	// expect tick to be called
-	s.mockMetrics.On("AddTick").Return()
-	s.mockMetrics.On("ObserveProviderResponseLatency", provider1, mock.Anything).Return()
-	s.mockMetrics.On("ObserveProviderResponseLatency", provider2, mock.Anything).Return()
-	s.mockMetrics.On("AddProviderResponse", provider1, metrics.StatusFailure).Return()
-	s.mockMetrics.On("AddProviderResponse", provider2, metrics.StatusSuccess).Return()
-
-	s.mockProvider1.On("GetPrices", mock.Anything).Return(nil, errors.New("provider1 error"))
-	s.mockProvider2.On("GetPrices", mock.Anything).Return(nil, nil)
-	s.mockProvider1.On("Name").Return("provider1")
-	s.mockProvider2.On("Name").Return("provider2")
-
-	// wait for a tick on the oracle
-	go func() {
-		s.o.Start(context.Background())
-	}()
-
-	// wait for a tick
-	time.Sleep(2 * oracleTicker)
-
-	// assert expectations
-	s.mockMetrics.AssertExpectations(s.T())
-	s.o.Stop()
-}
-
-// Test ProviderResponseTimeMetrics are updated correctly
-func (s *OracleMetricsTestSuite) TestProviderResponseTimeMetric() {
-	// expect tick to be called
-	s.mockMetrics.On("AddTick").Return()
-	s.mockMetrics.On("ObserveProviderResponseLatency", provider1, mock.Anything).Return().Run(func(args mock.Arguments) {
-		// expect to be within +/- 100ms of 500ms
-		assert.InDelta(s.T(), 100*time.Millisecond, args.Get(1), float64(20*time.Millisecond)) // delta may need to be tuned (this is arbitrary)
-	})
-	s.mockMetrics.On("ObserveProviderResponseLatency", provider2, mock.Anything).Return().Run(func(args mock.Arguments) {
-		// expect to be within +/- 100ms of 1000ms
-		assert.InDelta(s.T(), 150*time.Millisecond, args.Get(1), float64(20*time.Millisecond))
-	})
-	s.mockMetrics.On("AddProviderResponse", provider1, mock.Anything).Return()
-	s.mockMetrics.On("AddProviderResponse", provider2, mock.Anything).Return()
-
-	s.mockProvider1.On("GetPrices", mock.Anything).Return(nil, nil).After(100 * time.Millisecond)
-	s.mockProvider2.On("GetPrices", mock.Anything).Return(nil, nil).After(150 * time.Millisecond)
-	s.mockProvider1.On("Name").Return("provider1")
-	s.mockProvider2.On("Name").Return("provider2")
-
-	// wait for a tick on the oracle
-	go func() {
-		s.o.Start(context.Background())
-	}()
-
-	// wait for a tick
-	time.Sleep(2 * oracleTicker)
+	time.Sleep(4 * oracleTicker)
 
 	// assert expectations
 	s.mockMetrics.AssertExpectations(s.T())

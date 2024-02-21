@@ -2,21 +2,23 @@ package integration
 
 import (
 	"context"
+	"math/big"
 	"os"
 	"time"
+
+	"cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	oracleconfig "github.com/skip-mev/slinky/oracle/config"
-	oraclemetrics "github.com/skip-mev/slinky/oracle/metrics"
-	"github.com/skip-mev/slinky/oracle/types"
-	oracleservicetypes "github.com/skip-mev/slinky/oracle/types"
-	oracletypes "github.com/skip-mev/slinky/x/oracle/types"
-	"github.com/strangelove-ventures/interchaintest/v7"
-	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
-	"github.com/strangelove-ventures/interchaintest/v7/ibc"
+	"github.com/strangelove-ventures/interchaintest/v8"
+	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
+	"github.com/strangelove-ventures/interchaintest/v8/ibc"
 	"github.com/stretchr/testify/suite"
+
+	slinkyabci "github.com/skip-mev/slinky/abci/ve/types"
+	oracleconfig "github.com/skip-mev/slinky/oracle/config"
+	oracletypes "github.com/skip-mev/slinky/x/oracle/types"
 )
 
 const (
@@ -35,25 +37,30 @@ func DefaultOracleSidecar(image ibc.DockerImage) ibc.SidecarConfig {
 		HomeDir:     "/oracle",
 		Ports:       []string{"8080", "8081"},
 		StartCmd: []string{
-			"oracle", "-config", "/oracle/oracle.toml", "-host", "0.0.0.0", "-port", "8080",
+			"oracle",
+			"--oracle-config-path", "/oracle/oracle.toml",
+			"--host", "0.0.0.0",
+			"--port", "8080",
 		},
 		ValidatorProcess: true,
 		PreStart:         true,
 	}
 }
 
-func DefaultOracleConfig() oracleconfig.Config {
-	return oracleconfig.Config{
-		Oracle: oracleconfig.Oracle{
-			UpdateInterval: time.Millisecond,
-		},
-		Metrics: oracleconfig.Metrics{
-			PrometheusServerAddress: "0.0.0.0:8081",
-			OracleMetrics: oraclemetrics.Config{
-				Enabled: true,
-			},
-		},
+func DefaultOracleConfig(node *cosmos.ChainNode) oracleconfig.OracleConfig {
+	// Create the oracle config
+	oracleConfig := oracleconfig.OracleConfig{
+		UpdateInterval: 500 * time.Millisecond,
 	}
+
+	return oracleConfig
+}
+
+func GetOracleSideCar(node *cosmos.ChainNode) *cosmos.SidecarProcess {
+	if len(node.Sidecars) == 0 {
+		panic("no sidecars found")
+	}
+	return node.Sidecars[0]
 }
 
 type SlinkyIntegrationSuite struct {
@@ -116,22 +123,25 @@ func (s *SlinkyIntegrationSuite) SetupSuite() {
 			node := c.Nodes()[i]
 			// add sidecars to node
 			AddSidecarToNode(node, s.oracleConfig)
+
 			// set config for the oracle
-			SetOracleConfig(node, DefaultOracleConfig())
+			oracleCfg := DefaultOracleConfig(node)
+			SetOracleConfigsOnOracle(GetOracleSideCar(node), oracleCfg)
+
 			// set the out-of-process oracle config for all nodes
 			node.WithPrestartNode(func(n *cosmos.ChainNode) {
-				SetOracleOutOfProcess(n)
+				SetOracleConfigsOnApp(n, oracleCfg)
 			})
 		}
 	})
 
 	// start the chain
 	BuildPOBInterchain(s.T(), context.Background(), s.chain)
-	users := interchaintest.GetAndFundTestUsers(s.T(), context.Background(), s.T().Name(), genesisAmount, s.chain)
+	users := interchaintest.GetAndFundTestUsers(s.T(), context.Background(), s.T().Name(), math.NewInt(genesisAmount), s.chain)
 	s.user = users[0]
 }
 
-func (s *SlinkyIntegrationSuite) TeardownSuite() {
+func (s *SlinkyIntegrationSuite) TearDownSuite() {
 	// get the oracle integration-test suite keep alive env
 	if ok := os.Getenv(envKeepAlive); ok == "" {
 		return
@@ -139,8 +149,7 @@ func (s *SlinkyIntegrationSuite) TeardownSuite() {
 
 	// keep the chain running
 	s.T().Log("Keeping the chain running")
-	for {
-	}
+	select {}
 }
 
 func (s *SlinkyIntegrationSuite) SetupTest() {
@@ -150,21 +159,39 @@ func (s *SlinkyIntegrationSuite) SetupTest() {
 
 	s.T().Log("Removing all currency-pairs", resp.CurrencyPairs)
 
+	// reset the oracle services
+	// start all oracles
+	for _, node := range s.chain.Nodes() {
+		oCfg := DefaultOracleConfig(node)
+
+		SetOracleConfigsOnOracle(GetOracleSideCar(node), oCfg)
+		s.Require().NoError(RestartOracle(node))
+	}
+
 	if len(resp.CurrencyPairs) == 0 {
 		return
 	}
 
 	ids := make([]string, len(resp.CurrencyPairs))
 	for i, cp := range resp.CurrencyPairs {
-		ids[i] = cp.ToString()
+		ids[i] = cp.String()
 	}
 
 	// remove all currency-pairs
 	s.Require().NoError(RemoveCurrencyPairs(s.chain, s.authority.String(), s.denom, deposit, 2*s.blockTime, s.user, ids...))
-
 }
 
-func (s *SlinkyIntegrationSuite) TestOracleModule() {
+type SlinkyOracleIntegrationSuite struct {
+	*SlinkyIntegrationSuite
+}
+
+func NewSlinkyOracleIntegrationSuite(suite *SlinkyIntegrationSuite) *SlinkyOracleIntegrationSuite {
+	return &SlinkyOracleIntegrationSuite{
+		SlinkyIntegrationSuite: suite,
+	}
+}
+
+func (s *SlinkyOracleIntegrationSuite) TestOracleModule() {
 	// query the oracle module grpc service for any CurrencyPairs
 	s.Run("QueryCurrencyPairs - no currency-pairs reported", func() {
 		resp, err := QueryCurrencyPairs(s.chain)
@@ -172,8 +199,8 @@ func (s *SlinkyIntegrationSuite) TestOracleModule() {
 		s.Require().True(len(resp.CurrencyPairs) == 0)
 	})
 
-	// pass a governance proposal to approve a new currency-pair, and check prices are reported
-	s.Run("Add a currency-pair and check prices", func() {
+	// pass a governance proposal to approve a new currency-pair, and check Prices are reported
+	s.Run("Add a currency-pair and check Prices", func() {
 		s.Require().NoError(AddCurrencyPairs(s.chain, s.authority.String(), s.denom, deposit, 2*s.blockTime, s.user, []oracletypes.CurrencyPair{
 			{
 				Base:  "BTC",
@@ -189,9 +216,9 @@ func (s *SlinkyIntegrationSuite) TestOracleModule() {
 		s.Require().Equal(resp.CurrencyPairs[0].Quote, "USD")
 	})
 
-	// remove the currency-pair from state and check the prices for that currency-pair are no longer reported
-	s.Run("Remove a currency-pair and check prices", func() {
-		s.Require().NoError(RemoveCurrencyPairs(s.chain, s.authority.String(), s.denom, deposit, 2*s.blockTime, s.user, []string{oracletypes.NewCurrencyPair("BTC", "USD").ToString()}...))
+	// remove the currency-pair from state and check the Prices for that currency-pair are no longer reported
+	s.Run("Remove a currency-pair and check Prices", func() {
+		s.Require().NoError(RemoveCurrencyPairs(s.chain, s.authority.String(), s.denom, deposit, 2*s.blockTime, s.user, []string{oracletypes.CurrencyPairString("BTC", "USD")}...))
 
 		// check that the currency-pair is added to state
 		resp, err := QueryCurrencyPairs(s.chain)
@@ -211,7 +238,7 @@ func (s *SlinkyIntegrationSuite) TestOracleModule() {
 		s.Require().True(len(resp.CurrencyPairs) == 2)
 
 		// remove btc from state
-		s.Require().NoError(RemoveCurrencyPairs(s.chain, s.authority.String(), s.denom, deposit, 2*s.blockTime, s.user, []string{cp2.ToString()}...))
+		s.Require().NoError(RemoveCurrencyPairs(s.chain, s.authority.String(), s.denom, deposit, 2*s.blockTime, s.user, []string{cp2.String()}...))
 
 		// check that the currency-pair is removed from state
 		resp, err = QueryCurrencyPairs(s.chain)
@@ -222,7 +249,7 @@ func (s *SlinkyIntegrationSuite) TestOracleModule() {
 	})
 }
 
-func (s *SlinkyIntegrationSuite) TestNodeFailures() {
+func (s *SlinkyOracleIntegrationSuite) TestNodeFailures() {
 	cp := oracletypes.CurrencyPair{
 		Base:  "ETHEREUM",
 		Quote: "USDC",
@@ -232,22 +259,94 @@ func (s *SlinkyIntegrationSuite) TestNodeFailures() {
 		cp,
 	}...))
 
+	cc, close, err := GetChainGRPC(s.chain)
+	s.Require().NoError(err)
+
+	defer close()
+
+	id, err := getIDForCurrencyPair(context.Background(), oracletypes.NewQueryClient(cc), cp)
+	s.Require().NoError(err)
+
+	zero := big.NewInt(0)
+	zeroBz, err := zero.GobEncode()
+	s.Require().NoError(err)
+
 	// configure failing providers for various sets of nodes
-	s.Run("all nodes report prices", func() {
+	s.Run("all nodes report Prices", func() {
 		// update all oracle configs
 		for _, node := range s.chain.Nodes() {
-			oCfg := DefaultOracleConfig()
-			oCfg.Providers = append(oCfg.Providers, oracleservicetypes.ProviderConfig{
-				Name: "static-mock-provider",
-			})
+			oracle := GetOracleSideCar(node)
 
-			SetOracleConfig(node, oCfg)
-			RestartOracle(node)
+			oracleConfig := DefaultOracleConfig(node)
+			oracleConfig.Providers = append(oracleConfig.Providers, oracleconfig.ProviderConfig{
+				Name: "static-mock-provider",
+				API: oracleconfig.APIConfig{
+					Enabled:    true,
+					Timeout:    250 * time.Millisecond,
+					Interval:   250 * time.Millisecond,
+					MaxQueries: 1,
+					URL:        "http://un-used-url.com",
+					Atomic:     true,
+					Name:       "static-mock-provider",
+				},
+				Market: oracleconfig.MarketConfig{
+					Name: "static-mock-provider",
+					CurrencyPairToMarketConfigs: map[string]oracleconfig.CurrencyPairMarketConfig{
+						cp.String(): {
+							Ticker:       "1140",
+							CurrencyPair: cp,
+						},
+					},
+				},
+			})
+			oracleConfig.Market = oracleconfig.AggregateMarketConfig{
+				Feeds: map[string]oracleconfig.FeedConfig{
+					cp.String(): {
+						CurrencyPair: cp,
+					},
+				},
+				AggregatedFeeds: map[string]oracleconfig.AggregateFeedConfig{
+					cp.String(): {
+						CurrencyPair: cp,
+						Conversions: []oracleconfig.Conversions{
+							{
+								{
+									CurrencyPair: cp,
+									Invert:       false,
+								},
+							},
+						},
+					},
+				},
+			}
+
+			SetOracleConfigsOnOracle(oracle, oracleConfig)
+			s.Require().NoError(RestartOracle(node))
 		}
 
-		height, err := WaitForOracleUpdate(s.chain, 3*s.blockTime, cp)
+		height, err := ExpectVoteExtensions(s.chain, s.blockTime*3, []slinkyabci.OracleVoteExtension{
+			{
+				Prices: map[uint64][]byte{
+					id: zeroBz,
+				},
+			},
+			{
+				Prices: map[uint64][]byte{
+					id: zeroBz,
+				},
+			},
+			{
+				Prices: map[uint64][]byte{
+					id: zeroBz,
+				},
+			},
+			{
+				Prices: map[uint64][]byte{
+					id: zeroBz,
+				},
+			},
+		})
 		s.Require().NoError(err)
-
 		// query for the given currency pair
 		resp, _, err := QueryCurrencyPair(s.chain, cp, height)
 		s.Require().NoError(err)
@@ -255,29 +354,41 @@ func (s *SlinkyIntegrationSuite) TestNodeFailures() {
 	})
 
 	s.Run("single oracle down, price updates", func() {
-		// stop single node's oracle process and check that all prices are reported
+		// stop single node's oracle process and check that all Prices are reported
 		node := s.chain.Nodes()[0]
 		StopOracle(node)
 
-		// now wait for the next update (should be the next block)
-		height, err := WaitForOracleUpdate(s.chain, s.blockTime, cp)
+		// expect the following vote-extensions
+		height, err := ExpectVoteExtensions(s.chain, s.blockTime*3, []slinkyabci.OracleVoteExtension{
+			{
+				Prices: map[uint64][]byte{},
+			},
+			{
+				Prices: map[uint64][]byte{
+					id: zeroBz,
+				},
+			},
+			{
+				Prices: map[uint64][]byte{
+					id: zeroBz,
+				},
+			},
+			{
+				Prices: map[uint64][]byte{
+					id: zeroBz,
+				},
+			},
+		})
 		s.Require().NoError(err)
 
-		// query for the given currency pair
-		_, nonce, err := QueryCurrencyPair(s.chain, cp, height)
+		_, oldNonce, err := QueryCurrencyPair(s.chain, cp, height-1)
 		s.Require().NoError(err)
 
-		// wait for the next height
-		s.Require().NoError(WaitForHeight(s.chain, height+1, 2*s.blockTime))
-
-		// wait for the next oracle update
-		height, err = WaitForOracleUpdate(s.chain, s.blockTime, cp)
-		s.Require().NoError(err)
-
-		// query the price, and check that nonce is incremented
 		_, newNonce, err := QueryCurrencyPair(s.chain, cp, height)
 		s.Require().NoError(err)
-		s.Require().True(newNonce > nonce)
+
+		// expect update for height
+		s.Require().Equal(newNonce, oldNonce+1)
 
 		// start the oracle again
 		StartOracle(node)
@@ -285,32 +396,42 @@ func (s *SlinkyIntegrationSuite) TestNodeFailures() {
 
 	s.Run("single node down, price updates", func() {
 		// stop single node's oracle process and check that all prices are reported
-		node := s.chain.Nodes()[3]
-		node.StopContainer(context.Background())
-		node.RemoveContainer(context.Background())
+		node := s.chain.Nodes()[0]
+		StopOracle(node)
 
-		// wait for the first height that an oracle update occurs, should be the first height
-		height, err := WaitForOracleUpdate(s.chain, s.blockTime, cp)
+		// expect the following vote-extensions
+		height, err := ExpectVoteExtensions(s.chain, s.blockTime*3, []slinkyabci.OracleVoteExtension{
+			{
+				Prices: map[uint64][]byte{},
+			},
+			{
+				Prices: map[uint64][]byte{
+					id: zeroBz,
+				},
+			},
+			{
+				Prices: map[uint64][]byte{
+					id: zeroBz,
+				},
+			},
+			{
+				Prices: map[uint64][]byte{
+					id: zeroBz,
+				},
+			},
+		})
 		s.Require().NoError(err)
 
-		// query for the given currency pair
-		_, nonce, err := QueryCurrencyPair(s.chain, cp, height)
+		_, oldNonce, err := QueryCurrencyPair(s.chain, cp, height-1)
 		s.Require().NoError(err)
 
-		// wait for the next height
-		s.Require().NoError(WaitForHeight(s.chain, height+1, 2*s.blockTime))
-
-		// wait for the next oracle update, should be the next height
-		height, err = WaitForOracleUpdate(s.chain, s.blockTime, cp)
-		s.Require().NoError(err)
-
-		// query the price, and check that nonce is incremented
 		_, newNonce, err := QueryCurrencyPair(s.chain, cp, height)
 		s.Require().NoError(err)
-		s.Require().True(newNonce > nonce)
 
-		s.Require().NoError(node.CreateNodeContainer(context.Background()))
-		s.Require().NoError(node.StartContainer(context.Background()))
+		// expect update for height
+		s.Require().Equal(newNonce, oldNonce+1)
+
+		StartOracle(node)
 	})
 
 	s.Run("only 1 node reports a price (oracles are down)", func() {
@@ -319,15 +440,33 @@ func (s *SlinkyIntegrationSuite) TestNodeFailures() {
 			StopOracle(node)
 		}
 
-		// wait one height to clear oracle updates
-		height, err := s.chain.Height(context.Background())
+		// expect the given oracle reports
+		height, err := ExpectVoteExtensions(s.chain, s.blockTime*3, []slinkyabci.OracleVoteExtension{
+			{
+				Prices: map[uint64][]byte{},
+			},
+			{
+				Prices: map[uint64][]byte{},
+			},
+			{
+				Prices: map[uint64][]byte{},
+			},
+			{
+				Prices: map[uint64][]byte{
+					id: zeroBz,
+				},
+			},
+		})
 		s.Require().NoError(err)
 
-		// wait for the height after next height (this is to ensure that all oracles have been stopped, and their VEs reflect this)
-		s.Require().NoError(WaitForHeight(s.chain, height+2, 2*s.blockTime))
+		_, oldNonce, err := QueryCurrencyPair(s.chain, cp, height-1)
+		s.Require().NoError(err)
 
-		_, err = WaitForOracleUpdate(s.chain, 2*s.blockTime, cp) // expect no update
-		s.Require().Error(err)
+		_, newNonce, err := QueryCurrencyPair(s.chain, cp, height)
+		s.Require().NoError(err)
+
+		// expect no update for the height
+		s.Require().Equal(newNonce, oldNonce)
 
 		// start all oracles again
 		for _, node := range s.chain.Nodes()[1:] {
@@ -336,7 +475,7 @@ func (s *SlinkyIntegrationSuite) TestNodeFailures() {
 	})
 }
 
-func (s *SlinkyIntegrationSuite) TestMultiplePriceFeeds() {
+func (s *SlinkyOracleIntegrationSuite) TestMultiplePriceFeeds() {
 	cp1 := oracletypes.NewCurrencyPair("ETHEREUM", "USDC")
 	cp2 := oracletypes.NewCurrencyPair("ETHEREUM", "USDT")
 	cp3 := oracletypes.NewCurrencyPair("ETHEREUM", "USD")
@@ -350,27 +489,146 @@ func (s *SlinkyIntegrationSuite) TestMultiplePriceFeeds() {
 
 	s.Require().NoError(AddCurrencyPairs(s.chain, s.authority.String(), s.denom, deposit, 2*s.blockTime, s.user, cps...))
 
+	cc, close, err := GetChainGRPC(s.chain)
+	s.Require().NoError(err)
+
+	defer close()
+
+	// get the currency pair ids
+	ctx := context.Background()
+	id1, err := getIDForCurrencyPair(ctx, oracletypes.NewQueryClient(cc), cp1)
+	s.Require().NoError(err)
+
+	id2, err := getIDForCurrencyPair(ctx, oracletypes.NewQueryClient(cc), cp2)
+	s.Require().NoError(err)
+
+	id3, err := getIDForCurrencyPair(ctx, oracletypes.NewQueryClient(cc), cp3)
+	s.Require().NoError(err)
+
+	zero := big.NewInt(0)
+	zeroBz, err := zero.GobEncode()
+	s.Require().NoError(err)
+
 	// start all oracles
 	for _, node := range s.chain.Nodes() {
-		oCfg := DefaultOracleConfig()
-		oCfg.Providers = append(oCfg.Providers, oracleservicetypes.ProviderConfig{
+		oracle := GetOracleSideCar(node)
+
+		oracleConfig := DefaultOracleConfig(node)
+
+		oracleConfig.Providers = append(oracleConfig.Providers, oracleconfig.ProviderConfig{
 			Name: "static-mock-provider",
+			API: oracleconfig.APIConfig{
+				Enabled:    true,
+				Timeout:    250 * time.Millisecond,
+				Interval:   250 * time.Millisecond,
+				MaxQueries: 1,
+				URL:        "http://un-used-url.com",
+				Atomic:     true,
+				Name:       "static-mock-provider",
+			},
+			Market: oracleconfig.MarketConfig{
+				Name: "static-mock-provider",
+				CurrencyPairToMarketConfigs: map[string]oracleconfig.CurrencyPairMarketConfig{
+					cp1.String(): {
+						Ticker:       "1140",
+						CurrencyPair: cp1,
+					},
+					cp2.String(): {
+						Ticker:       "1141",
+						CurrencyPair: cp2,
+					},
+					cp3.String(): {
+						Ticker:       "1142",
+						CurrencyPair: cp3,
+					},
+				},
+			},
 		})
 
-		SetOracleConfig(node, oCfg)
-		RestartOracle(node)
+		oracleConfig.Market = oracleconfig.AggregateMarketConfig{
+			Feeds: map[string]oracleconfig.FeedConfig{
+				cp1.String(): {
+					CurrencyPair: cp1,
+				},
+				cp2.String(): {
+					CurrencyPair: cp2,
+				},
+				cp3.String(): {
+					CurrencyPair: cp3,
+				},
+			},
+			AggregatedFeeds: map[string]oracleconfig.AggregateFeedConfig{
+				cp1.String(): {
+					CurrencyPair: cp1,
+					Conversions: []oracleconfig.Conversions{
+						{
+							{
+								CurrencyPair: cp1,
+								Invert:       false,
+							},
+						},
+					},
+				},
+				cp2.String(): {
+					CurrencyPair: cp2,
+					Conversions: []oracleconfig.Conversions{
+						{
+							{
+								CurrencyPair: cp2,
+								Invert:       false,
+							},
+						},
+					},
+				},
+				cp3.String(): {
+					CurrencyPair: cp3,
+					Conversions: []oracleconfig.Conversions{
+						{
+							{
+								CurrencyPair: cp3,
+								Invert:       false,
+							},
+						},
+					},
+				},
+			},
+		}
+
+		SetOracleConfigsOnOracle(oracle, oracleConfig)
+		s.Require().NoError(RestartOracle(node))
 	}
 
 	s.Run("all oracles running for multiple price feeds", func() {
-
-		height, err := s.chain.Height(context.Background())
-		s.Require().NoError(err)
-		// nodes may not be able to extend w/ prices at this height so wait
-		height = height + 2
-		s.Require().NoError(WaitForHeight(s.chain, height, 2*s.blockTime))
-
-		// wait for the next update
-		height, err = WaitForOracleUpdate(s.chain, 2*s.blockTime, cp1)
+		height, err := ExpectVoteExtensions(s.chain, s.blockTime*3, []slinkyabci.OracleVoteExtension{
+			{
+				Prices: map[uint64][]byte{
+					id1: zeroBz,
+					id2: zeroBz,
+					id3: zeroBz,
+				},
+			},
+			{
+				Prices: map[uint64][]byte{
+					id1: zeroBz,
+					id2: zeroBz,
+					id3: zeroBz,
+				},
+			},
+			{
+				Prices: map[uint64][]byte{
+					id1: zeroBz,
+					id2: zeroBz,
+					id3: zeroBz,
+				},
+			},
+			{
+				Prices: map[uint64][]byte{
+					id1: zeroBz,
+					id2: zeroBz,
+					id3: zeroBz,
+				},
+			},
+		})
 		s.Require().NoError(err)
 
 		// query for the given currency pair
@@ -382,33 +640,121 @@ func (s *SlinkyIntegrationSuite) TestMultiplePriceFeeds() {
 	})
 
 	s.Run("all oracles running for multiple price feeds, except for one", func() {
-		// stop first node's oracle, and update prices to report
+		// stop first node's oracle, and update Prices to report
 		node := s.chain.Nodes()[0]
 		StopOracle(node)
 
-		oCfg := DefaultOracleConfig()
-		oCfg.Providers = append(oCfg.Providers, oracleservicetypes.ProviderConfig{
+		oracle := GetOracleSideCar(node)
+
+		oracleConfig := DefaultOracleConfig(node)
+
+		oracleConfig.Providers = append(oracleConfig.Providers, oracleconfig.ProviderConfig{
 			Name: "static-mock-provider",
-			TokenNameToMetadata: map[string]types.TokenMetadata{
-				cp2.ToString(): {
-					Symbol: "1141",
-				},
-				cp3.ToString(): {
-					Symbol: "1142",
+			API: oracleconfig.APIConfig{
+				Enabled:    true,
+				Timeout:    250 * time.Millisecond,
+				Interval:   250 * time.Millisecond,
+				MaxQueries: 1,
+				URL:        "http://un-used-url.com",
+				Atomic:     true,
+				Name:       "static-mock-provider",
+			},
+			Market: oracleconfig.MarketConfig{
+				Name: "static-mock-provider",
+				CurrencyPairToMarketConfigs: map[string]oracleconfig.CurrencyPairMarketConfig{
+					cp1.String(): {
+						Ticker:       "1140",
+						CurrencyPair: cp1,
+					},
+					cp2.String(): {
+						Ticker:       "1141",
+						CurrencyPair: cp2,
+					},
 				},
 			},
 		})
-		SetOracleConfig(node, oCfg)
-		RestartOracle(node)
 
-		height, err := s.chain.Height(context.Background())
-		s.Require().NoError(err)
-		// nodes may not be able to extend w/ prices at this height so wait
-		height = height + 2
-		s.Require().NoError(WaitForHeight(s.chain, height, 2*s.blockTime))
+		oracleConfig.Market = oracleconfig.AggregateMarketConfig{
+			Feeds: map[string]oracleconfig.FeedConfig{
+				cp1.String(): {
+					CurrencyPair: cp1,
+				},
+				cp2.String(): {
+					CurrencyPair: cp2,
+				},
+				cp3.String(): {
+					CurrencyPair: cp3,
+				},
+			},
+			AggregatedFeeds: map[string]oracleconfig.AggregateFeedConfig{
+				cp1.String(): {
+					CurrencyPair: cp1,
+					Conversions: []oracleconfig.Conversions{
+						{
+							{
+								CurrencyPair: cp1,
+								Invert:       false,
+							},
+						},
+					},
+				},
+				cp2.String(): {
+					CurrencyPair: cp2,
+					Conversions: []oracleconfig.Conversions{
+						{
+							{
+								CurrencyPair: cp2,
+								Invert:       false,
+							},
+						},
+					},
+				},
+				cp3.String(): {
+					CurrencyPair: cp3,
+					Conversions: []oracleconfig.Conversions{
+						{
+							{
+								CurrencyPair: cp3,
+								Invert:       false,
+							},
+						},
+					},
+				},
+			},
+		}
 
-		// wait for the next update
-		height, err = WaitForOracleUpdate(s.chain, 2*s.blockTime, cp1)
+		SetOracleConfigsOnOracle(oracle, oracleConfig)
+		s.Require().NoError(RestartOracle(node))
+
+		height, err := ExpectVoteExtensions(s.chain, s.blockTime*3, []slinkyabci.OracleVoteExtension{
+			{
+				Prices: map[uint64][]byte{
+					id1: zeroBz,
+					id2: zeroBz,
+				},
+			},
+			{
+				Prices: map[uint64][]byte{
+					id1: zeroBz,
+					id2: zeroBz,
+					id3: zeroBz,
+				},
+			},
+			{
+				Prices: map[uint64][]byte{
+					id1: zeroBz,
+					id2: zeroBz,
+					id3: zeroBz,
+				},
+			},
+			{
+				Prices: map[uint64][]byte{
+					id1: zeroBz,
+					id2: zeroBz,
+					id3: zeroBz,
+				},
+			},
+		})
 		s.Require().NoError(err)
 
 		// query for the given currency pair
@@ -418,4 +764,18 @@ func (s *SlinkyIntegrationSuite) TestMultiplePriceFeeds() {
 			s.Require().Equal(int64(1140+i), resp.Price.Int64())
 		}
 	})
+}
+
+func getIDForCurrencyPair(ctx context.Context, client oracletypes.QueryClient, cp oracletypes.CurrencyPair) (uint64, error) {
+	// query for the given currency pair
+	resp, err := client.GetPrice(ctx, &oracletypes.GetPriceRequest{
+		CurrencyPairSelector: &oracletypes.GetPriceRequest_CurrencyPair{
+			CurrencyPair: &cp,
+		},
+	})
+	if err != nil {
+		return 0, err
+	}
+
+	return resp.Id, nil
 }

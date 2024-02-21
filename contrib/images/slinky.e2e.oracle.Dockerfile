@@ -1,16 +1,20 @@
 FROM golang:1.21-bullseye AS builder
 
 WORKDIR /src/slinky
+COPY go.mod .
+
+RUN go mod download
+
 COPY . .
-RUN make tidy
+
 RUN make build
 
 FROM ubuntu:rolling
 EXPOSE 8080
-EXPOSE 8081
+EXPOSE 8001
 
 COPY --from=builder /src/slinky/build/* /usr/local/bin/
 RUN apt-get update && apt-get install ca-certificates -y
 
 WORKDIR /usr/local/bin/
-ENTRYPOINT ["oracle", "-config", "/oracle/config.toml", "-host", "0.0.0.0", "-port", "8080"]
+ENTRYPOINT ["oracle", "--oracle-config-path", "/oracle/config.toml", "-host", "0.0.0.0", "-port", "8080"]

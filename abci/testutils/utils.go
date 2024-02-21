@@ -2,22 +2,29 @@ package testutils
 
 import (
 	"testing"
-	"time"
 
 	storetypes "cosmossdk.io/store/types"
 	cometabci "github.com/cometbft/cometbft/abci/types"
 	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	"github.com/cosmos/cosmos-sdk/runtime"
 	"github.com/cosmos/cosmos-sdk/testutil"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
+
+	compression "github.com/skip-mev/slinky/abci/strategies/codec"
 	"github.com/skip-mev/slinky/abci/ve/types"
 	"github.com/skip-mev/slinky/x/oracle/keeper"
 	oracletypes "github.com/skip-mev/slinky/x/oracle/types"
 )
 
 // CreateTestOracleKeeperWithGenesis creates a test oracle keeper with the given genesis state.
-func CreateTestOracleKeeperWithGenesis(ctx sdk.Context, key storetypes.StoreKey, genesis oracletypes.GenesisState) keeper.Keeper {
+func CreateTestOracleKeeperWithGenesis(ctx sdk.Context, key *storetypes.KVStoreKey, genesis oracletypes.GenesisState) keeper.Keeper {
+	ss := runtime.NewKVStoreService(key)
+	encCfg := moduletestutil.MakeTestEncodingConfig()
+
 	keeper := keeper.NewKeeper(
-		key,
+		ss,
+		encCfg.Codec,
 		sdk.AccAddress([]byte("authority")),
 	)
 
@@ -27,12 +34,12 @@ func CreateTestOracleKeeperWithGenesis(ctx sdk.Context, key storetypes.StoreKey,
 }
 
 // CreateExtendedCommitInfo creates an extended commit info with the given commit info.
-func CreateExtendedCommitInfo(commitInfo []cometabci.ExtendedVoteInfo) (cometabci.ExtendedCommitInfo, []byte, error) {
+func CreateExtendedCommitInfo(commitInfo []cometabci.ExtendedVoteInfo, codec compression.ExtendedCommitCodec) (cometabci.ExtendedCommitInfo, []byte, error) {
 	extendedCommitInfo := cometabci.ExtendedCommitInfo{
 		Votes: commitInfo,
 	}
 
-	bz, err := extendedCommitInfo.Marshal()
+	bz, err := codec.Encode(extendedCommitInfo)
 	if err != nil {
 		return cometabci.ExtendedCommitInfo{}, nil, err
 	}
@@ -43,11 +50,10 @@ func CreateExtendedCommitInfo(commitInfo []cometabci.ExtendedVoteInfo) (cometabc
 // CreateExtendedVoteInfo creates an extended vote info with the given prices, timestamp and height.
 func CreateExtendedVoteInfo(
 	consAddr sdk.ConsAddress,
-	prices map[string]string,
-	timestamp time.Time,
-	height int64,
+	prices map[uint64][]byte,
+	codec compression.VoteExtensionCodec,
 ) (cometabci.ExtendedVoteInfo, error) {
-	ve, err := CreateVoteExtensionBytes(prices, timestamp, height)
+	ve, err := CreateVoteExtensionBytes(prices, codec)
 	if err != nil {
 		return cometabci.ExtendedVoteInfo{}, err
 	}
@@ -77,6 +83,8 @@ func UpdateContextWithVEHeight(ctx sdk.Context, height int64) sdk.Context {
 
 // CreateBaseSDKContextWithKeys creates a base sdk context with the given store key and transient key.
 func CreateBaseSDKContextWithKeys(t *testing.T, storekey storetypes.StoreKey, transientkey *storetypes.TransientStoreKey) sdk.Context {
+	t.Helper()
+
 	testCtx := testutil.DefaultContextWithDB(
 		t,
 		storekey,
@@ -88,6 +96,8 @@ func CreateBaseSDKContextWithKeys(t *testing.T, storekey storetypes.StoreKey, tr
 
 // CreateBaseSDKContext creates a base sdk context with the default store key and transient key.
 func CreateBaseSDKContext(t *testing.T) sdk.Context {
+	t.Helper()
+
 	key := storetypes.NewKVStoreKey(oracletypes.StoreKey)
 
 	testCtx := testutil.DefaultContextWithDB(
@@ -101,12 +111,11 @@ func CreateBaseSDKContext(t *testing.T) sdk.Context {
 
 // CreateVoteExtensionBytes creates a vote extension bytes with the given prices, timestamp and height.
 func CreateVoteExtensionBytes(
-	prices map[string]string,
-	timestamp time.Time,
-	height int64,
+	prices map[uint64][]byte,
+	codec compression.VoteExtensionCodec,
 ) ([]byte, error) {
-	voteExtension := CreateVoteExtension(prices, timestamp, height)
-	voteExtensionBz, err := voteExtension.Marshal()
+	voteExtension := CreateVoteExtension(prices)
+	voteExtensionBz, err := codec.Encode(voteExtension)
 	if err != nil {
 		return nil, err
 	}
@@ -116,13 +125,9 @@ func CreateVoteExtensionBytes(
 
 // CreateVoteExtension creates a vote extension with the given prices, timestamp and height.
 func CreateVoteExtension(
-	prices map[string]string,
-	timestamp time.Time,
-	height int64,
-) *types.OracleVoteExtension {
-	return &types.OracleVoteExtension{
-		Prices:    prices,
-		Timestamp: timestamp,
-		Height:    height,
+	prices map[uint64][]byte,
+) types.OracleVoteExtension {
+	return types.OracleVoteExtension{
+		Prices: prices,
 	}
 }

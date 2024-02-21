@@ -3,6 +3,7 @@ package proposals
 import (
 	cometabci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/skip-mev/slinky/abci/ve"
 )
 
@@ -37,8 +38,13 @@ func (h *ProposalHandler) ValidateExtendedCommitInfo(
 			return err
 		}
 
+		voteExt, err := h.voteExtensionCodec.Decode(vote.VoteExtension)
+		if err != nil {
+			return err
+		}
+
 		// The vote extension are from the previous block.
-		if err := ve.ValidateOracleVoteExtension(vote.VoteExtension, height-1); err != nil {
+		if err := ve.ValidateOracleVoteExtension(ctx, voteExt, h.currencyPairStrategy); err != nil {
 			h.logger.Error(
 				"failed to validate oracle vote extension",
 				"height", height,

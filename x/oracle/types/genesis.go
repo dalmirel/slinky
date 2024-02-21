@@ -10,7 +10,7 @@ import (
 // ValidateBasic validates that the CurrencyPair is valid, and performs any necessary validation on the
 // genesis QuotePrice for the CurrencyPair. This fails if the CurrencyPair is invalid, or if the QuotePrice is nil,
 // but the Nonce is non-nil.
-func (cpg CurrencyPairGenesis) ValidateBasic() error {
+func (cpg *CurrencyPairGenesis) ValidateBasic() error {
 	// validate the CurrencyPair
 	if err := cpg.CurrencyPair.ValidateBasic(); err != nil {
 		return err
@@ -24,25 +24,52 @@ func (cpg CurrencyPairGenesis) ValidateBasic() error {
 	return nil
 }
 
-// NewGenesisState returns a new genesis-state from a set of CurrencyPairGeneses
-func NewGenesisState(cpgs []CurrencyPairGenesis) *GenesisState {
+// NewGenesisState returns a new genesis-state from a set of CurrencyPairGeneses.
+func NewGenesisState(cpgs []CurrencyPairGenesis, nextID uint64) *GenesisState {
 	return &GenesisState{
 		CurrencyPairGenesis: cpgs,
+		NextId:              nextID,
 	}
 }
 
-// DefaultGenesisState returns a default genesis state for the oracle module
+// DefaultGenesisState returns a default genesis state for the oracle module.
 func DefaultGenesisState() *GenesisState {
-	return NewGenesisState(nil)
+	return NewGenesisState(nil, 0)
 }
 
 // Validate validates the currency-pair geneses that the Genesis-State is composed of
-func (gs GenesisState) Validate() error {
+// valid CurrencyPairGeneses, and that no ID for a currency-pair is repeated.
+func (gs *GenesisState) Validate() error {
+	ids := make(map[uint64]struct{})
+	cps := make(map[string]struct{})
 	for _, cpg := range gs.CurrencyPairGenesis {
+		// validate the currency-pair genesis
 		if err := cpg.ValidateBasic(); err != nil {
 			return err
 		}
+
+		// check if the ID > that gs.NextID
+		if cpg.Id >= gs.NextId {
+			return fmt.Errorf("invalid id: %v, must be less than next id: %v", cpg.Id, gs.NextId)
+		}
+
+		// check for a repeated ID
+		if _, ok := ids[cpg.Id]; ok {
+			return fmt.Errorf("repeated id: %v", cpg.Id)
+		}
+
+		// check for repeated currency-pairs
+		if _, ok := cps[cpg.CurrencyPair.String()]; ok {
+			return fmt.Errorf("repeated currency-pair: %v", cpg.CurrencyPair.String())
+		}
+
+		// add the ID to the set of IDs
+		ids[cpg.Id] = struct{}{}
+
+		// add the currency-pair to the set of currency-pairs
+		cps[cpg.CurrencyPair.String()] = struct{}{}
 	}
+
 	return nil
 }
 

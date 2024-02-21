@@ -1,27 +1,26 @@
 package keeper_test
 
 import (
-	"testing"
-
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/stretchr/testify/assert"
+
 	"github.com/skip-mev/slinky/x/oracle/keeper"
 	"github.com/skip-mev/slinky/x/oracle/types"
-	"github.com/stretchr/testify/assert"
 )
 
 func (s *KeeperTestSuite) TestGetAllCurrencyPairs() {
 	qs := keeper.NewQueryServer(s.oracleKeeper)
 
 	// test that an error is returned if no CurrencyPairs have been registered in the module
-	s.T().Run("an error is returned if no CurrencyPairs have been registered in the module", func(t *testing.T) {
+	s.Run("an error is returned if no CurrencyPairs have been registered in the module", func() {
 		// execute query
 		_, err := qs.GetAllCurrencyPairs(s.ctx, nil)
 		assert.Nil(s.T(), err)
 	})
 
 	// test that after CurrencyPairs are registered, all of them are returned from the query
-	s.T().Run("after CurrencyPairs are registered, all of them are returned from the query", func(t *testing.T) {
+	s.Run("after CurrencyPairs are registered, all of them are returned from the query", func() {
 		// insert multiple currency Pairs
 		cp1 := types.CurrencyPair{
 			Base:  "AA",
@@ -42,7 +41,7 @@ func (s *KeeperTestSuite) TestGetAllCurrencyPairs() {
 			CurrencyPairs: []types.CurrencyPair{cp1, cp2, cp3},
 			Authority:     sdk.AccAddress([]byte(moduleAuth)).String(),
 		})
-		assert.Nil(s.T(), err)
+		s.Require().Nil(err)
 
 		// manually insert a new CurrencyPair as well
 		s.oracleKeeper.SetPriceForCurrencyPair(s.ctx, types.CurrencyPair{
@@ -54,12 +53,12 @@ func (s *KeeperTestSuite) TestGetAllCurrencyPairs() {
 
 		// query for pairs
 		res, err := qs.GetAllCurrencyPairs(s.ctx, nil)
-		assert.Nil(s.T(), err)
+		s.Require().Nil(err)
 
 		// assert that currency-pairs are correctly returned
 		for _, cp := range res.CurrencyPairs {
-			_, ok := expectedCurrencyPairs[cp.ToString()]
-			assert.True(t, ok)
+			_, ok := expectedCurrencyPairs[cp.String()]
+			s.Require().True(ok)
 		}
 	})
 }
@@ -76,17 +75,19 @@ func (s *KeeperTestSuite) TestGetPrice() {
 				Price: sdkmath.NewInt(100),
 			},
 			Nonce: 12,
+			Id:    2,
 		},
 		{
 			CurrencyPair: types.CurrencyPair{
 				Base:  "CC",
 				Quote: "BB",
 			},
+			Id: 1,
 		},
 	}
 
 	// init genesis
-	s.oracleKeeper.InitGenesis(s.ctx, *types.NewGenesisState(cpg))
+	s.oracleKeeper.InitGenesis(s.ctx, *types.NewGenesisState(cpg, 3))
 
 	tcs := []struct {
 		name       string
@@ -132,6 +133,7 @@ func (s *KeeperTestSuite) TestGetPrice() {
 			&types.GetPriceResponse{
 				Nonce:    0,
 				Decimals: uint64(8),
+				Id:       1,
 			},
 			true,
 		},
@@ -146,6 +148,7 @@ func (s *KeeperTestSuite) TestGetPrice() {
 					Price: sdkmath.NewInt(100),
 				},
 				Decimals: uint64(18),
+				Id:       2,
 			},
 			true,
 		},
@@ -154,7 +157,7 @@ func (s *KeeperTestSuite) TestGetPrice() {
 	qs := keeper.NewQueryServer(s.oracleKeeper)
 
 	for _, tc := range tcs {
-		s.T().Run(tc.name, func(t *testing.T) {
+		s.Run(tc.name, func() {
 			// get the response + error from the query
 			res, err := qs.GetPrice(s.ctx, tc.req)
 			if !tc.expectPass {
@@ -175,6 +178,9 @@ func (s *KeeperTestSuite) TestGetPrice() {
 
 			// check decimals
 			assert.Equal(s.T(), tc.res.Decimals, res.Decimals)
+
+			// check id
+			assert.Equal(s.T(), tc.res.Id, res.Id)
 		})
 	}
 }

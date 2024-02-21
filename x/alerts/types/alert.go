@@ -6,22 +6,23 @@ import (
 
 	"github.com/cometbft/cometbft/crypto/tmhash"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	oracledata "github.com/skip-mev/slinky/x/oracle/types"
 )
 
 const AlertUIDLen = 20
 
-// ConclusionStatus wraps the status of an alert
+// ConclusionStatus wraps the status of an alert.
 type ConclusionStatus uint64
 
 const (
-	// Unconcluded is the default status of an alert (no conclusion has been submitted for it yet)
+	// Unconcluded is the default status of an alert (no conclusion has been submitted for it yet).
 	Unconcluded ConclusionStatus = iota
-	// Concluded is the status of an alert that has been concluded
+	// Concluded is the status of an alert that has been concluded.
 	Concluded
 )
 
-// String implements fmt.Stringer
+// String implements fmt.Stringer.
 func (cs ConclusionStatus) String() string {
 	switch cs {
 	case Unconcluded:
@@ -64,7 +65,7 @@ func (a Alert) ValidateBasic() error {
 func (a Alert) UID() []byte {
 	heightBz := []byte(fmt.Sprintf("%d", a.Height))
 	signerBz := []byte(a.Signer)
-	currencyPairBz := []byte(a.CurrencyPair.ToString())
+	currencyPairBz := []byte(a.CurrencyPair.String())
 	return tmhash.SumTruncated(append(append(heightBz, signerBz...), currencyPairBz...))
 }
 

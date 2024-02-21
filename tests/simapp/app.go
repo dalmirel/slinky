@@ -9,6 +9,7 @@ import (
 
 	"cosmossdk.io/log"
 	dbm "github.com/cosmos/cosmos-db"
+	"go.uber.org/zap"
 
 	"cosmossdk.io/depinject"
 	storetypes "cosmossdk.io/store/types"
@@ -61,15 +62,18 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 
-	"github.com/skip-mev/slinky/abci/preblock"
-	"github.com/skip-mev/slinky/abci/preblock/math"
+	oraclepreblock "github.com/skip-mev/slinky/abci/preblock/oracle"
 	"github.com/skip-mev/slinky/abci/proposals"
+	compression "github.com/skip-mev/slinky/abci/strategies/codec"
+	"github.com/skip-mev/slinky/abci/strategies/currencypair"
 	"github.com/skip-mev/slinky/abci/ve"
 	oracleconfig "github.com/skip-mev/slinky/oracle/config"
-	oraclemetrics "github.com/skip-mev/slinky/oracle/metrics"
-	oracleservice "github.com/skip-mev/slinky/service"
-	oracleclient "github.com/skip-mev/slinky/service/client"
+	"github.com/skip-mev/slinky/pkg/math/voteweighted"
+	oracleclient "github.com/skip-mev/slinky/service/clients/oracle"
 	servicemetrics "github.com/skip-mev/slinky/service/metrics"
+	promserver "github.com/skip-mev/slinky/service/servers/prometheus"
+	"github.com/skip-mev/slinky/x/alerts"
+	alertskeeper "github.com/skip-mev/slinky/x/alerts/keeper"
 	"github.com/skip-mev/slinky/x/incentives"
 	incentiveskeeper "github.com/skip-mev/slinky/x/incentives/keeper"
 	"github.com/skip-mev/slinky/x/oracle"
@@ -83,7 +87,7 @@ const (
 var (
 	BondDenom = sdk.DefaultBondDenom
 
-	// DefaultNodeHome default home directories for the application daemon
+	// DefaultNodeHome default home directories for the application daemon.
 	DefaultNodeHome string
 
 	// ModuleBasics defines the module BasicManager is in charge of setting up basic,
@@ -111,6 +115,7 @@ var (
 		consensus.AppModuleBasic{},
 		oracle.AppModuleBasic{},
 		incentives.AppModuleBasic{},
+		alerts.AppModuleBasic{},
 	)
 )
 
@@ -146,13 +151,14 @@ type SimApp struct {
 	CircuitBreakerKeeper  circuitkeeper.Keeper
 	OracleKeeper          oraclekeeper.Keeper
 	IncentivesKeeper      incentiveskeeper.Keeper
+	AlertsKeeper          alertskeeper.Keeper
 
 	// simulation manager
 	sm *module.SimulationManager
 
 	// processes
-	oraclePrometheusServer *oraclemetrics.PrometheusServer
-	oracleService          oracleservice.OracleService
+	oraclePrometheusServer *promserver.PrometheusServer
+	oracleClient           oracleclient.OracleClient
 }
 
 func init() {
@@ -234,6 +240,7 @@ func NewSimApp(
 		&app.CircuitBreakerKeeper,
 		&app.OracleKeeper,
 		&app.IncentivesKeeper,
+		&app.AlertsKeeper,
 	); err != nil {
 		panic(err)
 	}
@@ -266,28 +273,69 @@ func NewSimApp(
 
 	app.App = appBuilder.Build(db, traceStore, baseAppOptions...)
 
-	// read oracle config from app-opts, and construct oracle service
+	//----------------------------------------------------------------------//
+	//						  ORACLE INITIALIZATION 						//
+	//----------------------------------------------------------------------//
+
+	// Read general config from app-opts, and construct oracle service.
 	cfg, err := oracleconfig.ReadConfigFromAppOpts(appOpts)
 	if err != nil {
 		panic(err)
 	}
 
-	metrics, consAddress, err := servicemetrics.NewServiceMetricsFromConfig(cfg.Metrics.AppMetrics)
+	// If app level instrumentation is enabled, then wrap the oracle service with a metrics client
+	// to get metrics on the oracle service (for ABCI++). This will allow the instrumentation to track
+	// latency in VerifyVoteExtension requests and more.
+	oracleMetrics, err := servicemetrics.NewMetricsFromConfig(cfg, app.ChainID())
 	if err != nil {
 		panic(err)
 	}
 
-	app.oracleService, err = oracleclient.NewOracleServiceFromConfig(*cfg, metrics, app.Logger())
+	// Create the oracle service.
+	app.oracleClient, err = oracleclient.NewClientFromConfig(
+		cfg,
+		app.Logger().With("client", "oracle"),
+		oracleMetrics,
+	)
 	if err != nil {
 		panic(err)
 	}
-	// start the oracle service
-	go app.oracleService.Start(context.Background())
+
+	// If the oracle is enabled, then create the oracle service and connect to it.
+	// Start the prometheus server if required
+	if cfg.MetricsEnabled {
+		logger, err := zap.NewProduction()
+		if err != nil {
+			panic(err)
+		}
+
+		app.oraclePrometheusServer, err = promserver.NewPrometheusServer(cfg.PrometheusServerAddress, logger)
+		if err != nil {
+			panic(err)
+		}
+
+		// start the prometheus server
+		go app.oraclePrometheusServer.Start()
+	}
+
+	// Connect to the oracle service (default timeout of 5 seconds).
+	go func() {
+		if err := app.oracleClient.Start(context.Background()); err != nil {
+			app.Logger().Error("failed to start oracle client", "err", err)
+			panic(err)
+		}
+
+		app.Logger().Info("started oracle client", "address", cfg.OracleAddress)
+	}()
 
 	// register streaming services
 	if err := app.RegisterStreamingServices(appOpts, app.kvStoreKeys()); err != nil {
 		panic(err)
 	}
+
+	// -------------------------------------------------------------------- //
+	// 						  APP INITIALIZATION   	   					    //
+	// -------------------------------------------------------------------- //
 
 	// Create the proposal handler that will be used to fill proposals with
 	// transactions and oracle data.
@@ -296,26 +344,44 @@ func NewSimApp(
 		baseapp.NoOpPrepareProposal(),
 		baseapp.NoOpProcessProposal(),
 		ve.NewDefaultValidateVoteExtensionsFn(app.ChainID(), app.StakingKeeper),
+		compression.NewCompressionVoteExtensionCodec(
+			compression.NewDefaultVoteExtensionCodec(),
+			compression.NewZLibCompressor(),
+		),
+		compression.NewCompressionExtendedCommitCodec(
+			compression.NewDefaultExtendedCommitCodec(),
+			compression.NewZStdCompressor(),
+		),
+		currencypair.NewDeltaCurrencyPairStrategy(app.OracleKeeper),
+		oracleMetrics,
 	)
 	app.SetPrepareProposal(proposalHandler.PrepareProposalHandler())
 	app.SetProcessProposal(proposalHandler.ProcessProposalHandler())
 
 	// Create the aggregation function that will be used to aggregate oracle data
 	// from each validator.
-	aggregatorFn := math.VoteWeightedMedianFromContext(
+	aggregatorFn := voteweighted.MedianFromContext(
 		app.Logger(),
 		app.StakingKeeper,
-		math.DefaultPowerThreshold,
+		voteweighted.DefaultPowerThreshold,
 	)
 
 	// Create the pre-finalize block hook that will be used to apply oracle data
 	// to the state before any transactions are executed (in finalize block).
-	oraclePreBlockHandler := preblock.NewOraclePreBlockHandler(
+	oraclePreBlockHandler := oraclepreblock.NewOraclePreBlockHandler(
 		app.Logger(),
 		aggregatorFn,
 		app.OracleKeeper,
-		consAddress,
-		metrics,
+		oracleMetrics,
+		currencypair.NewDeltaCurrencyPairStrategy(app.OracleKeeper),
+		compression.NewCompressionVoteExtensionCodec(
+			compression.NewDefaultVoteExtensionCodec(),
+			compression.NewZLibCompressor(),
+		),
+		compression.NewCompressionExtendedCommitCodec(
+			compression.NewDefaultExtendedCommitCodec(),
+			compression.NewZStdCompressor(),
+		),
 	)
 
 	app.SetPreBlocker(oraclePreBlockHandler.PreBlocker())
@@ -324,22 +390,18 @@ func NewSimApp(
 	// vote extensions (i.e. oracle data).
 	voteExtensionsHandler := ve.NewVoteExtensionHandler(
 		app.Logger(),
-		app.oracleService,
+		app.oracleClient,
 		time.Second,
+		currencypair.NewDeltaCurrencyPairStrategy(app.OracleKeeper),
+		compression.NewCompressionVoteExtensionCodec(
+			compression.NewDefaultVoteExtensionCodec(),
+			compression.NewZLibCompressor(),
+		),
+		oraclePreBlockHandler.PreBlocker(),
+		oracleMetrics,
 	)
 	app.SetExtendVoteHandler(voteExtensionsHandler.ExtendVoteHandler())
 	app.SetVerifyVoteExtensionHandler(voteExtensionsHandler.VerifyVoteExtensionHandler())
-
-	// start the prometheus server if required
-	if cfg.Metrics.AppMetrics.Enabled || cfg.Metrics.OracleMetrics.Enabled {
-		app.oraclePrometheusServer, err = oraclemetrics.NewPrometheusServer(cfg.Metrics.PrometheusServerAddress, app.Logger())
-		if err != nil {
-			panic(err)
-		}
-
-		// start the prometheus server
-		go app.oraclePrometheusServer.Start()
-	}
 
 	/****  Module Options ****/
 
@@ -381,15 +443,15 @@ func NewSimApp(
 }
 
 // Close closes the underlying baseapp, the oracle service, and the prometheus server if required.
-// This method blocks on the closure of both the prometheus server, and the oracle-service
+// This method blocks on the closure of both the prometheus server, and the oracle-service.
 func (app *SimApp) Close() error {
 	if err := app.App.Close(); err != nil {
 		return err
 	}
 
 	// close the oracle service
-	if app.oracleService != nil {
-		app.oracleService.Stop(context.Background()) // TODO(): is this the right context?
+	if app.oracleClient != nil {
+		app.oracleClient.Stop()
 	}
 
 	// close the prometheus server if necessary
@@ -400,7 +462,7 @@ func (app *SimApp) Close() error {
 	return nil
 }
 
-// Name returns the name of the App
+// Name returns the name of the App.
 func (app *SimApp) Name() string { return app.BaseApp.Name() }
 
 // LegacyAmino returns SimApp's amino codec.
@@ -424,7 +486,7 @@ func (app *SimApp) InterfaceRegistry() codectypes.InterfaceRegistry {
 	return app.interfaceRegistry
 }
 
-// TxConfig returns SimApp's TxConfig
+// TxConfig returns SimApp's TxConfig.
 func (app *SimApp) TxConfig() client.TxConfig {
 	return app.txConfig
 }
@@ -460,7 +522,7 @@ func (app *SimApp) GetSubspace(moduleName string) paramstypes.Subspace {
 	return subspace
 }
 
-// SimulationManager implements the SimulationApp interface
+// SimulationManager implements the SimulationApp interface.
 func (app *SimApp) SimulationManager() *module.SimulationManager {
 	return app.sm
 }

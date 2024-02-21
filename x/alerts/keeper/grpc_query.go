@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/skip-mev/slinky/x/alerts/types"
 )
 
@@ -18,7 +19,7 @@ func NewQueryServer(k Keeper) types.QueryServer {
 }
 
 // Alerts returns all Alerts that match the provided alert status, if no alert-status is given, all alerts
-// in module state will be returned
+// in module state will be returned.
 func (q queryServerImpl) Alerts(srvCtx context.Context, req *types.AlertsRequest) (*types.AlertsResponse, error) {
 	// if the request is nil, error
 	if req == nil {
@@ -59,7 +60,7 @@ func alertWithStatusToAlerts(as []types.AlertWithStatus) []types.Alert {
 	return alerts
 }
 
-// Params returns the current module params for x/alerts
+// Params returns the current module params for x/alerts.
 func (q queryServerImpl) Params(srvCtx context.Context, req *types.ParamsRequest) (*types.ParamsResponse, error) {
 	// if the request is nil, error
 	if req == nil {

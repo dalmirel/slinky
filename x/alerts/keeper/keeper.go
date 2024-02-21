@@ -8,6 +8,7 @@ import (
 	"cosmossdk.io/log"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/skip-mev/slinky/x/alerts/types"
 	"github.com/skip-mev/slinky/x/alerts/types/strategies"
 )
@@ -74,28 +75,28 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 }
 
 // GetAlert returns the alert for the given UID. This method returns false if no alert exists, and true
-// if an alert exists
+// if an alert exists.
 func (k *Keeper) GetAlert(ctx sdk.Context, alert types.Alert) (types.AlertWithStatus, bool) {
-	alertWithStatus, err := k.alerts.Get(ctx, collections.Join(alert.Height, alert.CurrencyPair.ToString()))
+	alertWithStatus, err := k.alerts.Get(ctx, collections.Join(alert.Height, alert.CurrencyPair.String()))
 	if err != nil {
 		return types.AlertWithStatus{}, false
 	}
 	return alertWithStatus, true
 }
 
-// SetAlert sets the alert to state, under the (height, currency-pair) key
+// SetAlert sets the alert to state, under the (height, currency-pair) key.
 func (k *Keeper) SetAlert(ctx sdk.Context, alert types.AlertWithStatus) error {
-	return k.alerts.Set(ctx, collections.Join(alert.Alert.Height, alert.Alert.CurrencyPair.ToString()), alert)
+	return k.alerts.Set(ctx, collections.Join(alert.Alert.Height, alert.Alert.CurrencyPair.String()), alert)
 }
 
-// RemoveAlert removes the alert from state, under the (height, currency-pair) key
+// RemoveAlert removes the alert from state, under the (height, currency-pair) key.
 func (k *Keeper) RemoveAlert(ctx sdk.Context, alert types.Alert) error {
-	return k.alerts.Remove(ctx, collections.Join(alert.Height, alert.CurrencyPair.ToString()))
+	return k.alerts.Remove(ctx, collections.Join(alert.Height, alert.CurrencyPair.String()))
 }
 
 // GetAllAlerts returns all alerts in state, it does so via an iterator over the alerts table.
 func (k *Keeper) GetAllAlerts(ctx sdk.Context) ([]types.AlertWithStatus, error) {
-	return k.GetAllAlertsWithCondition(ctx, func(alert types.AlertWithStatus) bool { return true })
+	return k.GetAllAlertsWithCondition(ctx, func(_ types.AlertWithStatus) bool { return true })
 }
 
 // GetAllAlertsWithCondition returns all alerts for which the Condition evaluates to true.
@@ -126,12 +127,12 @@ func (k Keeper) GetAllAlertsWithCondition(ctx sdk.Context, c Condition) ([]types
 	return alerts, nil
 }
 
-// SetParams sets the params to state
+// SetParams sets the params to state.
 func (k *Keeper) SetParams(ctx sdk.Context, params types.Params) error {
 	return k.params.Set(ctx, params)
 }
 
-// GetParams returns the params from state
+// GetParams returns the params from state.
 func (k *Keeper) GetParams(ctx sdk.Context) types.Params {
 	params, err := k.params.Get(ctx)
 	if err != nil {

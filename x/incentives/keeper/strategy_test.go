@@ -5,15 +5,16 @@ import (
 
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/stretchr/testify/mock"
+
 	"github.com/skip-mev/slinky/x/incentives/keeper"
 	"github.com/skip-mev/slinky/x/incentives/types"
 	"github.com/skip-mev/slinky/x/incentives/types/examples/badprice"
 	"github.com/skip-mev/slinky/x/incentives/types/examples/goodprice"
-	"github.com/stretchr/testify/mock"
 )
 
 func (s *KeeperTestSuite) TestExecuteByIncentiveType() {
-	deleteCB := func(incentive types.Incentive) (types.Incentive, error) {
+	deleteCB := func(_ types.Incentive) (types.Incentive, error) {
 		return nil, nil
 	}
 
@@ -343,7 +344,7 @@ func (s *KeeperTestSuite) TestExecuteStrategies() {
 		s.Require().Len(incentives, 0)
 	})
 
-	updateBadPriceStrategy := func(ctx sdk.Context, incentive types.Incentive) (types.Incentive, error) {
+	updateBadPriceStrategy := func(_ sdk.Context, incentive types.Incentive) (types.Incentive, error) {
 		badPrice, ok := incentive.(*badprice.BadPriceIncentive)
 		s.Require().True(ok)
 
@@ -401,7 +402,7 @@ func (s *KeeperTestSuite) TestExecuteStrategies() {
 		s.Require().Equal(math.NewInt(300).String(), i.Amount)
 	})
 
-	updateGoodPriceStrategy := func(ctx sdk.Context, incentive types.Incentive) (types.Incentive, error) {
+	updateGoodPriceStrategy := func(_ sdk.Context, incentive types.Incentive) (types.Incentive, error) {
 		goodPrice, ok := incentive.(*goodprice.GoodPriceIncentive)
 		s.Require().True(ok)
 

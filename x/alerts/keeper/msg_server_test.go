@@ -1,9 +1,11 @@
 package keeper_test
 
 import (
-	"bytes"
 	"fmt"
+	"math/big"
 	"time"
+
+	"github.com/stretchr/testify/mock"
 
 	"cosmossdk.io/math"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
@@ -11,8 +13,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/golang/mock/gomock"
-	"github.com/holiman/uint256"
+
 	slinkyabci "github.com/skip-mev/slinky/abci/ve/types"
 	"github.com/skip-mev/slinky/x/alerts/keeper"
 	"github.com/skip-mev/slinky/x/alerts/types"
@@ -20,67 +21,6 @@ import (
 	incentivetypes "github.com/skip-mev/slinky/x/incentives/types"
 	oracletypes "github.com/skip-mev/slinky/x/oracle/types"
 )
-
-type incentivesMatcher struct {
-	incentives []*strategies.ValidatorAlertIncentive
-}
-
-func (im *incentivesMatcher) Matches(x interface{}) bool {
-	// cast x to array of ValidatorAlertIncentive
-	incentives, ok := x.([]incentivetypes.Incentive)
-	if !ok {
-		return false
-	}
-
-	// check that the length is the same
-	if len(incentives) != len(im.incentives) {
-		return false
-	}
-
-	// check that the values are the same
-	for i, incentive := range incentives {
-		// cast to ValidatorAlertIncentive
-		validatorIncentive, ok := incentive.(*strategies.ValidatorAlertIncentive)
-		if !ok {
-			return false
-		}
-
-		// check that the values are the same
-		if !incentiveEqual(validatorIncentive, im.incentives[i]) {
-			return false
-		}
-	}
-	return true
-}
-
-func incentiveEqual(got, exp *strategies.ValidatorAlertIncentive) bool {
-	if got.AlertHeight != exp.AlertHeight {
-		return false
-	}
-
-	if got.AlertSigner != exp.AlertSigner {
-		return false
-	}
-
-	if !bytes.Equal(got.Validator.Address, exp.Validator.Address) {
-		return false
-	}
-
-	if got.Validator.Power != exp.Validator.Power {
-		return false
-	}
-	return true
-}
-
-func (im *incentivesMatcher) String() string {
-	return fmt.Sprintf("is equal to %v", im.incentives)
-}
-
-func NewIncentivesMatcher(incentives []*strategies.ValidatorAlertIncentive) gomock.Matcher {
-	return &incentivesMatcher{
-		incentives: incentives,
-	}
-}
 
 func (s *KeeperTestSuite) TestMsgAlert() {
 	type testCase struct {
@@ -98,13 +38,13 @@ func (s *KeeperTestSuite) TestMsgAlert() {
 	testCases := []testCase{
 		{
 			name:  "nil message - fail",
-			setup: func(ctx sdk.Context) {},
+			setup: func(_ sdk.Context) {},
 			msg:   nil,
 			valid: false,
 		},
 		{
 			name:  "invalid message - fail",
-			setup: func(ctx sdk.Context) {},
+			setup: func(_ sdk.Context) {},
 			msg: &types.MsgAlert{
 				Alert: types.Alert{
 					Height:       1,
@@ -117,11 +57,12 @@ func (s *KeeperTestSuite) TestMsgAlert() {
 		{
 			name: "alerts disabled - fail",
 			setup: func(ctx sdk.Context) {
-				s.alertKeeper.SetParams(ctx, types.Params{
+				err := s.alertKeeper.SetParams(ctx, types.Params{
 					AlertParams: types.AlertParams{
 						Enabled: false,
 					},
 				})
+				s.Require().NoError(err)
 			},
 			msg: &types.MsgAlert{
 				Alert: types.NewAlert(1, sdk.AccAddress("abc"), oracletypes.NewCurrencyPair("base", "quote")),
@@ -181,8 +122,8 @@ func (s *KeeperTestSuite) TestMsgAlert() {
 					},
 				}))
 
-				// expect a failed response from the oracle keeper
-				s.ok.EXPECT().GetNonceForCurrencyPair(gomock.Any(), oracletypes.NewCurrencyPair("BTC", "USD")).Return(uint64(0), fmt.Errorf("oracle error"))
+				// expect a failed response from the oracle keeper (no currency pair)
+				s.ok.On("HasCurrencyPair", mock.Anything, oracletypes.NewCurrencyPair("BTC", "USD")).Return(false).Once()
 			},
 			msg: &types.MsgAlert{
 				Alert: types.NewAlert(8, sdk.AccAddress("abc"), oracletypes.NewCurrencyPair("BTC", "USD")),
@@ -202,15 +143,15 @@ func (s *KeeperTestSuite) TestMsgAlert() {
 				}))
 
 				// expect a correct response from the oracle keeper
-				s.ok.EXPECT().GetNonceForCurrencyPair(gomock.Any(), oracletypes.NewCurrencyPair("BTC", "USD")).Return(uint64(0), nil)
+				s.ok.On("HasCurrencyPair", mock.Anything, oracletypes.NewCurrencyPair("BTC", "USD")).Return(true).Once()
 
 				// expect a failed response from the bank keeper
-				s.bk.EXPECT().SendCoinsFromAccountToModule(
-					gomock.Any(),
+				s.bk.On("SendCoinsFromAccountToModule",
+					mock.Anything,
 					sdk.AccAddress("abc"),
 					types.ModuleName,
-					CoinsMatcher(sdk.NewCoins(s.alertKeeper.GetParams(s.ctx).AlertParams.BondAmount)),
-				).Return(fmt.Errorf("bank error"))
+					sdk.NewCoins(s.alertKeeper.GetParams(s.ctx).AlertParams.BondAmount),
+				).Return(fmt.Errorf("bank error")).Once()
 			},
 			msg: &types.MsgAlert{
 				Alert: types.NewAlert(8, sdk.AccAddress("abc"), oracletypes.NewCurrencyPair("BTC", "USD")),
@@ -233,18 +174,18 @@ func (s *KeeperTestSuite) TestMsgAlert() {
 				}))
 
 				// expect a correct response from the oracle keeper
-				s.ok.EXPECT().GetNonceForCurrencyPair(
-					gomock.Any(),
+				s.ok.On("HasCurrencyPair",
+					mock.Anything,
 					oracletypes.NewCurrencyPair("BTC", "USD"),
-				).Return(uint64(0), nil)
+				).Return(true).Once()
 
 				// expect a correct response from the bank keeper
-				s.bk.EXPECT().SendCoinsFromAccountToModule(
-					gomock.Any(),
+				s.bk.On("SendCoinsFromAccountToModule",
+					mock.Anything,
 					sdk.AccAddress("abc"),
 					types.ModuleName,
-					CoinsMatcher(sdk.NewCoins(s.alertKeeper.GetParams(s.ctx).AlertParams.BondAmount)),
-				).Return(nil)
+					sdk.NewCoins(s.alertKeeper.GetParams(s.ctx).AlertParams.BondAmount),
+				).Return(nil).Once()
 			},
 			msg: &types.MsgAlert{
 				Alert: validAlert,
@@ -253,12 +194,11 @@ func (s *KeeperTestSuite) TestMsgAlert() {
 		},
 	}
 
-	ms := keeper.NewMsgServer(*s.alertKeeper)
-
 	for _, tc := range testCases {
 		s.Run(tc.name, func() {
 			// perform setup for test-case
 			tc.setup(s.ctx)
+			ms := keeper.NewMsgServer(*s.alertKeeper)
 
 			// run the message server
 			_, err := ms.Alert(s.ctx, tc.msg)
@@ -296,8 +236,8 @@ func (s *KeeperTestSuite) TestConclusion() {
 		ExtendedCommitInfo: cmtabci.ExtendedCommitInfo{},
 		Alert:              alert,
 		PriceBound: types.PriceBound{
-			High: uint256.NewInt(1).String(),
-			Low:  uint256.NewInt(0).String(),
+			High: big.NewInt(1).String(),
+			Low:  big.NewInt(0).String(),
 		},
 		Signatures: make([]types.Signature, 0),
 		Status:     false,
@@ -338,16 +278,16 @@ func (s *KeeperTestSuite) TestConclusion() {
 		_, err := msgServer.Conclusion(ctx, msg)
 
 		s.Require().Error(err)
-		s.Require().Equal(fmt.Errorf("message validation failed: %v", msg.ValidateBasic()).Error(), err.Error())
+		s.Require().Equal(fmt.Errorf("message validation failed: %w", msg.ValidateBasic()).Error(), err.Error())
 	})
 
 	s.Run("if alerts are not enabled", func() {
 		// set Alerts as disabled in Params
-		s.alertKeeper.SetParams(ctx, types.Params{
+		s.Require().NoError(s.alertKeeper.SetParams(ctx, types.Params{
 			AlertParams: types.AlertParams{
 				Enabled: false,
 			},
-		})
+		}))
 
 		// msg should pass validate basic
 		msg := &types.MsgConclusion{
@@ -388,7 +328,7 @@ func (s *KeeperTestSuite) TestConclusion() {
 		_, err = msgServer.Conclusion(ctx, msg)
 		s.Require().Error(err)
 
-		s.Require().Equal(fmt.Errorf("failed to verify conclusion: %v", conclusion.Verify(&types.MultiSigConclusionVerificationParams{
+		s.Require().Equal(fmt.Errorf("failed to verify conclusion: %w", conclusion.Verify(&types.MultiSigConclusionVerificationParams{
 			Signers: []*codectypes.Any{pkany},
 		})).Error(), err.Error())
 	})
@@ -468,10 +408,10 @@ func (s *KeeperTestSuite) TestConclusion() {
 			),
 		))
 
-		s.bk.EXPECT().BurnCoins(
-			gomock.Any(),
+		s.bk.On("BurnCoins",
+			mock.Anything,
 			types.ModuleName,
-			CoinsMatcher(sdk.NewCoins(s.alertKeeper.GetParams(s.ctx).AlertParams.BondAmount)),
+			sdk.NewCoins(s.alertKeeper.GetParams(s.ctx).AlertParams.BondAmount),
 		).Return(nil)
 
 		// msg should pass validate basic
@@ -513,28 +453,28 @@ func (s *KeeperTestSuite) TestConclusion() {
 		))
 
 		pb := types.PriceBound{
-			High: uint256.NewInt(100).String(),
-			Low:  uint256.NewInt(90).String(),
+			High: big.NewInt(100).String(),
+			Low:  big.NewInt(90).String(),
 		}
 
 		// create 3 validators
 		val1 := cmtabci.Validator{
-			Address: sdk.ConsAddress([]byte("val1")),
+			Address: sdk.ConsAddress("val1"),
 			Power:   10,
 		}
 		val2 := cmtabci.Validator{
-			Address: sdk.ConsAddress([]byte("val2")),
+			Address: sdk.ConsAddress("val2"),
 			Power:   10,
 		}
 		val3 := cmtabci.Validator{
-			Address: sdk.ConsAddress([]byte("val3")),
+			Address: sdk.ConsAddress("val3"),
 			Power:   10,
 		}
 
 		// val1 is not within the price-bound
 		val1VE := slinkyabci.OracleVoteExtension{
-			Prices: map[string]string{
-				"BTC/USD": uint256.NewInt(101).String(),
+			Prices: map[uint64][]byte{
+				0: big.NewInt(101).Bytes(),
 			},
 		}
 		val1VEbz, err := val1VE.Marshal()
@@ -542,8 +482,8 @@ func (s *KeeperTestSuite) TestConclusion() {
 
 		// val2 is within the price-bound
 		val2VE := slinkyabci.OracleVoteExtension{
-			Prices: map[string]string{
-				"BTC/USD": uint256.NewInt(99).String(),
+			Prices: map[uint64][]byte{
+				0: big.NewInt(99).Bytes(),
 			},
 		}
 		val2VEbz, err := val2VE.Marshal()
@@ -551,8 +491,8 @@ func (s *KeeperTestSuite) TestConclusion() {
 
 		// val3 is not within the price-bound
 		val3VE := slinkyabci.OracleVoteExtension{
-			Prices: map[string]string{
-				"BTC/USD": uint256.NewInt(89).String(),
+			Prices: map[uint64][]byte{
+				0: big.NewInt(89).Bytes(),
 			},
 		}
 		val3VEbz, err := val3VE.Marshal()
@@ -583,6 +523,7 @@ func (s *KeeperTestSuite) TestConclusion() {
 			Alert:              alert,
 			Signatures:         make([]types.Signature, 0),
 			Status:             true,
+			CurrencyPairID:     0,
 		}
 		signBz, err := conclusion.SignBytes()
 		s.Require().NoError(err)
@@ -600,30 +541,28 @@ func (s *KeeperTestSuite) TestConclusion() {
 		conclusionAny, err := codectypes.NewAnyWithValue(&conclusion)
 		s.Require().NoError(err)
 
-		s.bk.EXPECT().SendCoinsFromModuleToAccount(
-			gomock.Any(),
+		s.bk.On("SendCoinsFromModuleToAccount",
+			mock.Anything,
 			types.ModuleName,
 			sdk.AccAddress("cosmos1"),
-			CoinsMatcher(sdk.NewCoins(s.alertKeeper.GetParams(s.ctx).AlertParams.BondAmount)),
+			sdk.NewCoins(s.alertKeeper.GetParams(s.ctx).AlertParams.BondAmount),
 		).Return(nil)
 
-		s.ik.EXPECT().AddIncentives(
-			gomock.Any(),
-			NewIncentivesMatcher(
-				[]*strategies.ValidatorAlertIncentive{
-					{
-						Validator:   val1,
-						AlertSigner: sdk.AccAddress("cosmos1").String(),
-						AlertHeight: uint64(1),
-					},
-					{
-						Validator:   val3,
-						AlertSigner: sdk.AccAddress("cosmos1").String(),
-						AlertHeight: uint64(1),
-					},
+		s.ik.On("AddIncentives",
+			mock.Anything,
+			[]incentivetypes.Incentive{
+				&strategies.ValidatorAlertIncentive{
+					Validator:   val1,
+					AlertSigner: sdk.AccAddress("cosmos1").String(),
+					AlertHeight: uint64(1),
 				},
-			),
-		)
+				&strategies.ValidatorAlertIncentive{
+					Validator:   val3,
+					AlertSigner: sdk.AccAddress("cosmos1").String(),
+					AlertHeight: uint64(1),
+				},
+			},
+		).Return(nil)
 
 		// msg should pass validate basic
 		msg := &types.MsgConclusion{
@@ -667,7 +606,7 @@ func (s *KeeperTestSuite) TestUpdateParams() {
 			&types.MsgUpdateParams{
 				Authority: "invalid",
 			},
-			fmt.Errorf("message validation failed: %v", types.MsgUpdateParams{
+			fmt.Errorf("message validation failed: %w", types.MsgUpdateParams{
 				Authority: "invalid",
 			}.ValidateBasic()),
 		},
@@ -704,7 +643,7 @@ func (s *KeeperTestSuite) TestUpdateParams() {
 
 	for _, tc := range cases {
 		params := types.DefaultParams("denom", nil)
-		s.alertKeeper.SetParams(s.ctx, params)
+		s.Require().NoError(s.alertKeeper.SetParams(s.ctx, params))
 		_, err := msgServer.UpdateParams(s.ctx, tc.msg)
 		if tc.expectErr == nil {
 			s.Require().NoError(err)

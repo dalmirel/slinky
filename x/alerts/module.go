@@ -17,12 +17,13 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
+	"github.com/spf13/cobra"
+
 	alertsmodulev1 "github.com/skip-mev/slinky/api/slinky/alerts/module/v1"
 	alertclient "github.com/skip-mev/slinky/x/alerts/client"
 	"github.com/skip-mev/slinky/x/alerts/keeper"
 	"github.com/skip-mev/slinky/x/alerts/types"
 	"github.com/skip-mev/slinky/x/alerts/types/strategies"
-	"github.com/spf13/cobra"
 )
 
 // ConsensusVersion is the x/alerts module's current version, as modules integrate and
@@ -30,10 +31,10 @@ import (
 const ConsensusVersion = 1
 
 var (
-	_ module.AppModule       = AppModule{}
-	_ appmodule.AppModule    = AppModule{}
-	_ module.HasABCIEndblock = AppModule{}
-	_ module.AppModuleBasic  = AppModuleBasic{}
+	_ module.AppModuleBasic = AppModule{}
+	_ module.HasServices    = AppModule{}
+
+	_ appmodule.AppModule = AppModule{}
 )
 
 // AppModuleBasic defines the base interface that the x/alerts module exposes to the
@@ -133,7 +134,7 @@ func (AppModule) IsOnePerModuleType() {}
 // ConsensusVersion implements AppModule/ConsensusVersion.
 func (AppModule) ConsensusVersion() uint64 { return ConsensusVersion }
 
-// RegisterServices registers the module's services with the app's module configurator
+// RegisterServices registers the module's services with the app's module configurator.
 func (am AppModule) RegisterServices(cfc module.Configurator) {
 	// Register the query service.
 	types.RegisterQueryServer(cfc.QueryServer(), keeper.NewQueryServer(am.k))

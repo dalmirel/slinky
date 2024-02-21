@@ -1,7 +1,10 @@
 package keeper
 
 import (
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/skip-mev/slinky/x/oracle/types"
 )
 
@@ -15,69 +18,42 @@ func (k Keeper) InitGenesis(ctx sdk.Context, gs types.GenesisState) {
 
 	// initialize all CurrencyPairs + genesis prices
 	for _, cpg := range gs.CurrencyPairGenesis {
-		// Only set the CurrencyPair price to state if there is a non-empty price for the pair
-		if cpg.CurrencyPairPrice != nil {
-			qp := *cpg.CurrencyPairPrice
+		state := types.NewCurrencyPairState(cpg.Id, cpg.Nonce, cpg.CurrencyPairPrice)
 
-			// set to state, panic on errors
-			if err := k.SetPriceForCurrencyPair(ctx, cpg.CurrencyPair, qp); err != nil {
-				panic(err)
-			}
+		if err := k.currencyPairs.Set(ctx, cpg.CurrencyPair.String(), state); err != nil {
+			panic(fmt.Errorf("error in genesis: %w", err))
 		}
-
-		// set the nonce to state
-		k.setNonceForCurrencyPair(ctx, cpg.CurrencyPair, cpg.Nonce)
 	}
+
+	// set the next ID to state
+	k.nextCurrencyPairID.Set(ctx, gs.NextId)
 }
 
-// ExportGenesis, retrieve all CurrencyPairs + QuotePrices set for the module, and return them as a genesis state.
+// ExportGenesis retrieve all CurrencyPairs + QuotePrices set for the module, and return them as a genesis state.
 // This module panics on any errors encountered in execution.
 func (k Keeper) ExportGenesis(ctx sdk.Context) *types.GenesisState {
+	// get the current next ID
+	id, err := k.nextCurrencyPairID.Peek(ctx)
+	if err != nil {
+		panic(fmt.Errorf("error in genesis: %w", err))
+	}
+
 	// instantiate genesis-state w/ empty array
 	gs := &types.GenesisState{
 		CurrencyPairGenesis: make([]types.CurrencyPairGenesis, 0),
-	}
-
-	cpCache := make(map[string]struct{})
-
-	// populate genesis-state w/ CurrencyPairs that have valid QuotePrices first, and cache the CurrencyPairs that have
-	// already been traversed
-	if err := k.IterateQuotePrices(ctx, func(cp types.CurrencyPair, qp types.QuotePrice) error {
-		// get the nonce for the currency pair
-		nonce, err := k.GetNonceForCurrencyPair(ctx, cp)
-		if err != nil {
-			return err
-		}
-
-		// aggregate
-		gs.CurrencyPairGenesis = append(gs.CurrencyPairGenesis, types.CurrencyPairGenesis{
-			CurrencyPair:      cp,
-			CurrencyPairPrice: &qp,
-			Nonce:             nonce,
-		})
-
-		// cache cp as already traversed
-		cpCache[cp.ToString()] = struct{}{}
-
-		return nil
-	}); err != nil {
-		panic(err)
+		NextId:              id,
 	}
 
 	// next, iterate over NonceKey to retrieve any CurrencyPairs that have not yet been traversed (CurrencyPairs w/ no Price info)
-	if err := k.IterateNonces(ctx, func(cp types.CurrencyPair) {
-		// check to see if this CurrencyPair has already been traversed, if so, skip
-		if _, ok := cpCache[cp.ToString()]; ok {
-			return
-		}
-
-		// otherwise, aggregate the CurrencyPair and set the Price as nil + nonce as 0
+	k.IterateCurrencyPairs(ctx, func(cp types.CurrencyPair, cps types.CurrencyPairState) {
+		// append the currency pair + state to the genesis state
 		gs.CurrencyPairGenesis = append(gs.CurrencyPairGenesis, types.CurrencyPairGenesis{
-			CurrencyPair: cp,
+			CurrencyPair:      cp,
+			Id:                cps.Id,
+			Nonce:             cps.Nonce,
+			CurrencyPairPrice: cps.Price,
 		})
-	}); err != nil {
-		panic(err)
-	}
+	})
 
 	return gs
 }

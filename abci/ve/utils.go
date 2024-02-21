@@ -6,46 +6,44 @@ import (
 	cometabci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/holiman/uint256"
-	"github.com/skip-mev/slinky/abci/ve/types"
-	oracletypes "github.com/skip-mev/slinky/x/oracle/types"
+
+	"github.com/skip-mev/slinky/abci/strategies/currencypair"
+	slinkyabci "github.com/skip-mev/slinky/abci/types"
+	vetypes "github.com/skip-mev/slinky/abci/ve/types"
 )
 
 // ValidateOracleVoteExtension validates the vote extension provided by a validator.
-func ValidateOracleVoteExtension(voteExtension []byte, height int64) error {
-	if len(voteExtension) == 0 {
-		return nil
-	}
-
-	voteExt := types.OracleVoteExtension{}
-	if err := voteExt.Unmarshal(voteExtension); err != nil {
-		return fmt.Errorf("failed to unmarshal vote extension: %w", err)
-	}
-
-	// The height of the vote extension must match the height of the request.
-	if voteExt.Height != height {
-		return fmt.Errorf(
-			"vote extension height does not match request height; expected: %d, got: %d",
-			height,
-			voteExt.Height,
-		)
-	}
-
-	// Verify tickers and prices are valid.
-	for currencyPair, price := range voteExt.Prices {
-		if _, err := oracletypes.CurrencyPairFromString(currencyPair); err != nil {
-			return fmt.Errorf("invalid ticker in oracle vote extension %s: %w", currencyPair, err)
+func ValidateOracleVoteExtension(
+	ctx sdk.Context,
+	ve vetypes.OracleVoteExtension,
+	strategy currencypair.CurrencyPairStrategy,
+) error {
+	// Verify prices are valid.
+	for id, bz := range ve.Prices {
+		// Ensure that the price bytes are not too long.
+		if len(bz) > slinkyabci.MaximumPriceSize {
+			return fmt.Errorf("price bytes are too long: %d", len(bz))
 		}
 
-		if _, err := uint256.FromHex(price); err != nil {
-			return fmt.Errorf("invalid price in oracle vote extension %s: %w", currencyPair, err)
+		// Ensure that the currency pair ID is valid.
+		cp, err := strategy.FromID(ctx, id)
+		if err != nil {
+			return fmt.Errorf("invalid currency pair ID: %d", id)
+		}
+
+		// Ensure that the price bytes are valid.
+		if _, err := strategy.GetDecodedPrice(ctx, cp, bz); err != nil {
+			return fmt.Errorf("invalid price bytes: %w", err)
 		}
 	}
 
 	return nil
 }
 
-// VoteExtensionsEnabled determines if vote extensions are enabled for the current block.
+// VoteExtensionsEnabled determines if vote extensions are enabled for the current block. If
+// vote extensions are enabled at height h, then a proposer will receive vote extensions
+// in height h+1. This is primarily utilized by any module that needs to make state changes
+// based on whether or not they were included in a proposal.
 func VoteExtensionsEnabled(ctx sdk.Context) bool {
 	cp := ctx.ConsensusParams()
 	if cp.Abci == nil || cp.Abci.VoteExtensionsEnableHeight == 0 {
@@ -60,23 +58,19 @@ func VoteExtensionsEnabled(ctx sdk.Context) bool {
 		return false
 	}
 
-	// We do a +1 here because the vote extensions are enabled at height h
-	// but a proposer will only receive vote extensions in height h+1.
-	return cp.Abci.VoteExtensionsEnableHeight+1 < ctx.BlockHeight()
+	return cp.Abci.VoteExtensionsEnableHeight < ctx.BlockHeight()
 }
 
-type (
-	// ValidateVoteExtensionsFn defines the function for validating vote extensions. This
-	// function is not explicitly used to validate the oracle data but rather that
-	// the signed vote extensions included in the proposal are valid and provide
-	// a supermajority of vote extensions for the current block. This method is
-	// expected to be used in PrepareProposal and ProcessProposal.
-	ValidateVoteExtensionsFn func(
-		ctx sdk.Context,
-		height int64,
-		extInfo cometabci.ExtendedCommitInfo,
-	) error
-)
+// ValidateVoteExtensionsFn defines the function for validating vote extensions. This
+// function is not explicitly used to validate the oracle data but rather that
+// the signed vote extensions included in the proposal are valid and provide
+// a supermajority of vote extensions for the current block. This method is
+// expected to be used in PrepareProposal and ProcessProposal.
+type ValidateVoteExtensionsFn func(
+	ctx sdk.Context,
+	height int64,
+	extInfo cometabci.ExtendedCommitInfo,
+) error
 
 // NewDefaultValidateVoteExtensionsFn returns a new DefaultValidateVoteExtensionsFn.
 func NewDefaultValidateVoteExtensionsFn(chainID string, validatorStore baseapp.ValidatorStore) ValidateVoteExtensionsFn {

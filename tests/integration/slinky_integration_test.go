@@ -4,15 +4,19 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/strangelove-ventures/interchaintest/v8"
+
 	"github.com/cosmos/cosmos-sdk/types/module/testutil"
+	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/cosmos/cosmos-sdk/x/gov"
-	"github.com/skip-mev/slinky/tests/integration"
-	"github.com/skip-mev/slinky/x/oracle"
-	"github.com/strangelove-ventures/interchaintest/v7"
-	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
-	"github.com/strangelove-ventures/interchaintest/v7/ibc"
+	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
+	"github.com/strangelove-ventures/interchaintest/v8/ibc"
 	"github.com/stretchr/testify/suite"
+
+	"github.com/skip-mev/slinky/tests/integration"
+	"github.com/skip-mev/slinky/x/alerts"
+	"github.com/skip-mev/slinky/x/oracle"
 )
 
 var (
@@ -36,6 +40,8 @@ var (
 		bank.AppModuleBasic{},
 		oracle.AppModuleBasic{},
 		gov.AppModuleBasic{},
+		alerts.AppModuleBasic{},
+		auth.AppModuleBasic{},
 	)
 
 	VotingPeriod     = "10s"
@@ -80,32 +86,41 @@ var (
 		NumFullNodes:  &numFullNodes,
 		Version:       "latest",
 		NoHostMount:   &noHostMount,
-		GasAdjustment: &gasAdjustment,
 		ChainConfig: ibc.ChainConfig{
 			EncodingConfig: &encodingConfig,
 			Images: []ibc.DockerImage{
 				image,
 			},
-			Type:                   "cosmos",
-			Name:                   "slinky",
-			Denom:                  denom,
-			ChainID:                "chain-id-0",
-			Bin:                    "slinkyd",
-			Bech32Prefix:           "cosmos",
-			CoinType:               "118",
-			GasAdjustment:          gasAdjustment,
-			GasPrices:              fmt.Sprintf("0%s", denom),
-			TrustingPeriod:         "48h",
-			NoHostMount:            noHostMount,
-			UsingNewGenesisCommand: true,
-			ModifyGenesis:          cosmos.ModifyGenesis(defaultGenesisKV),
+			Type:           "cosmos",
+			Name:           "slinky",
+			Denom:          denom,
+			ChainID:        "chain-id-0",
+			Bin:            "slinkyd",
+			Bech32Prefix:   "cosmos",
+			CoinType:       "118",
+			GasAdjustment:  gasAdjustment,
+			GasPrices:      fmt.Sprintf("0%s", denom),
+			TrustingPeriod: "48h",
+			NoHostMount:    noHostMount,
+			ModifyGenesis:  cosmos.ModifyGenesis(defaultGenesisKV),
 		},
 	}
 )
 
-func TestSlinkyIntegration(t *testing.T) {
-	suite.Run(t, integration.NewSlinkyIntegrationSuite(
+func TestSlinkyOracleIntegration(t *testing.T) {
+	baseSuite := integration.NewSlinkyIntegrationSuite(
 		spec,
 		oracleImage,
-	))
+	)
+
+	suite.Run(t, integration.NewSlinkyOracleIntegrationSuite(baseSuite))
+}
+
+func TestSlinkySlashingIntegration(t *testing.T) {
+	baseSuite := integration.NewSlinkyIntegrationSuite(
+		spec,
+		oracleImage,
+	)
+
+	suite.Run(t, integration.NewSlinkySlashingIntegrationSuite(baseSuite))
 }

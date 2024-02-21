@@ -5,9 +5,10 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/stretchr/testify/assert"
+
 	"github.com/skip-mev/slinky/x/oracle/keeper"
 	"github.com/skip-mev/slinky/x/oracle/types"
-	"github.com/stretchr/testify/assert"
 )
 
 func (s *KeeperTestSuite) TestMsgAddCurrencyPairs() {
@@ -25,20 +26,6 @@ func (s *KeeperTestSuite) TestMsgAddCurrencyPairs() {
 			"if the message is incorrectly formatted (authority) - fail",
 			&types.MsgAddCurrencyPairs{
 				Authority: "abc",
-			},
-			false,
-		},
-		{
-			"if the message is incorrectly formatted (CurrencyPairs) - fail",
-			&types.MsgAddCurrencyPairs{
-				Authority: sdk.AccAddress([]byte("abc")).String(),
-				CurrencyPairs: []types.CurrencyPair{
-					// incorrectly formatted currency-pair
-					{
-						Base:  "A",
-						Quote: "b",
-					},
-				},
 			},
 			false,
 		},
@@ -109,38 +96,40 @@ func (s *KeeperTestSuite) TestMsgAddCurrencyPairs() {
 					Price: sdkmath.NewInt(100),
 				},
 				Nonce: 100,
+				Id:    1,
 			},
 		},
+		NextId: 101,
 	}
 	s.oracleKeeper.InitGenesis(s.ctx, gs)
 
 	// construct message server + wrap context
 	ms := keeper.NewMsgServer(s.oracleKeeper)
 	for _, tc := range tcs {
-		s.T().Run(tc.name, func(t *testing.T) {
+		s.Run(tc.name, func() {
 			// execute message
 			_, err := ms.AddCurrencyPairs(s.ctx, tc.req)
 
 			// expect failure if necessary
 			if !tc.expectPass {
-				assert.NotNil(s.T(), err)
+				s.Require().NotNil(err)
 				return
 			}
 
 			// otherwise, check that insertions executed faithfully
-			assert.Nil(s.T(), err)
+			s.Require().Nil(err)
 
 			// check all currency pairs were inserted
 			for _, cp := range tc.req.CurrencyPairs {
 				// get nonce for cpg.CurrencyPair
 				nonce, err := s.oracleKeeper.GetNonceForCurrencyPair(s.ctx, cp)
-				assert.Nil(s.T(), err)
+				s.Require().Nil(err)
 
 				// check the nonce is correct (if the cp had already existed in state, check that it was not overwritten)
-				if cp.ToString() == "E/F" {
-					assert.Equal(s.T(), nonce, uint64(100))
+				if cp.String() == "E/F" {
+					s.Require().Equal(nonce, uint64(100))
 				} else {
-					assert.Equal(s.T(), nonce, uint64(0))
+					s.Require().Equal(nonce, uint64(0))
 				}
 			}
 		})
@@ -165,6 +154,7 @@ func (s *KeeperTestSuite) TestMsgRemoveCurrencyPairs() {
 					Price: sdkmath.NewInt(100),
 				},
 				Nonce: 100,
+				Id:    1,
 			},
 			{
 				CurrencyPair: cp2,
@@ -172,8 +162,10 @@ func (s *KeeperTestSuite) TestMsgRemoveCurrencyPairs() {
 					Price: sdkmath.NewInt(100),
 				},
 				Nonce: 101,
+				Id:    2,
 			},
 		},
+		NextId: 102,
 	}
 	// init genesis
 	s.oracleKeeper.InitGenesis(s.ctx, gs)
@@ -210,17 +202,6 @@ func (s *KeeperTestSuite) TestMsgRemoveCurrencyPairs() {
 			false,
 		},
 		{
-			"if the message is incorrectly formatted (CurrencyPairIDs) - fail",
-			&types.MsgRemoveCurrencyPairs{
-				Authority: sdk.AccAddress([]byte("abc")).String(),
-				CurrencyPairIds: []string{
-					// incorrectly formatted currency-pair
-					"abc", "AA/BB",
-				},
-			},
-			false,
-		},
-		{
 			"if the authority is correct + formatted, and the currency pairs are valid - pass",
 			&types.MsgRemoveCurrencyPairs{
 				Authority: sdk.AccAddress([]byte(moduleAuth)).String(),
@@ -253,9 +234,7 @@ func (s *KeeperTestSuite) TestMsgRemoveCurrencyPairs() {
 				assert.Nil(s.T(), err)
 
 				// assert that currency-pair was removed
-				_, err = s.oracleKeeper.GetNonceForCurrencyPair(s.ctx, cp)
-				_, ok := err.(*types.CurrencyPairNotExistError)
-				assert.True(s.T(), ok)
+				assert.False(t, s.oracleKeeper.HasCurrencyPair(s.ctx, cp))
 			}
 		})
 	}

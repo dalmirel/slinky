@@ -3,8 +3,10 @@ package types_test
 import (
 	"testing"
 
-	"github.com/skip-mev/slinky/x/oracle/types"
+	"cosmossdk.io/math"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/skip-mev/slinky/x/oracle/types"
 )
 
 func TestValidateBasic(t *testing.T) {
@@ -84,7 +86,13 @@ func TestToFromString(t *testing.T) {
 		},
 		{
 			"if the string is correctly formatted, return the original CurrencyPair",
-			types.CurrencyPair{Base: "A", Quote: "B"}.ToString(),
+			types.CurrencyPairString("A", "B"),
+			types.CurrencyPair{Base: "A", Quote: "B"},
+			true,
+		},
+		{
+			"if the string is not formatted upper-case, return the original CurrencyPair",
+			"a/B",
 			types.CurrencyPair{Base: "A", Quote: "B"},
 			true,
 		},
@@ -124,6 +132,57 @@ func TestDecimals(t *testing.T) {
 	for _, tc := range tcs {
 		t.Run(tc.name, func(t *testing.T) {
 			assert.Equal(t, tc.cp.Decimals(), tc.dec)
+		})
+	}
+}
+
+func TestCurrencyPairState(t *testing.T) {
+	tcs := []struct {
+		name  string
+		cps   types.CurrencyPairState
+		valid bool
+	}{
+		{
+			"non-zero nonce, and nil price - invalid",
+			types.CurrencyPairState{
+				Nonce: 1,
+				Price: nil,
+			},
+			false,
+		},
+		{
+			"zero nonce, and non-nil price - invalid",
+			types.CurrencyPairState{
+				Nonce: 0,
+				Price: &types.QuotePrice{
+					Price: math.NewInt(1),
+				},
+			},
+			false,
+		},
+		{
+			"zero nonce, and nil price - valid",
+			types.CurrencyPairState{
+				Nonce: 0,
+				Price: nil,
+			},
+			true,
+		},
+		{
+			"non-zero nonce, and non-nil price - valid",
+			types.CurrencyPairState{
+				Nonce: 1,
+				Price: &types.QuotePrice{
+					Price: math.NewInt(1),
+				},
+			},
+			true,
+		},
+	}
+
+	for _, tc := range tcs {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.cps.ValidateBasic() == nil, tc.valid)
 		})
 	}
 }

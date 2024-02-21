@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 
 	"cosmossdk.io/core/appmodule"
+	"cosmossdk.io/core/store"
 	"cosmossdk.io/depinject"
 
-	storetypes "cosmossdk.io/store/types"
 	cometabci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -18,11 +18,12 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
+	"github.com/spf13/cobra"
+
 	oraclemodulev1 "github.com/skip-mev/slinky/api/slinky/oracle/module/v1"
 	"github.com/skip-mev/slinky/x/oracle/client/cli"
 	"github.com/skip-mev/slinky/x/oracle/keeper"
 	"github.com/skip-mev/slinky/x/oracle/types"
-	"github.com/spf13/cobra"
 )
 
 // ConsensusVersion is the x/oracle module's current version, as modules integrate and updates are made, this value determines what
@@ -30,9 +31,10 @@ import (
 const ConsensusVersion = 1
 
 var (
-	_ module.AppModule      = AppModule{}
-	_ appmodule.AppModule   = AppModule{}
-	_ module.AppModuleBasic = AppModuleBasic{}
+	_ module.AppModuleBasic = AppModule{}
+	_ module.HasServices    = AppModule{}
+
+	_ appmodule.AppModule = AppModule{}
 )
 
 // AppModuleBasic defines the base interface that the x/oracle module exposes to the application.
@@ -40,7 +42,7 @@ type AppModuleBasic struct {
 	cdc codec.Codec
 }
 
-// Name returns the name of this module
+// Name returns the name of this module.
 func (amb AppModuleBasic) Name() string { return types.ModuleName }
 
 // RegisterLegacyAminoCodec registers the necessary types from the x/oracle module for amino serialization.
@@ -54,7 +56,7 @@ func (amb AppModuleBasic) RegisterInterfaces(ir codectypes.InterfaceRegistry) {
 }
 
 // RegisterGRPCGatewayRoutes registers the necessary REST routes for the GRPC-gateway to the x/oracle module QueryService on mux. This method
-// panics on failure
+// panics on failure.
 func (amb AppModuleBasic) RegisterGRPCGatewayRoutes(cliCtx client.Context, mux *runtime.ServeMux) {
 	// register the gate-way routes w/ the provided mux
 	if err := types.RegisterQueryHandlerClient(context.Background(), mux, types.NewQueryClient(cliCtx)); err != nil {
@@ -62,24 +64,24 @@ func (amb AppModuleBasic) RegisterGRPCGatewayRoutes(cliCtx client.Context, mux *
 	}
 }
 
-// GetTxCmd is a no-op, as no txs are registered for submission (apart from messages that can only be executed by governance)
+// GetTxCmd is a no-op, as no txs are registered for submission (apart from messages that can only be executed by governance).
 func (amb AppModuleBasic) GetTxCmd() *cobra.Command {
 	return nil
 }
 
-// GetQueryCmd returns the x/oracle module base query cli-command
+// GetQueryCmd returns the x/oracle module base query cli-command.
 func (amb AppModuleBasic) GetQueryCmd() *cobra.Command {
 	return cli.GetQueryCmd()
 }
 
-// AppModule represents an application module for the x/oracle module
+// AppModule represents an application module for the x/oracle module.
 type AppModule struct {
 	AppModuleBasic
 
 	k keeper.Keeper
 }
 
-// NewAppModule returns an application module for the x/oracle module
+// NewAppModule returns an application module for the x/oracle module.
 func NewAppModule(cdc codec.Codec, k keeper.Keeper) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{
@@ -98,7 +100,7 @@ func (am AppModule) IsOnePerModuleType() {}
 // ConsensusVersion implements AppModule/ConsensusVersion.
 func (AppModule) ConsensusVersion() uint64 { return ConsensusVersion }
 
-// RegisterServices registers the module's services with the app's module configurator
+// RegisterServices registers the module's services with the app's module configurator.
 func (am AppModule) RegisterServices(cfc module.Configurator) {
 	// register MsgServer
 	types.RegisterMsgServer(cfc.MsgServer(), keeper.NewMsgServer(am.k))
@@ -135,7 +137,7 @@ func (AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
 
 // InitGenesis performs the genesis initialization for the x/oracle module. It determines the
 // genesis state to initialize from via a json-encoded genesis-state. This method returns no validator set updates.
-// This method panics on any errors
+// This method panics on any errors.
 func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, bz json.RawMessage) []cometabci.ValidatorUpdate {
 	// unmarshal genesis-state (panic on errors)
 	var gs types.GenesisState
@@ -165,9 +167,10 @@ func init() {
 type Inputs struct {
 	depinject.In
 
-	Config *oraclemodulev1.Module
-	Cdc    codec.Codec
-	Key    *storetypes.KVStoreKey
+	// module-dependencies
+	Config       *oraclemodulev1.Module
+	Cdc          codec.Codec
+	StoreService store.KVStoreService
 }
 
 type Outputs struct {
@@ -185,7 +188,8 @@ func ProvideModule(in Inputs) Outputs {
 	}
 
 	oracleKeeper := keeper.NewKeeper(
-		in.Key,
+		in.StoreService,
+		in.Cdc,
 		authority,
 	)
 

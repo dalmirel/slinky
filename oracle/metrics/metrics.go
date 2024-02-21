@@ -1,119 +1,133 @@
 package metrics
 
 import (
-	"time"
+	"fmt"
 
 	"github.com/prometheus/client_golang/prometheus"
+
+	"github.com/skip-mev/slinky/oracle/config"
 )
 
 const (
-	// MetricsSubsystem is a subsystem shared by all metrics exposed by this
-	// package.
+	// ProviderLabel is a label for the provider name.
+	ProviderLabel = "provider"
+	// ProviderTypeLabel is a label for the type of provider (WS, API, etc.)
+	ProviderTypeLabel = "type"
+	// PairIDLabel is the currency pair for which the metric applies.
+	PairIDLabel = "pair"
+	// DecimalsLabel is the number of decimal points associated with the price.
+	DecimalsLabel = "decimals"
+	// OracleSubsystem is a subsystem shared by all metrics exposed by this package.
 	OracleSubsystem = "oracle"
-	ProviderLabel   = "provider"
-	StatusLabel     = "status"
 )
 
-type Config struct {
-	// Enabled indicates whether metrics should be enabled
-	Enabled bool `mapstructure:"enabled" toml:"enabled"`
-}
-
-type Status int
-
-const (
-	StatusFailure Status = iota
-	StatusSuccess
-)
-
-func (s Status) String() string {
-	switch s {
-	case StatusFailure:
-		return "failure"
-	case StatusSuccess:
-		return "success"
-	default:
-		return "unknown"
-	}
-}
-
-func StatusFromError(err error) Status {
-	if err == nil {
-		return StatusSuccess
-	}
-	return StatusFailure
-}
-
+// Metrics is an interface that defines the API for oracle metrics.
+//
 //go:generate mockery --name Metrics --filename mock_metrics.go
 type Metrics interface {
-	// AddProviderResponse increments the number of ticks with a fully successful Oracle update (all providers returned).
-	AddProviderResponse(providerName string, status Status)
-
-	// AddTick increments the number of ticks, this can represent a liveness counter. This metric is paginated by status.
+	// AddTick increments the number of ticks, this can represent a liveness counter. This
+	// is incremented once every interval (which is defined by the oracle config).
 	AddTick()
 
-	// ObserveProviderResponseTime records the time it took for a provider to respond
-	ObserveProviderResponseLatency(providerName string, duration time.Duration)
+	// UpdatePrice price updates the price for the given pairID for the provider.
+	UpdatePrice(name, handlerType, pairID string, decimals int, price float64)
+
+	// UpdateAggregatePrice updates the aggregated price for the given pairID.
+	UpdateAggregatePrice(pairID string, decimals int, price float64)
 }
 
-type nopMetricsImpl struct{}
-
-func NewNopMetrics() Metrics {
-	return &nopMetricsImpl{}
+// OracleMetricsImpl is a Metrics implementation that does nothing.
+type OracleMetricsImpl struct {
+	ticks           prometheus.Counter
+	prices          *prometheus.GaugeVec
+	aggregatePrices *prometheus.GaugeVec
 }
 
-func (m *nopMetricsImpl) AddProviderResponse(_ string, _ Status)                   {}
-func (m *nopMetricsImpl) AddTick()                                                 {}
-func (m *nopMetricsImpl) ObserveProviderResponseLatency(_ string, _ time.Duration) {}
+// NewMetricsFromConfig returns a oracle Metrics implementation based on the provided
+// config.
+func NewMetricsFromConfig(config config.MetricsConfig) Metrics {
+	if config.Enabled {
+		return NewMetrics()
+	}
+	return NewNopMetrics()
+}
 
+// NewMetrics returns a Metrics implementation that exposes metrics to Prometheus.
 func NewMetrics() Metrics {
-	m := &metricsImpl{
+	m := &OracleMetricsImpl{
 		ticks: prometheus.NewCounter(prometheus.CounterOpts{
 			Namespace: OracleSubsystem,
-			Name:      "ticks",
-			Help:      "Number of ticks with a fully successful Oracle update (all providers returned).",
+			Name:      "ticks_total",
+			Help:      "Number of ticks with a successful oracle update.",
 		}),
-		responseStatusPerProvider: prometheus.NewCounterVec(prometheus.CounterOpts{
+		prices: prometheus.NewGaugeVec(prometheus.GaugeOpts{
 			Namespace: OracleSubsystem,
-			Name:      "response_status_per_provider",
-			Help:      "Number of provider successes.",
-		}, []string{ProviderLabel, StatusLabel}),
-		responseTimePerProvider: prometheus.NewHistogramVec(prometheus.HistogramOpts{
+			Name:      "provider_price",
+			Help:      "Price gauge for a given currency pair on a provider",
+		}, []string{ProviderLabel, ProviderTypeLabel, PairIDLabel, DecimalsLabel}),
+		aggregatePrices: prometheus.NewGaugeVec(prometheus.GaugeOpts{
 			Namespace: OracleSubsystem,
-			Name:      "response_time_per_provider",
-			Help:      "ResponseTimePerProvider",
-			Buckets:   prometheus.ExponentialBuckets(1, 2, 10),
-		}, []string{ProviderLabel}),
+			Name:      "aggregate_price",
+			Help:      "Aggregate price for a given currency pair",
+		}, []string{PairIDLabel, DecimalsLabel}),
 	}
 
-	// register the metrics
+	// register the above metrics
 	prometheus.MustRegister(m.ticks)
-	prometheus.MustRegister(m.responseStatusPerProvider)
-	prometheus.MustRegister(m.responseTimePerProvider)
+	prometheus.MustRegister(m.prices)
+	prometheus.MustRegister(m.aggregatePrices)
 
 	return m
 }
 
-// Metrics contains metrics exposed by this package.
-type metricsImpl struct {
-	// Number of ticks with a fully successful Oracle update (all providers returned).
-	ticks prometheus.Counter
+type noOpOracleMetrics struct{}
 
-	// Number of provider successes.
-	responseStatusPerProvider *prometheus.CounterVec
-
-	// histogram paginated by provider, measuring the latency between invocation and collection (of all responses)
-	responseTimePerProvider *prometheus.HistogramVec
+// NewNopMetrics returns a Metrics implementation that does nothing.
+func NewNopMetrics() Metrics {
+	return &noOpOracleMetrics{}
 }
 
-func (m *metricsImpl) AddProviderResponse(providerName string, status Status) {
-	m.responseStatusPerProvider.WithLabelValues(providerName, status.String()).Add(1)
+// AddTick increments the total number of ticks that have been processed by the oracle.
+func (m *noOpOracleMetrics) AddTick() {
 }
 
-func (m *metricsImpl) AddTick() {
+// UpdatePrice price updates the price for the given pairID for the provider.
+func (m *noOpOracleMetrics) UpdatePrice(_, _, _ string, _ int, _ float64) {
+}
+
+// UpdateAggregatePrice updates the aggregated price for the given pairID.
+func (m *noOpOracleMetrics) UpdateAggregatePrice(string, int, float64) {
+}
+
+// AddTick increments the total number of ticks that have been processed by the oracle.
+func (m *OracleMetricsImpl) AddTick() {
 	m.ticks.Add(1)
 }
 
-func (m *metricsImpl) ObserveProviderResponseLatency(providerName string, duration time.Duration) {
-	m.responseTimePerProvider.WithLabelValues(providerName).Observe(float64(duration.Milliseconds()))
+// UpdatePrice price updates the price for the given pairID for the provider.
+func (m *OracleMetricsImpl) UpdatePrice(
+	providerName, handlerType, pairID string,
+	decimals int,
+	price float64,
+) {
+	m.prices.With(prometheus.Labels{
+		ProviderLabel:     providerName,
+		ProviderTypeLabel: handlerType,
+		PairIDLabel:       pairID,
+		DecimalsLabel:     fmt.Sprintf("%d", decimals),
+	},
+	).Set(price)
+}
+
+// UpdateAggregatePrice updates the aggregated price for the given pairID.
+func (m *OracleMetricsImpl) UpdateAggregatePrice(
+	pairID string,
+	decimals int,
+	price float64,
+) {
+	m.aggregatePrices.With(prometheus.Labels{
+		PairIDLabel:   pairID,
+		DecimalsLabel: fmt.Sprintf("%d", decimals),
+	},
+	).Set(price)
 }

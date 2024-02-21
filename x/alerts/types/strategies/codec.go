@@ -4,11 +4,12 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/codec/legacy"
 	"github.com/cosmos/cosmos-sdk/codec/types"
+
 	incentivetypes "github.com/skip-mev/slinky/x/incentives/types"
 )
 
 // RegisterLegacyAminoCodec registers the necessary x/incentives interfaces (messages) on the
-// cdc. These types are used for amino serialization
+// cdc. These types are used for amino serialization.
 func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	// register the ValidatorAlertIncentive
 	legacy.RegisterAminoMsg(cdc, &ValidatorAlertIncentive{}, "slinky/x/alerts/ValidatorAlertIncentive")

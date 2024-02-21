@@ -4,8 +4,10 @@ import (
 	"fmt"
 
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/skip-mev/slinky/x/oracle/types"
+	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/spf13/cobra"
+
+	"github.com/skip-mev/slinky/x/oracle/types"
 )
 
 // GetQueryCmd returns the parent command for all x/oracle cli query commands. The
@@ -31,7 +33,7 @@ func GetQueryCmd() *cobra.Command {
 // GetPriceCmd returns the cli-command that queries the price information for a given CurrencyPair. This is essentially a wrapper around the module's
 // QueryClient, as under-the-hood it constructs a request to a query-client served over a grpc-conn embedded in the clientCtx.
 func GetPriceCmd() *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "price [base] [quote]",
 		Short: "Query for the price of a specified currency-pair",
 		Args:  cobra.ExactArgs(2),
@@ -49,7 +51,7 @@ func GetPriceCmd() *cobra.Command {
 			qc := types.NewQueryClient(clientCtx)
 
 			// query for prices
-			res, err := qc.GetPrice(clientCtx.CmdContext, &types.GetPriceRequest{
+			res, err := qc.GetPrice(cmd.Context(), &types.GetPriceRequest{
 				CurrencyPairSelector: &types.GetPriceRequest_CurrencyPair{CurrencyPair: &cp},
 			})
 			if err != nil {
@@ -59,16 +61,18 @@ func GetPriceCmd() *cobra.Command {
 			return clientCtx.PrintProto(res)
 		},
 	}
+	flags.AddQueryFlagsToCmd(cmd)
+	return cmd
 }
 
 // GetAllCurrencyPairsCmd returns the cli-command that queries for all CurrencyPairs in the module. This is essentially a wrapper around the module's
 // QueryClient, as under-the-hood it constructs a request to a query-client served over a grpc-conn embedded in the clientCtx.
 func GetAllCurrencyPairsCmd() *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "currency-pairs",
 		Short: "Query for all the currency-pairs being tracked by the module",
 		Args:  cobra.NoArgs,
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			// get the context
 			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
@@ -79,7 +83,7 @@ func GetAllCurrencyPairsCmd() *cobra.Command {
 			qc := types.NewQueryClient(clientCtx)
 
 			// query for all CurrencyPairs
-			res, err := qc.GetAllCurrencyPairs(clientCtx.CmdContext, &types.GetAllCurrencyPairsRequest{})
+			res, err := qc.GetAllCurrencyPairs(cmd.Context(), &types.GetAllCurrencyPairsRequest{})
 			if err != nil {
 				return err
 			}
@@ -87,4 +91,6 @@ func GetAllCurrencyPairsCmd() *cobra.Command {
 			return clientCtx.PrintProto(res)
 		},
 	}
+	flags.AddQueryFlagsToCmd(cmd)
+	return cmd
 }

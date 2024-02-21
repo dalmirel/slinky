@@ -6,6 +6,7 @@ import (
 	"cosmossdk.io/math"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/skip-mev/slinky/x/alerts/types"
 	incentivetypes "github.com/skip-mev/slinky/x/incentives/types"
 )
@@ -46,7 +47,7 @@ func (b ValidatorAlertIncentive) ValidateBasic() error {
 
 	// check signer validity
 	if _, err := sdk.AccAddressFromBech32(b.AlertSigner); err != nil {
-		return fmt.Errorf("validator address is invalid: %s", err)
+		return fmt.Errorf("validator address is invalid: %w", err)
 	}
 
 	return nil
@@ -96,6 +97,8 @@ func NewValidatorAlertIncentiveStrategy(sk types.StakingKeeper, bk types.BankKee
 			return nil, fmt.Errorf("incentive must be of type ValidatorAlertIncentive, got %T", incentive)
 		}
 
+		ctx.Logger().Info("validator alert incentive executed", "incentive", validatorAlertIncentive)
+
 		ca := sdk.ConsAddress(validatorAlertIncentive.Validator.Address)
 		// check that the validator exists
 		if _, err := sk.GetValidatorByConsAddr(ctx, ca); err != nil {
@@ -112,6 +115,8 @@ func NewValidatorAlertIncentiveStrategy(sk types.StakingKeeper, bk types.BankKee
 		if err != nil {
 			return nil, fmt.Errorf("failed to slash validator: %w", err)
 		}
+
+		ctx.Logger().Info("slashed validator", "validator", validatorAlertIncentive.Validator, "amount_slashed", amountSlashed)
 
 		// get bond denom to mint to alerter from slashed validator
 		denom, err := sk.BondDenom(ctx)
@@ -134,6 +139,8 @@ func NewValidatorAlertIncentiveStrategy(sk types.StakingKeeper, bk types.BankKee
 		if err := bk.SendCoinsFromModuleToAccount(ctx, types.ModuleName, alertSigner, coinsToMint); err != nil {
 			return nil, fmt.Errorf("failed to send coins: %w", err)
 		}
+
+		ctx.Logger().Info("minted coins to alert signer", "signer", alertSigner, "amount_minted", amountSlashed)
 
 		return nil, nil
 	}

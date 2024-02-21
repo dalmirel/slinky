@@ -1,36 +1,54 @@
 package integration
 
 import (
+	"bytes"
 	"context"
 	"fmt"
+	"math/big"
+	"sort"
 	"strconv"
-
+	"sync"
 	"testing"
 	"time"
 
 	"cosmossdk.io/math"
+	cmtabci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cometbft/cometbft/libs/rand"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	grpctypes "github.com/cosmos/cosmos-sdk/types/grpc"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	"github.com/pelletier/go-toml"
-	oracleconfig "github.com/skip-mev/slinky/oracle/config"
-	oracletypes "github.com/skip-mev/slinky/x/oracle/types"
-	interchaintest "github.com/strangelove-ventures/interchaintest/v7"
-	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
-	"github.com/strangelove-ventures/interchaintest/v7/ibc"
-	"github.com/strangelove-ventures/interchaintest/v7/testutil"
+	interchaintest "github.com/strangelove-ventures/interchaintest/v8"
+	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
+	"github.com/strangelove-ventures/interchaintest/v8/ibc"
+	"github.com/strangelove-ventures/interchaintest/v8/testutil"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
-	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
+
+	compression "github.com/skip-mev/slinky/abci/strategies/codec"
+	slinkyabci "github.com/skip-mev/slinky/abci/ve/types"
+	oracleconfig "github.com/skip-mev/slinky/oracle/config"
+	oracletypes "github.com/skip-mev/slinky/x/oracle/types"
 )
 
 const (
 	oracleConfigPath = "oracle.toml"
 	appConfigPath    = "config/app.toml"
+)
+
+var (
+	extCommitCodec = compression.NewCompressionExtendedCommitCodec(
+		compression.NewDefaultExtendedCommitCodec(),
+		compression.NewZStdCompressor(),
+	)
+
+	veCodec = compression.NewCompressionVoteExtensionCodec(
+		compression.NewDefaultVoteExtensionCodec(),
+		compression.NewZLibCompressor(),
+	)
 )
 
 // construct the network from a spec
@@ -54,63 +72,55 @@ func ChainBuilderFromChainSpec(t *testing.T, spec *interchaintest.ChainSpec) *co
 	return cosmosChain
 }
 
-// Modify the application config of a node so that the oracle is running out of process
-func SetOracleOutOfProcess(node *cosmos.ChainNode) {
+// SetOracleConfigOnApp writes the oracle configuration to the given node's application config.
+func SetOracleConfigsOnApp(node *cosmos.ChainNode, oracleConfig oracleconfig.OracleConfig) {
+	oracle := GetOracleSideCar(node)
+
 	// read the app config from the node
 	bz, err := node.ReadFile(context.Background(), appConfigPath)
 	if err != nil {
 		panic(err)
 	}
 
-	// unmarshal the application config
+	// Unmarshall the app config to update the oracle and metrics file paths.
 	var appConfig map[string]interface{}
 	err = toml.Unmarshal(bz, &appConfig)
 	if err != nil {
 		panic(err)
 	}
 
-	// get the oracle config
-	oracleConfig, ok := appConfig["oracle"].(map[string]interface{})
+	oracleAppConfig, ok := appConfig["oracle"].(map[string]interface{})
 	if !ok {
 		panic("oracle config not found")
 	}
 
-	// set the oracle config to out of process
-	oracleConfig["in_process"] = false
-	oracleConfig["timeout"] = "500ms"
+	// Update the file paths to the oracle and metrics configs.
+	oracleAppConfig["enabled"] = true
+	oracleAppConfig["oracle_address"] = fmt.Sprintf("%s:%s", oracle.HostName(), "8080")
+	oracleAppConfig["client_timeout"] = "1s"
+	oracleAppConfig["metrics_enabled"] = true
+	oracleAppConfig["prometheus_server_address"] = fmt.Sprintf("localhost:%s", "8081")
 
-	if len(node.Sidecars) == 0 {
-		panic("no sidecars found")
-	}
-
-	// get the oracle sidecar
-	oracle := node.Sidecars[0]
-	// set the oracle port
-	oracleConfig["remote_address"] = fmt.Sprintf("%s:%s", oracle.HostName(), "8080")
-
-	// get the consensus address of the node
-	bz, _, err = node.ExecBin(context.Background(), "cometbft", "show-address")
-	if err != nil {
-		panic(err)
-	}
-
-	oracleConfig["metrics"] = map[string]interface{}{
-		"prometheus_server_address": "0.0.0.0:26655",
-		"app_metrics": map[string]interface{}{
-			"validator_cons_address": string(bz[:len(bz)-1]),
-			"enabled":                true,
-		},
-	}
-
-	appConfig["oracle"] = oracleConfig
-
-	// write back
+	appConfig["oracle"] = oracleAppConfig
 	bz, err = toml.Marshal(appConfig)
 	if err != nil {
 		panic(err)
 	}
 
+	// Write back the app config.
 	err = node.WriteFile(context.Background(), bz, appConfigPath)
+	if err != nil {
+		panic(err)
+	}
+
+	// marshal the oracle config
+	bz, err = toml.Marshal(oracleConfig)
+	if err != nil {
+		panic(err)
+	}
+
+	// write the oracle config to the node
+	err = node.WriteFile(context.Background(), bz, oracleConfigPath)
 	if err != nil {
 		panic(err)
 	}
@@ -157,16 +167,14 @@ func BuildPOBInterchain(t *testing.T, ctx context.Context, chain ibc.Chain) *int
 	return ic
 }
 
-// SetOracleConfig writes the given oracle config to the given node
-func SetOracleConfig(node *cosmos.ChainNode, conf oracleconfig.Config) {
-	if len(node.Sidecars) != 1 {
-		panic("expected node to have oracle sidecar")
-	}
-
-	oracle := node.Sidecars[0]
-
+// SetOracleConfigsOnOracle writes the oracle and metrics configs to the given node's
+// oracle sidecar.
+func SetOracleConfigsOnOracle(
+	oracle *cosmos.SidecarProcess,
+	oracleCfg oracleconfig.OracleConfig,
+) {
 	// marshal the oracle config
-	bz, err := toml.Marshal(conf)
+	bz, err := toml.Marshal(oracleCfg)
 	if err != nil {
 		panic(err)
 	}
@@ -213,6 +221,22 @@ func StartOracle(node *cosmos.ChainNode) error {
 	oracle := node.Sidecars[0]
 
 	return oracle.StartContainer(context.Background())
+}
+
+// GetChainGRPC gets a GRPC client of the given chain
+//
+// NOTICE: this client must be closed after use
+func GetChainGRPC(chain *cosmos.CosmosChain) (cc *grpc.ClientConn, close func(), err error) {
+	// get grpc address
+	grpcAddr := chain.GetHostGRPCAddress()
+
+	// create the client
+	cc, err = grpc.Dial(grpcAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return cc, func() { cc.Close() }, nil
 }
 
 // QueryCurrencyPair queries the chain for the given CurrencyPair, this method returns the grpc response from the module
@@ -273,8 +297,7 @@ func QueryCurrencyPair(chain *cosmos.CosmosChain, cp oracletypes.CurrencyPair, h
 func SubmitProposal(chain *cosmos.CosmosChain, deposit sdk.Coin, submitter string, msgs ...sdk.Msg) (string, error) {
 	// build the proposal
 	rand := rand.Str(10)
-	prop, err := chain.BuildProposal(msgs, rand, rand, rand, deposit.String())
-
+	prop, err := chain.BuildProposal(msgs, rand, rand, rand, deposit.String(), submitter, false)
 	if err != nil {
 		return "", err
 	}
@@ -291,16 +314,16 @@ func PassProposal(chain *cosmos.CosmosChain, propId string, timeout time.Duratio
 	}
 
 	// have all nodes vote on the proposal
-	wg := errgroup.Group{}
+	wg := sync.WaitGroup{}
 	for _, node := range chain.Nodes() {
-		n := node // pin
-		wg.Go(func() error {
-			return n.VoteOnProposal(context.Background(), validatorKey, propId, yes)
-		})
+		wg.Add(1)
+		go func(node *cosmos.ChainNode) {
+			defer wg.Done()
+			node.VoteOnProposal(context.Background(), validatorKey, propId, yes)
+		}(node)
 	}
-	if err := wg.Wait(); err != nil {
-		return err
-	}
+	wg.Wait()
+
 	// wait for the proposal to pass
 	if err := WaitForProposalStatus(chain, propId, timeout, govtypesv1.StatusPassed); err != nil {
 		return fmt.Errorf("proposal did not pass: %v", err)
@@ -315,7 +338,6 @@ func AddCurrencyPairs(chain *cosmos.CosmosChain, authority, denom string, deposi
 		Authority:     authority,
 		CurrencyPairs: cps,
 	}}...)
-
 	if err != nil {
 		return err
 	}
@@ -330,7 +352,6 @@ func RemoveCurrencyPairs(chain *cosmos.CosmosChain, authority, denom string, dep
 		Authority:       authority,
 		CurrencyPairIds: cpIDs,
 	}}...)
-
 	if err != nil {
 		return err
 	}
@@ -377,7 +398,7 @@ func WaitForProposalStatus(chain *cosmos.CosmosChain, propID string, timeout tim
 
 // WaitForHeight waits for the giuve height to be reached
 func WaitForHeight(chain *cosmos.CosmosChain, height uint64, timeout time.Duration) error {
-	return testutil.WaitForCondition(timeout, 1*time.Second, func() (bool, error) {
+	return testutil.WaitForCondition(timeout, 100*time.Millisecond, func() (bool, error) {
 		h, err := chain.Height(context.Background())
 		if err != nil {
 			return false, err
@@ -387,38 +408,118 @@ func WaitForHeight(chain *cosmos.CosmosChain, height uint64, timeout time.Durati
 	})
 }
 
-// WaitForOracleUpdate waits for the first oracle update. This method returns the height that the oracle update occurred
-// it returns an error if there is no oracle update by the timeout
-func WaitForOracleUpdate(chain *cosmos.CosmosChain, timeout time.Duration, cp oracletypes.CurrencyPair) (uint64, error) {
-	blockHeight, err := chain.Height(context.Background())
-	if err != nil {
-		return 0, err
-	}
-	height := int64(blockHeight)
+// ExpectVoteExtensions waits for empty oracle update waits for a pre-determined number of blocks for an extended commit with the given oracle-vote extensions provided
+// per validator. This method returns the height at which the condition was satisfied.
+//
+// Notice: the height returned is safe for querying, i.e the prices will have been written to state if a quorum reported
+func ExpectVoteExtensions(chain *cosmos.CosmosChain, timeout time.Duration, ves []slinkyabci.OracleVoteExtension) (uint64, error) {
+	client := chain.Nodes()[0].Client
 
-	// Ensure that the price update occurs after the start height
-	_, startNonce, err := QueryCurrencyPair(chain, cp, uint64(height))
-	if err != nil {
-		return 0, err
-	}
+	var blockHeight uint64
+	if err := testutil.WaitForCondition(timeout, 100*time.Millisecond, func() (bool, error) {
+		var err error
 
-	if err := testutil.WaitForCondition(timeout, 1*time.Second, func() (bool, error) {
-		blockHeight, err := chain.Height(context.Background())
+		blockHeight, err = chain.Height(context.Background())
 		if err != nil {
 			return false, err
 		}
 
-		_, currentNonce, err := QueryCurrencyPair(chain, cp, blockHeight)
+		height := int64(blockHeight)
+		// get the block
+		block, err := client.Block(context.Background(), &height)
 		if err != nil {
 			return false, err
 		}
 
-		height = int64(blockHeight)
+		// get the oracle update
+		if len(block.Block.Txs) == 0 {
+			return false, fmt.Errorf("block is invalid: no oracle transaction")
+		}
 
-		return startNonce < currentNonce, nil
+		// attempt to unmarshal extended commit info
+		extendedCommitInfo, err := extCommitCodec.Decode(block.Block.Txs[0])
+		if err != nil {
+			return false, err
+		}
+
+		sort.Sort(validatorVotes(extendedCommitInfo.Votes))
+
+		// iterate through all votes (votes in the extended-commit are deterministically ordered by voting power -> address)
+		for i, vote := range extendedCommitInfo.Votes {
+			// get the oracle vote extension
+			gotVe, err := veCodec.Decode(vote.VoteExtension)
+			if err != nil {
+				return false, err
+			}
+
+			if len(ves[i].Prices) != len(gotVe.Prices) {
+				return false, nil
+			}
+
+			// check that the vote extension is correct
+			for ticker, price := range gotVe.Prices {
+				if !bytes.Equal(price, ves[i].Prices[ticker]) {
+					return false, nil
+				}
+			}
+		}
+
+		return true, nil
 	}); err != nil {
 		return 0, err
 	}
 
-	return uint64(height), nil
+	// we want to wait for the application state to reflect the proposed state from blockHeight
+	return blockHeight, WaitForHeight(chain, blockHeight+1, timeout)
+}
+
+// wrapper around extendedVoteInfo for use in sorting (to make ordering deterministic in tests)
+type validatorVotes []cmtabci.ExtendedVoteInfo
+
+func (vv validatorVotes) Len() int { return len(vv) }
+
+func (vv validatorVotes) Swap(i, j int) { vv[i], vv[j] = vv[j], vv[i] }
+
+// order the votes by the number of reports first, then by the contents of the vote-extensions.
+func (vv validatorVotes) Less(i, j int) bool {
+	// break ties by vote-extension data
+	var (
+		iPrice, jPrice, iTotalPrice, jTotalPrice int
+	)
+
+	ve, err := veCodec.Decode(vv[i].VoteExtension)
+	if err == nil {
+		iPrice = len(ve.Prices)
+
+		for _, priceBz := range ve.Prices {
+			var price big.Int
+			if err := price.GobDecode(priceBz); err != nil {
+				panic(err)
+			}
+
+			iTotalPrice += int(price.Int64())
+		}
+	}
+
+	ve, err = veCodec.Decode(vv[j].VoteExtension)
+	if err == nil {
+		jPrice = len(ve.Prices)
+
+		for _, priceBz := range ve.Prices {
+			var price big.Int
+			if err := price.GobDecode(priceBz); err != nil {
+				panic(err)
+			}
+
+			jTotalPrice += int(price.Int64())
+		}
+	}
+
+	// check if the number of prices is different
+	if iPrice != jPrice {
+		return iPrice < jPrice
+	}
+
+	// break ties by the sum of the prices for each validator
+	return iTotalPrice < jTotalPrice
 }

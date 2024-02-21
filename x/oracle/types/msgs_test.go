@@ -4,8 +4,9 @@ import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/skip-mev/slinky/x/oracle/types"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/skip-mev/slinky/x/oracle/types"
 )
 
 func TestGetSignersMsgAddCurrencyPairs(t *testing.T) {
@@ -102,8 +103,8 @@ func TestValidateBasicMsgRemoveCurrencyPairs(t *testing.T) {
 			types.MsgRemoveCurrencyPairs{
 				Authority: sdk.AccAddress([]byte("abc")).String(),
 				CurrencyPairIds: []string{
-					types.CurrencyPair{Base: "A", Quote: "B"}.ToString(),
-					types.CurrencyPair{Base: "C", Quote: "D"}.ToString(),
+					types.CurrencyPairString("A", "B"),
+					types.CurrencyPairString("C", "D"),
 				},
 			},
 			true,

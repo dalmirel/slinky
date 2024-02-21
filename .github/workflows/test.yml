@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-go@v4
+      - uses: actions/setup-go@v5
         with:
           go-version: 1.21.0
           cache: true
@@ -36,7 +36,12 @@ jobs:
         if: env.GIT_DIFF
         run: |
           make test
-      - name: integration testing
-        if: env.GIT_DIFF
+      - name: test-cover
         run: |
-          make test-integration
+          make test-cover
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v4
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        with:
+          files: cover.out

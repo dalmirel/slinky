@@ -1,9 +1,11 @@
 package strategies
 
 import (
+	"math/big"
+
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/holiman/uint256"
+
 	slinkyabci "github.com/skip-mev/slinky/abci/ve/types"
 	"github.com/skip-mev/slinky/x/alerts/types"
 	incentivetypes "github.com/skip-mev/slinky/x/incentives/types"
@@ -16,7 +18,7 @@ import (
 // NOTICE: no signature checks are performed on the vote-extension, as it is expected that the caller has verified the
 // ExtendedVoteInfo's signature before calling this function.
 func DefaultHandleValidatorIncentive() ValidatorIncentiveHandler {
-	return func(ve cmtabci.ExtendedVoteInfo, pb types.PriceBound, a types.Alert) (incentivetypes.Incentive, error) {
+	return func(ve cmtabci.ExtendedVoteInfo, pb types.PriceBound, a types.Alert, cpID uint64) (incentivetypes.Incentive, error) {
 		// validate the alert
 		if err := a.ValidateBasic(); err != nil {
 			return nil, err
@@ -33,20 +35,14 @@ func DefaultHandleValidatorIncentive() ValidatorIncentiveHandler {
 			return nil, err
 		}
 
-		// get the ticker from the VE
-		ticker := a.CurrencyPair.ToString()
-
 		// check for existence, if it doesn't exist, return nil
-		priceString, ok := voteExt.Prices[ticker]
+		priceBz, ok := voteExt.Prices[cpID]
 		if !ok {
 			return nil, nil
 		}
 
-		// check that price unmarshals
-		price, err := uint256.FromHex(priceString)
-		if err != nil {
-			return nil, err
-		}
+		var price big.Int
+		price.SetBytes(priceBz)
 
 		// check bounds
 		low, err := pb.GetLowInt()

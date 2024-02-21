@@ -33,6 +33,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+
 	"github.com/skip-mev/slinky/tests/simapp"
 )
 
@@ -82,7 +83,7 @@ func addTestnetFlagsToCmd(cmd *cobra.Command) {
 	cmd.Flags().String(flags.FlagKeyType, string(hd.Secp256k1Type), "Key signing algorithm to generate keys for")
 
 	// support old flags name for backwards compatibility
-	cmd.Flags().SetNormalizeFunc(func(f *pflag.FlagSet, name string) pflag.NormalizedName {
+	cmd.Flags().SetNormalizeFunc(func(_ *pflag.FlagSet, name string) pflag.NormalizedName {
 		if name == "algo" {
 			name = flags.FlagKeyType
 		}
@@ -92,7 +93,7 @@ func addTestnetFlagsToCmd(cmd *cobra.Command) {
 }
 
 // NewTestnetCmd creates a root testnet command with subcommands to run an in-process testnet or initialize
-// validator configuration files for running a multi-validator testnet in a separate process
+// validator configuration files for running a multi-validator testnet in a separate process.
 func NewTestnetCmd(mbm module.BasicManager, genBalIterator banktypes.GenesisBalancesIterator) *cobra.Command {
 	testnetCmd := &cobra.Command{
 		Use:                        "testnet",
@@ -108,7 +109,7 @@ func NewTestnetCmd(mbm module.BasicManager, genBalIterator banktypes.GenesisBala
 	return testnetCmd
 }
 
-// testnetInitFilesCmd returns a cmd to initialize all files for CometBFT testnet and application
+// testnetInitFilesCmd returns a cmd to initialize all files for CometBFT testnet and application.
 func testnetInitFilesCmd(mbm module.BasicManager, genBalIterator banktypes.GenesisBalancesIterator) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "init-files",
@@ -157,7 +158,7 @@ Example:
 	return cmd
 }
 
-// testnetStartCmd returns a cmd to start multi validator in-process testnet
+// testnetStartCmd returns a cmd to start multi validator in-process testnet.
 func testnetStartCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "start",
@@ -197,7 +198,7 @@ Example:
 
 const nodeDirPerm = 0o755
 
-// initTestnetFiles initializes testnet files for a testnet to be run in a separate process
+// initTestnetFiles initializes testnet files for a testnet to be run in a separate process.
 func initTestnetFiles(
 	clientCtx client.Context,
 	cmd *cobra.Command,
@@ -489,7 +490,7 @@ func writeFile(name, dir string, contents []byte) error {
 	return os.WriteFile(file, contents, 0o600)
 }
 
-// startTestnet starts an in-process testnet
+// startTestnet starts an in-process testnet.
 func startTestnet(cmd *cobra.Command, args startArgs) error {
 	networkConfig := network.DefaultConfig(simapp.NewTestNetworkFixture)
 

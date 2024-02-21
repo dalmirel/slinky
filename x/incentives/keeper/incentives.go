@@ -4,6 +4,7 @@ import (
 	storetypes "cosmossdk.io/store/types"
 	db "github.com/cosmos/cosmos-db"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/skip-mev/slinky/x/incentives/types"
 )
 
@@ -12,7 +13,7 @@ func (k Keeper) GetIncentivesByType(ctx sdk.Context, incentive types.Incentive) 
 	key := types.GetIncentiveKey(incentive)
 
 	// Create a callback to unmarshal the incentives.
-	incentives := []types.Incentive{}
+	var incentives []types.Incentive
 	cb := func(it db.Iterator) error {
 		if err := incentive.Unmarshal(it.Value()); err != nil {
 			return err

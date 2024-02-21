@@ -6,6 +6,7 @@ import (
 	"errors"
 	"io"
 	"os"
+	"time"
 
 	cmtcfg "github.com/cometbft/cometbft/config"
 	dbm "github.com/cosmos/cosmos-db"
@@ -16,6 +17,7 @@ import (
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
 	confixcmd "cosmossdk.io/tools/confix/cmd"
+
 	"github.com/skip-mev/slinky/tests/simapp"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -41,6 +43,7 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
+
 	oracleconfig "github.com/skip-mev/slinky/oracle/config"
 )
 
@@ -158,8 +161,8 @@ func initAppConfig() (string, interface{}) {
 	type CustomAppConfig struct {
 		serverconfig.Config
 
-		WASM   WASMConfig          `mapstructure:"wasm"`
-		Oracle oracleconfig.Config `mapstructure:"oracle"`
+		WASM   WASMConfig             `mapstructure:"wasm"`
+		Oracle oracleconfig.AppConfig `mapstructure:"oracle"`
 	}
 
 	// Optionally allow the chain developer to overwrite the SDK's default
@@ -180,13 +183,23 @@ func initAppConfig() (string, interface{}) {
 	srvCfg.MinGasPrices = "0stake"
 	// srvCfg.BaseConfig.IAVLDisableFastNode = true // disable fastnode by default
 
+	// Sample config to run this locally
+	//
+	oracleConfig := oracleconfig.AppConfig{
+		Enabled:                 true,
+		OracleAddress:           "oracle:8080",
+		ClientTimeout:           250 * time.Millisecond,
+		MetricsEnabled:          true,
+		PrometheusServerAddress: "0.0.0.0:8001",
+	}
+
 	customAppConfig := CustomAppConfig{
 		Config: *srvCfg,
 		WASM: WASMConfig{
 			LruSize:       1,
 			QueryGasLimit: 300000,
 		},
-		Oracle: oracleconfig.Config{},
+		Oracle: oracleConfig,
 	}
 
 	customAppTemplate := serverconfig.DefaultConfigTemplate + `
@@ -234,7 +247,7 @@ func addModuleInitFlags(startCmd *cobra.Command) {
 	crisis.AddModuleInitFlags(startCmd)
 }
 
-// genesisCommand builds genesis-related `simd genesis` command. Users may provide application specific commands as a parameter
+// genesisCommand builds genesis-related `simd genesis` command. Users may provide application specific commands as a parameter.
 func genesisCommand(txConfig client.TxConfig, basicManager module.BasicManager, cmds ...*cobra.Command) *cobra.Command {
 	cmd := genutilcli.Commands(txConfig, basicManager, simapp.DefaultNodeHome)
 
@@ -283,13 +296,12 @@ func txCommand() *cobra.Command {
 		authcmd.GetBroadcastCommand(),
 		authcmd.GetEncodeCommand(),
 		authcmd.GetDecodeCommand(),
-		authcmd.GetAuxToFeeCommand(),
 	)
 
 	return cmd
 }
 
-// newApp creates the application
+// newApp creates the application.
 func newApp(
 	logger log.Logger,
 	db dbm.DB,

@@ -5,23 +5,16 @@ package types
 
 import (
 	fmt "fmt"
-	_ "github.com/cosmos/cosmos-proto"
-	_ "github.com/cosmos/gogoproto/gogoproto"
 	proto "github.com/cosmos/gogoproto/proto"
-	github_com_cosmos_gogoproto_types "github.com/cosmos/gogoproto/types"
-	_ "google.golang.org/genproto/googleapis/api/annotations"
-	_ "google.golang.org/protobuf/types/known/timestamppb"
 	io "io"
 	math "math"
 	math_bits "math/bits"
-	time "time"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
 var _ = fmt.Errorf
 var _ = math.Inf
-var _ = time.Kitchen
 
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the proto package it is being compiled against.
@@ -31,13 +24,10 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // OracleVoteExtension defines the vote extension structure for oracle prices.
 type OracleVoteExtension struct {
-	// Prices defines a map of CurrencyPair -> hexPrice. i.e. "BTC/USD/8" ->
-	// "0x1234".
-	Prices map[string]string `protobuf:"bytes,1,rep,name=prices,proto3" json:"prices,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
-	// Timestamp defines the block timestamp when the oracle data was validated.
-	Timestamp time.Time `protobuf:"bytes,2,opt,name=timestamp,proto3,stdtime" json:"timestamp"`
-	// Height defines the block height when the oracle data was validated.
-	Height int64 `protobuf:"varint,3,opt,name=height,proto3" json:"height,omitempty"`
+	// Prices defines a map of id(CurrencyPair) -> price.Bytes() . i.e. 1 ->
+	// 0x123.. (bytes). Notice the `id` function is determined by the
+	// `CurrencyPairIDStrategy` used in the VoteExtensionHandler.
+	Prices map[uint64][]byte `protobuf:"bytes,1,rep,name=prices,proto3" json:"prices,omitempty" protobuf_key:"varint,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
 }
 
 func (m *OracleVoteExtension) Reset()         { *m = OracleVoteExtension{} }
@@ -73,30 +63,16 @@ func (m *OracleVoteExtension) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_OracleVoteExtension proto.InternalMessageInfo
 
-func (m *OracleVoteExtension) GetPrices() map[string]string {
+func (m *OracleVoteExtension) GetPrices() map[uint64][]byte {
 	if m != nil {
 		return m.Prices
 	}
 	return nil
 }
 
-func (m *OracleVoteExtension) GetTimestamp() time.Time {
-	if m != nil {
-		return m.Timestamp
-	}
-	return time.Time{}
-}
-
-func (m *OracleVoteExtension) GetHeight() int64 {
-	if m != nil {
-		return m.Height
-	}
-	return 0
-}
-
 func init() {
 	proto.RegisterType((*OracleVoteExtension)(nil), "slinky.abci.v1.OracleVoteExtension")
-	proto.RegisterMapType((map[string]string)(nil), "slinky.abci.v1.OracleVoteExtension.PricesEntry")
+	proto.RegisterMapType((map[uint64][]byte)(nil), "slinky.abci.v1.OracleVoteExtension.PricesEntry")
 }
 
 func init() {
@@ -104,29 +80,22 @@ func init() {
 }
 
 var fileDescriptor_cca9d70763a0957a = []byte{
-	// 343 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x6c, 0x91, 0x41, 0x4b, 0xc3, 0x40,
-	0x10, 0x85, 0xb3, 0x0d, 0x16, 0xbb, 0x05, 0x91, 0x58, 0x24, 0x06, 0x49, 0x83, 0x78, 0xc8, 0xc5,
-	0x5d, 0x5a, 0x2f, 0xea, 0x31, 0x50, 0x3c, 0x2a, 0x41, 0x3c, 0x78, 0x29, 0x49, 0x18, 0xd3, 0xa5,
-	0x49, 0x36, 0x64, 0xb7, 0xc1, 0xfc, 0x8b, 0xfe, 0xac, 0x1e, 0x7b, 0xf4, 0xa4, 0xd2, 0xfe, 0x06,
-	0xef, 0xd2, 0x6c, 0x6a, 0x2d, 0x78, 0x9b, 0xc7, 0x7b, 0x6f, 0xe6, 0x83, 0xc1, 0x97, 0x22, 0x61,
-	0xd9, 0xb4, 0xa2, 0x41, 0x18, 0x31, 0x5a, 0x0e, 0x68, 0xc9, 0x25, 0x8c, 0xe1, 0x4d, 0x42, 0x26,
-	0x18, 0xcf, 0x04, 0xc9, 0x0b, 0x2e, 0xb9, 0x71, 0xa4, 0x52, 0x64, 0x93, 0x22, 0xe5, 0xc0, 0xea,
-	0xc5, 0x3c, 0xe6, 0xb5, 0x45, 0x37, 0x93, 0x4a, 0x59, 0xe7, 0x31, 0xe7, 0x71, 0x02, 0x34, 0xc8,
-	0x19, 0x0d, 0xb2, 0x8c, 0xcb, 0x40, 0xee, 0x76, 0x58, 0xfd, 0xc6, 0xad, 0x55, 0x38, 0x7b, 0xa5,
-	0x92, 0xa5, 0x20, 0x64, 0x90, 0xe6, 0x4d, 0xe0, 0x2c, 0xe2, 0x22, 0xe5, 0x62, 0xac, 0xf6, 0x2a,
-	0xa1, 0xac, 0x8b, 0x6f, 0x84, 0x4f, 0x1e, 0x8a, 0x20, 0x4a, 0xe0, 0x99, 0x4b, 0x18, 0x6d, 0xf1,
-	0x8c, 0x7b, 0xdc, 0xce, 0x0b, 0x16, 0x81, 0x30, 0x91, 0xa3, 0xbb, 0xdd, 0x21, 0x25, 0xfb, 0xa0,
-	0xe4, 0x9f, 0x12, 0x79, 0xac, 0x1b, 0xa3, 0x4c, 0x16, 0x95, 0xdf, 0xd4, 0x0d, 0x0f, 0x77, 0x7e,
-	0x71, 0xcc, 0x96, 0x83, 0xdc, 0xee, 0xd0, 0x22, 0x0a, 0x98, 0x6c, 0x81, 0xc9, 0xd3, 0x36, 0xe1,
-	0x1d, 0x2e, 0x3e, 0xfa, 0xda, 0xfc, 0xb3, 0x8f, 0xfc, 0x5d, 0xcd, 0x38, 0xc5, 0xed, 0x09, 0xb0,
-	0x78, 0x22, 0x4d, 0xdd, 0x41, 0xae, 0xee, 0x37, 0xca, 0xba, 0xc5, 0xdd, 0x3f, 0x27, 0x8d, 0x63,
-	0xac, 0x4f, 0xa1, 0x32, 0x91, 0x83, 0xdc, 0x8e, 0xbf, 0x19, 0x8d, 0x1e, 0x3e, 0x28, 0x83, 0x64,
-	0x06, 0xf5, 0xe1, 0x8e, 0xaf, 0xc4, 0x5d, 0xeb, 0x06, 0x79, 0xde, 0x62, 0x65, 0xa3, 0xe5, 0xca,
-	0x46, 0x5f, 0x2b, 0x1b, 0xcd, 0xd7, 0xb6, 0xb6, 0x5c, 0xdb, 0xda, 0xfb, 0xda, 0xd6, 0x5e, 0xdc,
-	0x98, 0xc9, 0xc9, 0x2c, 0x24, 0x11, 0x4f, 0xa9, 0x98, 0xb2, 0xfc, 0x2a, 0x85, 0x92, 0xee, 0xfd,
-	0x12, 0xa8, 0xac, 0x72, 0x10, 0x61, 0xbb, 0xe6, 0xbf, 0xfe, 0x09, 0x00, 0x00, 0xff, 0xff, 0xf4,
-	0xbb, 0x1f, 0xde, 0xea, 0x01, 0x00, 0x00,
+	// 234 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x52, 0x29, 0xce, 0xc9, 0xcc,
+	0xcb, 0xae, 0xd4, 0x4f, 0x4c, 0x4a, 0xce, 0xd4, 0x2f, 0x33, 0xd4, 0x2f, 0xcb, 0x2f, 0x49, 0x8d,
+	0x4f, 0xad, 0x28, 0x49, 0xcd, 0x2b, 0xce, 0xcc, 0xcf, 0x2b, 0xd6, 0x2b, 0x28, 0xca, 0x2f, 0xc9,
+	0x17, 0xe2, 0x83, 0xa8, 0xd2, 0x03, 0xa9, 0xd2, 0x2b, 0x33, 0x54, 0x9a, 0xc9, 0xc8, 0x25, 0xec,
+	0x5f, 0x94, 0x98, 0x9c, 0x93, 0x1a, 0x96, 0x5f, 0x92, 0xea, 0x0a, 0x53, 0x2e, 0xe4, 0xce, 0xc5,
+	0x56, 0x50, 0x94, 0x99, 0x9c, 0x5a, 0x2c, 0xc1, 0xa8, 0xc0, 0xac, 0xc1, 0x6d, 0xa4, 0xaf, 0x87,
+	0xaa, 0x51, 0x0f, 0x8b, 0x26, 0xbd, 0x00, 0xb0, 0x0e, 0xd7, 0xbc, 0x92, 0xa2, 0xca, 0x20, 0xa8,
+	0x76, 0x29, 0x4b, 0x2e, 0x6e, 0x24, 0x61, 0x21, 0x01, 0x2e, 0xe6, 0xec, 0xd4, 0x4a, 0x09, 0x46,
+	0x05, 0x46, 0x0d, 0x96, 0x20, 0x10, 0x53, 0x48, 0x84, 0x8b, 0xb5, 0x2c, 0x31, 0xa7, 0x34, 0x55,
+	0x82, 0x49, 0x81, 0x51, 0x83, 0x27, 0x08, 0xc2, 0xb1, 0x62, 0xb2, 0x60, 0x74, 0x72, 0x3a, 0xf1,
+	0x48, 0x8e, 0xf1, 0xc2, 0x23, 0x39, 0xc6, 0x07, 0x8f, 0xe4, 0x18, 0x27, 0x3c, 0x96, 0x63, 0xb8,
+	0xf0, 0x58, 0x8e, 0xe1, 0xc6, 0x63, 0x39, 0x86, 0x28, 0x8d, 0xf4, 0xcc, 0x92, 0x8c, 0xd2, 0x24,
+	0xbd, 0xe4, 0xfc, 0x5c, 0xfd, 0xe2, 0xec, 0xcc, 0x02, 0xdd, 0xdc, 0xd4, 0x32, 0x7d, 0x14, 0xff,
+	0xa7, 0xea, 0x97, 0x54, 0x16, 0xa4, 0x16, 0x27, 0xb1, 0x81, 0xbd, 0x6d, 0x0c, 0x08, 0x00, 0x00,
+	0xff, 0xff, 0x61, 0x40, 0x8e, 0x51, 0x1e, 0x01, 0x00, 0x00,
 }
 
 func (m *OracleVoteExtension) Marshal() (dAtA []byte, err error) {
@@ -149,33 +118,20 @@ func (m *OracleVoteExtension) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	if m.Height != 0 {
-		i = encodeVarintVoteExtensions(dAtA, i, uint64(m.Height))
-		i--
-		dAtA[i] = 0x18
-	}
-	n1, err1 := github_com_cosmos_gogoproto_types.StdTimeMarshalTo(m.Timestamp, dAtA[i-github_com_cosmos_gogoproto_types.SizeOfStdTime(m.Timestamp):])
-	if err1 != nil {
-		return 0, err1
-	}
-	i -= n1
-	i = encodeVarintVoteExtensions(dAtA, i, uint64(n1))
-	i--
-	dAtA[i] = 0x12
 	if len(m.Prices) > 0 {
 		for k := range m.Prices {
 			v := m.Prices[k]
 			baseI := i
-			i -= len(v)
-			copy(dAtA[i:], v)
-			i = encodeVarintVoteExtensions(dAtA, i, uint64(len(v)))
+			if len(v) > 0 {
+				i -= len(v)
+				copy(dAtA[i:], v)
+				i = encodeVarintVoteExtensions(dAtA, i, uint64(len(v)))
+				i--
+				dAtA[i] = 0x12
+			}
+			i = encodeVarintVoteExtensions(dAtA, i, uint64(k))
 			i--
-			dAtA[i] = 0x12
-			i -= len(k)
-			copy(dAtA[i:], k)
-			i = encodeVarintVoteExtensions(dAtA, i, uint64(len(k)))
-			i--
-			dAtA[i] = 0xa
+			dAtA[i] = 0x8
 			i = encodeVarintVoteExtensions(dAtA, i, uint64(baseI-i))
 			i--
 			dAtA[i] = 0xa
@@ -205,14 +161,13 @@ func (m *OracleVoteExtension) Size() (n int) {
 		for k, v := range m.Prices {
 			_ = k
 			_ = v
-			mapEntrySize := 1 + len(k) + sovVoteExtensions(uint64(len(k))) + 1 + len(v) + sovVoteExtensions(uint64(len(v)))
+			l = 0
+			if len(v) > 0 {
+				l = 1 + len(v) + sovVoteExtensions(uint64(len(v)))
+			}
+			mapEntrySize := 1 + sovVoteExtensions(uint64(k)) + l
 			n += mapEntrySize + 1 + sovVoteExtensions(uint64(mapEntrySize))
 		}
-	}
-	l = github_com_cosmos_gogoproto_types.SizeOfStdTime(m.Timestamp)
-	n += 1 + l + sovVoteExtensions(uint64(l))
-	if m.Height != 0 {
-		n += 1 + sovVoteExtensions(uint64(m.Height))
 	}
 	return n
 }
@@ -282,10 +237,10 @@ func (m *OracleVoteExtension) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Prices == nil {
-				m.Prices = make(map[string]string)
+				m.Prices = make(map[uint64][]byte)
 			}
-			var mapkey string
-			var mapvalue string
+			var mapkey uint64
+			mapvalue := []byte{}
 			for iNdEx < postIndex {
 				entryPreIndex := iNdEx
 				var wire uint64
@@ -305,7 +260,6 @@ func (m *OracleVoteExtension) Unmarshal(dAtA []byte) error {
 				}
 				fieldNum := int32(wire >> 3)
 				if fieldNum == 1 {
-					var stringLenmapkey uint64
 					for shift := uint(0); ; shift += 7 {
 						if shift >= 64 {
 							return ErrIntOverflowVoteExtensions
@@ -315,26 +269,13 @@ func (m *OracleVoteExtension) Unmarshal(dAtA []byte) error {
 						}
 						b := dAtA[iNdEx]
 						iNdEx++
-						stringLenmapkey |= uint64(b&0x7F) << shift
+						mapkey |= uint64(b&0x7F) << shift
 						if b < 0x80 {
 							break
 						}
 					}
-					intStringLenmapkey := int(stringLenmapkey)
-					if intStringLenmapkey < 0 {
-						return ErrInvalidLengthVoteExtensions
-					}
-					postStringIndexmapkey := iNdEx + intStringLenmapkey
-					if postStringIndexmapkey < 0 {
-						return ErrInvalidLengthVoteExtensions
-					}
-					if postStringIndexmapkey > l {
-						return io.ErrUnexpectedEOF
-					}
-					mapkey = string(dAtA[iNdEx:postStringIndexmapkey])
-					iNdEx = postStringIndexmapkey
 				} else if fieldNum == 2 {
-					var stringLenmapvalue uint64
+					var mapbyteLen uint64
 					for shift := uint(0); ; shift += 7 {
 						if shift >= 64 {
 							return ErrIntOverflowVoteExtensions
@@ -344,24 +285,25 @@ func (m *OracleVoteExtension) Unmarshal(dAtA []byte) error {
 						}
 						b := dAtA[iNdEx]
 						iNdEx++
-						stringLenmapvalue |= uint64(b&0x7F) << shift
+						mapbyteLen |= uint64(b&0x7F) << shift
 						if b < 0x80 {
 							break
 						}
 					}
-					intStringLenmapvalue := int(stringLenmapvalue)
-					if intStringLenmapvalue < 0 {
+					intMapbyteLen := int(mapbyteLen)
+					if intMapbyteLen < 0 {
 						return ErrInvalidLengthVoteExtensions
 					}
-					postStringIndexmapvalue := iNdEx + intStringLenmapvalue
-					if postStringIndexmapvalue < 0 {
+					postbytesIndex := iNdEx + intMapbyteLen
+					if postbytesIndex < 0 {
 						return ErrInvalidLengthVoteExtensions
 					}
-					if postStringIndexmapvalue > l {
+					if postbytesIndex > l {
 						return io.ErrUnexpectedEOF
 					}
-					mapvalue = string(dAtA[iNdEx:postStringIndexmapvalue])
-					iNdEx = postStringIndexmapvalue
+					mapvalue = make([]byte, mapbyteLen)
+					copy(mapvalue, dAtA[iNdEx:postbytesIndex])
+					iNdEx = postbytesIndex
 				} else {
 					iNdEx = entryPreIndex
 					skippy, err := skipVoteExtensions(dAtA[iNdEx:])
@@ -379,58 +321,6 @@ func (m *OracleVoteExtension) Unmarshal(dAtA []byte) error {
 			}
 			m.Prices[mapkey] = mapvalue
 			iNdEx = postIndex
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Timestamp", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowVoteExtensions
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthVoteExtensions
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthVoteExtensions
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if err := github_com_cosmos_gogoproto_types.StdTimeUnmarshal(&m.Timestamp, dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		case 3:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Height", wireType)
-			}
-			m.Height = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowVoteExtensions
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.Height |= int64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
 		default:
 			iNdEx = preIndex
 			skippy, err := skipVoteExtensions(dAtA[iNdEx:])

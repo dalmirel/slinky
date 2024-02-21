@@ -5,8 +5,9 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/skip-mev/slinky/x/alerts/types"
 	"github.com/spf13/cobra"
+
+	"github.com/skip-mev/slinky/x/alerts/types"
 )
 
 const (
@@ -37,7 +38,7 @@ func CmdQueryParams() *cobra.Command {
 		Use:   "params",
 		Short: "Query the current alerts module parameters",
 		Args:  cobra.NoArgs,
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
@@ -57,7 +58,7 @@ func CmdQueryParams() *cobra.Command {
 	return cmd
 }
 
-// CmdQueryAlerts returns the command for querying alerts
+// CmdQueryAlerts returns the command for querying alerts.
 func CmdQueryAlerts() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "alerts",
@@ -68,7 +69,7 @@ The query is expected to look as follows:
 	query alerts alerts -> returns all alerts
 		`,
 		Example: "alerts alerts --alert-status concluded",
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err

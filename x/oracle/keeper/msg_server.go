@@ -9,12 +9,12 @@ import (
 	"github.com/skip-mev/slinky/x/oracle/types"
 )
 
-// msgServer is the default implementation of the x/oracle MsgService
+// msgServer is the default implementation of the x/oracle MsgService.
 type msgServer struct {
 	k Keeper
 }
 
-// NewMsgServer returns the default implementation of the x/oracle message service
+// NewMsgServer returns the default implementation of the x/oracle message service.
 func NewMsgServer(k Keeper) types.MsgServer {
 	return &msgServer{k}
 }
@@ -30,10 +30,6 @@ func (m *msgServer) AddCurrencyPairs(goCtx context.Context, req *types.MsgAddCur
 		return nil, fmt.Errorf("message cannot be empty")
 	}
 
-	if err := req.ValidateBasic(); err != nil {
-		return nil, fmt.Errorf("message validation failed: %v", err)
-	}
-
 	// check that the authority of the message is the authority of the module
 	if req.Authority != m.k.authority.String() {
 		return nil, fmt.Errorf("message validation failed: authority %s is not module authority %s", req.Authority, m.k.authority)
@@ -42,12 +38,10 @@ func (m *msgServer) AddCurrencyPairs(goCtx context.Context, req *types.MsgAddCur
 	// finally, add all currency pairs in message to state
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	for _, cp := range req.CurrencyPairs {
-		// only set if there is no nonce for the CurrencyPair
-		_, err := m.k.GetNonceForCurrencyPair(ctx, cp)
-
-		if _, ok := err.(*types.CurrencyPairNotExistError); ok {
+		// only set the currency-pair if it does not already exist in state
+		if !m.k.HasCurrencyPair(ctx, cp) {
 			// set to state, initial nonce will be zero (no price updates have been made for this CurrencyPair)
-			m.k.setNonceForCurrencyPair(ctx, cp, 0)
+			m.k.CreateCurrencyPair(ctx, cp)
 		}
 	}
 
@@ -55,17 +49,12 @@ func (m *msgServer) AddCurrencyPairs(goCtx context.Context, req *types.MsgAddCur
 }
 
 // RemoveCurrencyPairs takes a set of CurrencyPairs to remove. CurrencyPairs given are represented by string identifiers of CurrencyPairs
-// i.e `cp.ToString()`. For each CurrencyPair in the message, remove the Nonce / QuotePrice data for that CurrencyPair, if a CurrencyPair is
+// i.e `cp.String()`. For each CurrencyPair in the message, remove the Nonce / QuotePrice data for that CurrencyPair, if a CurrencyPair is
 // given that is not currently tracked, skip, and continue removing CurrencyPairs.
 func (m *msgServer) RemoveCurrencyPairs(goCtx context.Context, req *types.MsgRemoveCurrencyPairs) (*types.MsgRemoveCurrencyPairsResponse, error) {
 	// check validity of message
 	if req == nil {
 		return nil, fmt.Errorf("message cannot be empty")
-	}
-
-	// perform state-less validation on message
-	if err := req.ValidateBasic(); err != nil {
-		return nil, err
 	}
 
 	// check that the authority of the message is the authority of the module
@@ -80,7 +69,7 @@ func (m *msgServer) RemoveCurrencyPairs(goCtx context.Context, req *types.MsgRem
 		// get cp from identifier string
 		cp, err := types.CurrencyPairFromString(id)
 		if err != nil {
-			return nil, fmt.Errorf("error retrieving CurrencyPair from request: %v", err)
+			return nil, fmt.Errorf("error retrieving CurrencyPair from request: %w", err)
 		}
 
 		// delete the currency pair from state
