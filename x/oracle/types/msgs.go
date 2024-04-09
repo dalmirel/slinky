@@ -2,6 +2,8 @@ package types
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	slinkytypes "github.com/skip-mev/slinky/pkg/types"
 )
 
 var (
@@ -10,24 +12,17 @@ var (
 )
 
 // NewMsgAddCurrencyPairs returns a new message from a set of currency-pairs and an authority.
-func NewMsgAddCurrencyPairs(authority string, cps []CurrencyPair) MsgAddCurrencyPairs {
+func NewMsgAddCurrencyPairs(authority string, cps []slinkytypes.CurrencyPair) MsgAddCurrencyPairs {
 	return MsgAddCurrencyPairs{
 		Authority:     authority,
 		CurrencyPairs: cps,
 	}
 }
 
-// GetSigners, get the addresses that must sign this message. In this case, the signer
-// must be the module authority.
-func (m MsgAddCurrencyPairs) GetSigners() []sdk.AccAddress {
-	// convert from string to acc address
-	addr, _ := sdk.AccAddressFromBech32(m.Authority)
-	return []sdk.AccAddress{addr}
-}
-
-// ValidateBasic determines whether or not the information in the message is formatted correctly, specifically
+// ValidateBasic determines whether the information in the message is formatted correctly, specifically
 // whether the authority is a valid acc-address, and that each CurrencyPair in the message is formatted correctly.
-func (m MsgAddCurrencyPairs) ValidateBasic() error {
+
+func (m *MsgAddCurrencyPairs) ValidateBasic() error {
 	// validate authority address
 	_, err := sdk.AccAddressFromBech32(m.Authority)
 	if err != nil {
@@ -52,17 +47,9 @@ func NewMsgRemoveCurrencyPairs(authority string, currencyPairIDs []string) MsgRe
 	}
 }
 
-// GetSigners, get the addresses that must sign this message. In this case, the signer
-// must be the module authority.
-func (m MsgRemoveCurrencyPairs) GetSigners() []sdk.AccAddress {
-	// convert from string to acc address
-	addr, _ := sdk.AccAddressFromBech32(m.Authority)
-	return []sdk.AccAddress{addr}
-}
-
-// ValidateBasic determines whether or not the information in the message is valid, specifically
+// ValidateBasic determines whether the information in the message is valid, specifically
 // whether the authority is a valid acc-address, and that each CurrencyPairID in the message is formatted correctly.
-func (m MsgRemoveCurrencyPairs) ValidateBasic() error {
+func (m *MsgRemoveCurrencyPairs) ValidateBasic() error {
 	// validate authority address
 	_, err := sdk.AccAddressFromBech32(m.Authority)
 	if err != nil {
@@ -71,7 +58,7 @@ func (m MsgRemoveCurrencyPairs) ValidateBasic() error {
 
 	// check that each CurrencyPairID is correctly formatted
 	for _, id := range m.CurrencyPairIds {
-		if _, err := CurrencyPairFromString(id); err != nil {
+		if _, err := slinkytypes.CurrencyPairFromString(id); err != nil {
 			return err
 		}
 	}

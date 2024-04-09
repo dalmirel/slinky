@@ -7,6 +7,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	slinkytypes "github.com/skip-mev/slinky/pkg/types"
 	oracletypes "github.com/skip-mev/slinky/x/oracle/types"
 )
 
@@ -14,7 +15,7 @@ import (
 // encodes/decodes the price as the difference between the current price and the previous price.
 type DeltaCurrencyPairStrategy struct {
 	*DefaultCurrencyPairStrategy
-	cache          map[oracletypes.CurrencyPair]*big.Int
+	cache          map[slinkytypes.CurrencyPair]*big.Int
 	previousHeight int64
 }
 
@@ -22,7 +23,7 @@ type DeltaCurrencyPairStrategy struct {
 func NewDeltaCurrencyPairStrategy(oracleKeeper OracleKeeper) *DeltaCurrencyPairStrategy {
 	return &DeltaCurrencyPairStrategy{
 		DefaultCurrencyPairStrategy: NewDefaultCurrencyPairStrategy(oracleKeeper),
-		cache:                       make(map[oracletypes.CurrencyPair]*big.Int),
+		cache:                       make(map[slinkytypes.CurrencyPair]*big.Int, DefaultCacheInitialCapacity),
 	}
 }
 
@@ -31,7 +32,7 @@ func NewDeltaCurrencyPairStrategy(oracleKeeper OracleKeeper) *DeltaCurrencyPairS
 // price. The delta price is then encoded into bytes.
 func (s *DeltaCurrencyPairStrategy) GetEncodedPrice(
 	ctx sdk.Context,
-	cp oracletypes.CurrencyPair,
+	cp slinkytypes.CurrencyPair,
 	price *big.Int,
 ) ([]byte, error) {
 	if price.Sign() < 0 {
@@ -60,7 +61,7 @@ func (s *DeltaCurrencyPairStrategy) GetEncodedPrice(
 // is strictly positive and is the price.
 func (s *DeltaCurrencyPairStrategy) GetDecodedPrice(
 	ctx sdk.Context,
-	cp oracletypes.CurrencyPair,
+	cp slinkytypes.CurrencyPair,
 	priceBytes []byte,
 ) (*big.Int, error) {
 	onChainPrice, err := s.getOnChainPrice(ctx, cp)
@@ -85,10 +86,10 @@ func (s *DeltaCurrencyPairStrategy) GetDecodedPrice(
 // getOnChainPrice returns the on-chain price, if it exists, for the given currency pair. If the
 // price is successfully fetched, the price is cached for future calls. The price cache is cleared
 // when the height changes.
-func (s *DeltaCurrencyPairStrategy) getOnChainPrice(ctx sdk.Context, cp oracletypes.CurrencyPair) (*big.Int, error) {
+func (s *DeltaCurrencyPairStrategy) getOnChainPrice(ctx sdk.Context, cp slinkytypes.CurrencyPair) (*big.Int, error) {
 	height := ctx.BlockHeight()
 	if height != s.previousHeight {
-		s.cache = make(map[oracletypes.CurrencyPair]*big.Int)
+		s.cache = make(map[slinkytypes.CurrencyPair]*big.Int, DefaultCacheInitialCapacity)
 		s.previousHeight = height
 	}
 
@@ -98,7 +99,7 @@ func (s *DeltaCurrencyPairStrategy) getOnChainPrice(ctx sdk.Context, cp oraclety
 	}
 
 	// Fetch the current price for the currency pair.
-	var currentPrice *big.Int
+	currentPrice := big.NewInt(0)
 	quote, err := s.oracleKeeper.GetPriceForCurrencyPair(ctx, cp)
 	if err != nil {
 		var quotePriceNotExistError oracletypes.QuotePriceNotExistError
@@ -111,7 +112,6 @@ func (s *DeltaCurrencyPairStrategy) getOnChainPrice(ctx sdk.Context, cp oraclety
 			)
 		}
 
-		currentPrice = big.NewInt(0)
 	} else {
 		currentPrice = quote.Price.BigInt()
 	}
@@ -119,4 +119,12 @@ func (s *DeltaCurrencyPairStrategy) getOnChainPrice(ctx sdk.Context, cp oraclety
 	// Cache the price and return it.
 	s.cache[cp] = currentPrice
 	return currentPrice, nil
+}
+
+// GetMaxNumCP returns the number of pairs that the VEs should include.  This method returns an error if the size cannot
+// be queried from the x/oracle state.
+func (s *DeltaCurrencyPairStrategy) GetMaxNumCP(
+	ctx sdk.Context,
+) (uint64, error) {
+	return s.oracleKeeper.GetPrevBlockCPCounter(ctx)
 }

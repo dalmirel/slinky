@@ -1,4 +1,4 @@
-FROM golang:1.21-bullseye AS builder
+FROM golang:1.22-bullseye AS builder
 
 WORKDIR /src/slinky
 
@@ -8,6 +8,8 @@ COPY go.sum .
 RUN go mod download
 
 COPY . .
+
+RUN make build-test-app
 
 RUN apt-get update && apt-get install jq -y && apt-get install ca-certificates -y
 

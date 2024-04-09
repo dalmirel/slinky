@@ -15,10 +15,10 @@ import (
 	"github.com/skip-mev/slinky/abci/strategies/currencypair"
 	slinkyabci "github.com/skip-mev/slinky/abci/types"
 	"github.com/skip-mev/slinky/abci/ve/types"
+	slinkytypes "github.com/skip-mev/slinky/pkg/types"
 	client "github.com/skip-mev/slinky/service/clients/oracle"
 	servicemetrics "github.com/skip-mev/slinky/service/metrics"
 	servicetypes "github.com/skip-mev/slinky/service/servers/oracle/types"
-	oracletypes "github.com/skip-mev/slinky/x/oracle/types"
 )
 
 // VoteExtensionHandler is a handler that extends a vote with the oracle's
@@ -274,14 +274,14 @@ func (h *VoteExtensionHandler) VerifyVoteExtensionHandler() sdk.VerifyVoteExtens
 }
 
 // transformOracleServicePrices transforms the oracle service prices into a vote extension. It
-// does this by iterating over the the prices submitted by the oracle service and determining the
+// does this by iterating over the prices submitted by the oracle service and determining the
 // correct decoded price / ID based on the currency pair strategy.
 func (h *VoteExtensionHandler) transformOracleServicePrices(ctx sdk.Context, prices map[string]string) (types.OracleVoteExtension, error) {
 	strategyPrices := make(map[uint64][]byte)
 
 	// Iterate over the prices and transform them into the correct format.
 	for currencyPairID, priceString := range prices {
-		cp, err := oracletypes.CurrencyPairFromString(currencyPairID)
+		cp, err := slinkytypes.CurrencyPairFromString(currencyPairID)
 		if err != nil {
 			return types.OracleVoteExtension{}, err
 		}

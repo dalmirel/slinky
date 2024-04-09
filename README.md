@@ -27,6 +27,7 @@ The slinky repository is composed of the following core packages:
 * **x/oracle** - This package contains a Cosmos SDK module that allows you to store oracle data on a blockchain.
 * **x/alerts** - This package contains a Cosmos SDK module that allows network participants to create alerts when oracle data that is in violation of some condition is broadcast to the network and stored on the blockchain.
 * **x/sla** - This package contains a Cosmos SDK module that allows you to create service level agreements (SLAs) that can be used to incentivize network participants to consistently, reliably provide data with high uptime.
+* **x/marketmap** - This [package](./x/marketmap/README.md) contains  a Cosmos SDK module that allows for market configuration to be stored and updated on a blockchain.
 
 ## Usage
 
@@ -41,6 +42,7 @@ This will:
 1. Start a blockchain with a single validator node. It may take a few minutes to build and reach a point where vote extensions can be submitted.
 2. Start the oracle side-car that will aggregate prices from external data providers and broadcast them to the network. To check the current aggregated prices on the side-car, you can run `curl localhost:8080/slinky/oracle/v1/prices`.
 3. Host a prometheus instance that will scrape metrics from the oracle side-car. Navigate to http://localhost:9090 to see all network traffic and metrics pertaining to the oracle sidecar. Navigate to http://localhost:8001 to see all application-side oracle metrics.
+4. Host a profiler that will allow you to profile the oracle side-car. Navigate to http://localhost:6060 to see the profiler.
 
 After a few minutes, run the following commands to see the prices written to the blockchain:
 

@@ -4,28 +4,11 @@ import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
+	slinkytypes "github.com/skip-mev/slinky/pkg/types"
 	"github.com/skip-mev/slinky/x/oracle/types"
 )
-
-func TestGetSignersMsgAddCurrencyPairs(t *testing.T) {
-	// create a msgAddCurrencyPairs
-	auth := sdk.AccAddress([]byte("abc")).String()
-	msg := types.NewMsgAddCurrencyPairs(auth, nil)
-	// get signers
-	signer := msg.GetSigners()
-	assert.Equal(t, signer[0].String(), auth)
-}
-
-func TestGetSignersMsgRemoveCurrencyPairs(t *testing.T) {
-	// create a msgAddCurrencyPairs
-	auth := sdk.AccAddress([]byte("abc")).String()
-	msg := types.NewMsgRemoveCurrencyPairs(auth, nil)
-	// get signers
-	signer := msg.GetSigners()
-	assert.Equal(t, signer[0].String(), auth)
-}
 
 func TestValidateBasicMsgAddCurrencyPairs(t *testing.T) {
 	tcs := []struct {
@@ -43,8 +26,8 @@ func TestValidateBasicMsgAddCurrencyPairs(t *testing.T) {
 		{
 			"if any of the currency pairs are invalid - fail",
 			types.MsgAddCurrencyPairs{
-				Authority: sdk.AccAddress([]byte("abc")).String(),
-				CurrencyPairs: []types.CurrencyPair{
+				Authority: sdk.AccAddress("abc").String(),
+				CurrencyPairs: []slinkytypes.CurrencyPair{
 					{Base: "A"},
 				},
 			},
@@ -53,8 +36,8 @@ func TestValidateBasicMsgAddCurrencyPairs(t *testing.T) {
 		{
 			"if all currency pairs are valid + authority is valid - pass",
 			types.MsgAddCurrencyPairs{
-				Authority: sdk.AccAddress([]byte("abc")).String(),
-				CurrencyPairs: []types.CurrencyPair{
+				Authority: sdk.AccAddress("abc").String(),
+				CurrencyPairs: []slinkytypes.CurrencyPair{
 					{Base: "A", Quote: "B"},
 					{Base: "C", Quote: "D"},
 				},
@@ -67,9 +50,9 @@ func TestValidateBasicMsgAddCurrencyPairs(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			err := tc.msg.ValidateBasic()
 			if !tc.expectPass {
-				assert.NotNil(t, err)
+				require.NotNil(t, err)
 			} else {
-				assert.Nil(t, err)
+				require.Nil(t, err)
 			}
 		})
 	}
@@ -91,7 +74,7 @@ func TestValidateBasicMsgRemoveCurrencyPairs(t *testing.T) {
 		{
 			"if any of the currency pairs are invalid - fail",
 			types.MsgRemoveCurrencyPairs{
-				Authority: sdk.AccAddress([]byte("abc")).String(),
+				Authority: sdk.AccAddress("abc").String(),
 				CurrencyPairIds: []string{
 					"AA",
 				},
@@ -101,10 +84,10 @@ func TestValidateBasicMsgRemoveCurrencyPairs(t *testing.T) {
 		{
 			"if all currency pairs are valid + authority is valid - pass",
 			types.MsgRemoveCurrencyPairs{
-				Authority: sdk.AccAddress([]byte("abc")).String(),
+				Authority: sdk.AccAddress("abc").String(),
 				CurrencyPairIds: []string{
-					types.CurrencyPairString("A", "B"),
-					types.CurrencyPairString("C", "D"),
+					slinkytypes.CurrencyPairString("A", "B"),
+					slinkytypes.CurrencyPairString("C", "D"),
 				},
 			},
 			true,
@@ -115,9 +98,9 @@ func TestValidateBasicMsgRemoveCurrencyPairs(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			err := tc.msg.ValidateBasic()
 			if !tc.expectPass {
-				assert.NotNil(t, err)
+				require.NotNil(t, err)
 			} else {
-				assert.Nil(t, err)
+				require.Nil(t, err)
 			}
 		})
 	}

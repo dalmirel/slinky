@@ -1,0 +1,8825 @@
+{
+  "tickers": {
+    "ADA/USD": {
+      "currency_pair": {
+        "Base": "ADA",
+        "Quote": "USD"
+      },
+      "decimals": 8,
+      "min_provider_count": 1
+    },
+    "ADA/USDC": {
+      "currency_pair": {
+        "Base": "ADA",
+        "Quote": "USDC"
+      },
+      "decimals": 8,
+      "min_provider_count": 1
+    },
+    "ADA/USDT": {
+      "currency_pair": {
+        "Base": "ADA",
+        "Quote": "USDT"
+      },
+      "decimals": 8,
+      "min_provider_count": 1
+    },
+    "APE/USD": {
+      "currency_pair": {
+        "Base": "APE",
+        "Quote": "USD"
+      },
+      "decimals": 8,
+      "min_provider_count": 1
+    },
+    "APE/USDC": {
+      "currency_pair": {
+        "Base": "APE",
+        "Quote": "USDC"
+      },
+      "decimals": 8,
+      "min_provider_count": 1
+    },
+    "APE/USDT": {
+      "currency_pair": {
+        "Base": "APE",
+        "Quote": "USDT"
+      },
+      "decimals": 8,
+      "min_provider_count": 1
+    },
+    "APT/USD": {
+      "currency_pair": {
+        "Base": "APT",
+        "Quote": "USD"
+      },
+      "decimals": 8,
+      "min_provider_count": 1
+    },
+    "APT/USDC": {
+      "currency_pair": {
+        "Base": "APT",
+        "Quote": "USDC"
+      },
+      "decimals": 8,
+      "min_provider_count": 1
+    },
+    "APT/USDT": {
+      "currency_pair": {
+        "Base": "APT",
+        "Quote": "USDT"
+      },
+      "decimals": 8,
+      "min_provider_count": 1
+    },
+    "ARB/USD": {
+      "currency_pair": {
+        "Base": "ARB",
+        "Quote": "USD"
+      },
+      "decimals": 8,
+      "min_provider_count": 1
+    },
+    "ARB/USDT": {
+      "currency_pair": {
+        "Base": "ARB",
+        "Quote": "USDT"
+      },
+      "decimals": 8,
+      "min_provider_count": 1
+    },
+    "ATOM/USD": {
+      "currency_pair": {
+        "Base": "ATOM",
+        "Quote": "USD"
+      },
+      "decimals": 8,
+      "min_provider_count": 1
+    },
+    "ATOM/USDC": {
+      "currency_pair": {
+        "Base": "ATOM",
+        "Quote": "USDC"
+      },
+      "decimals": 8,
+      "min_provider_count": 1
+    },
+    "ATOM/USDT": {
+      "currency_pair": {
+        "Base": "ATOM",
+        "Quote": "USDT"
+      },
+      "decimals": 8,
+      "min_provider_count": 1
+    },
+    "AVAX/USD": {
+      "currency_pair": {
+        "Base": "AVAX",
+        "Quote": "USD"
+      },
+      "decimals": 8,
+      "min_provider_count": 1
+    },
+    "AVAX/USDC": {
+      "currency_pair": {
+        "Base": "AVAX",
+        "Quote": "USDC"
+      },
+      "decimals": 8,
+      "min_provider_count": 1
+    },
+    "AVAX/USDT": {
+      "currency_pair": {
+        "Base": "AVAX",
+        "Quote": "USDT"
+      },
+      "decimals": 8,
+      "min_provider_count": 1
+    },
+    "BCH/USD": {
+      "currency_pair": {
+        "Base": "BCH",
+        "Quote": "USD"
+      },
+      "decimals": 8,
+      "min_provider_count": 1
+    },
+    "BCH/USDT": {
+      "currency_pair": {
+        "Base": "BCH",
+        "Quote": "USDT"
+      },
+      "decimals": 8,
+      "min_provider_count": 1
+    },
+    "BLUR/USD": {
+      "currency_pair": {
+        "Base": "BLUR",
+        "Quote": "USD"
+      },
+      "decimals": 8,
+      "min_provider_count": 1
+    },
+    "BLUR/USDT": {
+      "currency_pair": {
+        "Base": "BLUR",
+        "Quote": "USDT"
+      },
+      "decimals": 8,
+      "min_provider_count": 1
+    },
+    "BTC/USD": {
+      "currency_pair": {
+        "Base": "BTC",
+        "Quote": "USD"
+      },
+      "decimals": 8,
+      "min_provider_count": 1
+    },
+    "BTC/USDC": {
+      "currency_pair": {
+        "Base": "BTC",
+        "Quote": "USDC"
+      },
+      "decimals": 8,
+      "min_provider_count": 1
+    },
+    "BTC/USDT": {
+      "currency_pair": {
+        "Base": "BTC",
+        "Quote": "USDT"
+      },
+      "decimals": 8,
+      "min_provider_count": 1
+    },
+    "COMP/USD": {
+      "currency_pair": {
+        "Base": "COMP",
+        "Quote": "USD"
+      },
+      "decimals": 8,
+      "min_provider_count": 1
+    },
+    "COMP/USDT": {
+      "currency_pair": {
+        "Base": "COMP",
+        "Quote": "USDT"
+      },
+      "decimals": 8,
+      "min_provider_count": 1
+    },
+    "CRV/USD": {
+      "currency_pair": {
+        "Base": "CRV",
+        "Quote": "USD"
+      },
+      "decimals": 8,
+      "min_provider_count": 1
+    },
+    "CRV/USDT": {
+      "currency_pair": {
+        "Base": "CRV",
+        "Quote": "USDT"
+      },
+      "decimals": 8,
+      "min_provider_count": 1
+    },
+    "DOGE/USD": {
+      "currency_pair": {
+        "Base": "DOGE",
+        "Quote": "USD"
+      },
+      "decimals": 18,
+      "min_provider_count": 1
+    },
+    "DOGE/USDT": {
+      "currency_pair": {
+        "Base": "DOGE",
+        "Quote": "USDT"
+      },
+      "decimals": 18,
+      "min_provider_count": 1
+    },
+    "DOT/USD": {
+      "currency_pair": {
+        "Base": "DOT",
+        "Quote": "USD"
+      },
+      "decimals": 8,
+      "min_provider_count": 1
+    },
+    "DOT/USDT": {
+      "currency_pair": {
+        "Base": "DOT",
+        "Quote": "USDT"
+      },
+      "decimals": 8,
+      "min_provider_count": 1
+    },
+    "DYDX/USD": {
+      "currency_pair": {
+        "Base": "DYDX",
+        "Quote": "USD"
+      },
+      "decimals": 8,
+      "min_provider_count": 1
+    },
+    "DYDX/USDC": {
+      "currency_pair": {
+        "Base": "DYDX",
+        "Quote": "USDC"
+      },
+      "decimals": 8,
+      "min_provider_count": 1
+    },
+    "DYDX/USDT": {
+      "currency_pair": {
+        "Base": "DYDX",
+        "Quote": "USDT"
+      },
+      "decimals": 8,
+      "min_provider_count": 1
+    },
+    "ETC/USD": {
+      "currency_pair": {
+        "Base": "ETC",
+        "Quote": "USD"
+      },
+      "decimals": 8,
+      "min_provider_count": 1
+    },
+    "ETC/USDT": {
+      "currency_pair": {
+        "Base": "ETC",
+        "Quote": "USDT"
+      },
+      "decimals": 8,
+      "min_provider_count": 1
+    },
+    "ETH/BTC": {
+      "currency_pair": {
+        "Base": "ETH",
+        "Quote": "BTC"
+      },
+      "decimals": 8,
+      "min_provider_count": 1
+    },
+    "ETH/USD": {
+      "currency_pair": {
+        "Base": "ETH",
+        "Quote": "USD"
+      },
+      "decimals": 8,
+      "min_provider_count": 1
+    },
+    "ETH/USDC": {
+      "currency_pair": {
+        "Base": "ETH",
+        "Quote": "USDC"
+      },
+      "decimals": 8,
+      "min_provider_count": 1
+    },
+    "ETH/USDT": {
+      "currency_pair": {
+        "Base": "ETH",
+        "Quote": "USDT"
+      },
+      "decimals": 8,
+      "min_provider_count": 1
+    },
+    "FIL/USD": {
+      "currency_pair": {
+        "Base": "FIL",
+        "Quote": "USD"
+      },
+      "decimals": 8,
+      "min_provider_count": 1
+    },
+    "FIL/USDT": {
+      "currency_pair": {
+        "Base": "FIL",
+        "Quote": "USDT"
+      },
+      "decimals": 8,
+      "min_provider_count": 1
+    },
+    "LDO/USD": {
+      "currency_pair": {
+        "Base": "LDO",
+        "Quote": "USD"
+      },
+      "decimals": 8,
+      "min_provider_count": 1
+    },
+    "LDO/USDT": {
+      "currency_pair": {
+        "Base": "LDO",
+        "Quote": "USDT"
+      },
+      "decimals": 8,
+      "min_provider_count": 1
+    },
+    "LINK/USD": {
+      "currency_pair": {
+        "Base": "LINK",
+        "Quote": "USD"
+      },
+      "decimals": 8,
+      "min_provider_count": 1
+    },
+    "LINK/USDT": {
+      "currency_pair": {
+        "Base": "LINK",
+        "Quote": "USDT"
+      },
+      "decimals": 8,
+      "min_provider_count": 1
+    },
+    "LTC/USD": {
+      "currency_pair": {
+        "Base": "LTC",
+        "Quote": "USD"
+      },
+      "decimals": 8,
+      "min_provider_count": 1
+    },
+    "LTC/USDT": {
+      "currency_pair": {
+        "Base": "LTC",
+        "Quote": "USDT"
+      },
+      "decimals": 8,
+      "min_provider_count": 1
+    },
+    "MATIC/USD": {
+      "currency_pair": {
+        "Base": "MATIC",
+        "Quote": "USD"
+      },
+      "decimals": 8,
+      "min_provider_count": 1
+    },
+    "MATIC/USDT": {
+      "currency_pair": {
+        "Base": "MATIC",
+        "Quote": "USDT"
+      },
+      "decimals": 8,
+      "min_provider_count": 1
+    },
+    "MKR/USD": {
+      "currency_pair": {
+        "Base": "MKR",
+        "Quote": "USD"
+      },
+      "decimals": 8,
+      "min_provider_count": 1
+    },
+    "MKR/USDT": {
+      "currency_pair": {
+        "Base": "MKR",
+        "Quote": "USDT"
+      },
+      "decimals": 8,
+      "min_provider_count": 1
+    },
+    "MOG/USD": {
+      "currency_pair": {
+        "Base": "MOG",
+        "Quote": "USD"
+      },
+      "decimals": 18,
+      "min_provider_count": 1
+    },
+    "NEAR/USD": {
+      "currency_pair": {
+        "Base": "NEAR",
+        "Quote": "USD"
+      },
+      "decimals": 8,
+      "min_provider_count": 1
+    },
+    "NEAR/USDT": {
+      "currency_pair": {
+        "Base": "NEAR",
+        "Quote": "USDT"
+      },
+      "decimals": 8,
+      "min_provider_count": 1
+    },
+    "OP/USD": {
+      "currency_pair": {
+        "Base": "OP",
+        "Quote": "USD"
+      },
+      "decimals": 8,
+      "min_provider_count": 1
+    },
+    "OP/USDT": {
+      "currency_pair": {
+        "Base": "OP",
+        "Quote": "USDT"
+      },
+      "decimals": 8,
+      "min_provider_count": 1
+    },
+    "OSMO/USD": {
+      "currency_pair": {
+        "Base": "OSMO",
+        "Quote": "USD"
+      },
+      "decimals": 8,
+      "min_provider_count": 1
+    },
+    "OSMO/USDC": {
+      "currency_pair": {
+        "Base": "OSMO",
+        "Quote": "USDC"
+      },
+      "decimals": 8,
+      "min_provider_count": 1
+    },
+    "OSMO/USDT": {
+      "currency_pair": {
+        "Base": "OSMO",
+        "Quote": "USDT"
+      },
+      "decimals": 8,
+      "min_provider_count": 1
+    },
+    "PEPE/USD": {
+      "currency_pair": {
+        "Base": "PEPE",
+        "Quote": "USD"
+      },
+      "decimals": 18,
+      "min_provider_count": 1
+    },
+    "PEPE/USDT": {
+      "currency_pair": {
+        "Base": "PEPE",
+        "Quote": "USDT"
+      },
+      "decimals": 18,
+      "min_provider_count": 1
+    },
+    "SEI/USD": {
+      "currency_pair": {
+        "Base": "SEI",
+        "Quote": "USD"
+      },
+      "decimals": 8,
+      "min_provider_count": 1
+    },
+    "SEI/USDT": {
+      "currency_pair": {
+        "Base": "SEI",
+        "Quote": "USDT"
+      },
+      "decimals": 8,
+      "min_provider_count": 1
+    },
+    "SHIB/USD": {
+      "currency_pair": {
+        "Base": "SHIB",
+        "Quote": "USD"
+      },
+      "decimals": 18,
+      "min_provider_count": 1
+    },
+    "SHIB/USDT": {
+      "currency_pair": {
+        "Base": "SHIB",
+        "Quote": "USDT"
+      },
+      "decimals": 18,
+      "min_provider_count": 1
+    },
+    "SOL/USD": {
+      "currency_pair": {
+        "Base": "SOL",
+        "Quote": "USD"
+      },
+      "decimals": 8,
+      "min_provider_count": 1
+    },
+    "SOL/USDC": {
+      "currency_pair": {
+        "Base": "SOL",
+        "Quote": "USDC"
+      },
+      "decimals": 8,
+      "min_provider_count": 1
+    },
+    "SOL/USDT": {
+      "currency_pair": {
+        "Base": "SOL",
+        "Quote": "USDT"
+      },
+      "decimals": 8,
+      "min_provider_count": 1
+    },
+    "SUI/USD": {
+      "currency_pair": {
+        "Base": "SUI",
+        "Quote": "USD"
+      },
+      "decimals": 8,
+      "min_provider_count": 1
+    },
+    "SUI/USDT": {
+      "currency_pair": {
+        "Base": "SUI",
+        "Quote": "USDT"
+      },
+      "decimals": 8,
+      "min_provider_count": 1
+    },
+    "TIA/USD": {
+      "currency_pair": {
+        "Base": "TIA",
+        "Quote": "USD"
+      },
+      "decimals": 8,
+      "min_provider_count": 1
+    },
+    "TIA/USDC": {
+      "currency_pair": {
+        "Base": "TIA",
+        "Quote": "USDC"
+      },
+      "decimals": 8,
+      "min_provider_count": 1
+    },
+    "TIA/USDT": {
+      "currency_pair": {
+        "Base": "TIA",
+        "Quote": "USDT"
+      },
+      "decimals": 8,
+      "min_provider_count": 1
+    },
+    "TRX/USD": {
+      "currency_pair": {
+        "Base": "TRX",
+        "Quote": "USD"
+      },
+      "decimals": 8,
+      "min_provider_count": 1
+    },
+    "TRX/USDT": {
+      "currency_pair": {
+        "Base": "TRX",
+        "Quote": "USDT"
+      },
+      "decimals": 8,
+      "min_provider_count": 1
+    },
+    "UNI/USD": {
+      "currency_pair": {
+        "Base": "UNI",
+        "Quote": "USD"
+      },
+      "decimals": 8,
+      "min_provider_count": 1
+    },
+    "UNI/USDT": {
+      "currency_pair": {
+        "Base": "UNI",
+        "Quote": "USDT"
+      },
+      "decimals": 8,
+      "min_provider_count": 1
+    },
+    "USDC/USD": {
+      "currency_pair": {
+        "Base": "USDC",
+        "Quote": "USD"
+      },
+      "decimals": 8,
+      "min_provider_count": 1
+    },
+    "USDC/USDT": {
+      "currency_pair": {
+        "Base": "USDC",
+        "Quote": "USDT"
+      },
+      "decimals": 8,
+      "min_provider_count": 1
+    },
+    "USDT/USD": {
+      "currency_pair": {
+        "Base": "USDT",
+        "Quote": "USD"
+      },
+      "decimals": 8,
+      "min_provider_count": 1
+    },
+    "WLD/USDT": {
+      "currency_pair": {
+        "Base": "WLD",
+        "Quote": "USDT"
+      },
+      "decimals": 8,
+      "min_provider_count": 1
+    },
+    "XLM/USD": {
+      "currency_pair": {
+        "Base": "XLM",
+        "Quote": "USD"
+      },
+      "decimals": 8,
+      "min_provider_count": 1
+    },
+    "XLM/USDT": {
+      "currency_pair": {
+        "Base": "XLM",
+        "Quote": "USDT"
+      },
+      "decimals": 8,
+      "min_provider_count": 1
+    },
+    "XRP/USD": {
+      "currency_pair": {
+        "Base": "XRP",
+        "Quote": "USD"
+      },
+      "decimals": 8,
+      "min_provider_count": 1
+    },
+    "XRP/USDT": {
+      "currency_pair": {
+        "Base": "XRP",
+        "Quote": "USDT"
+      },
+      "decimals": 8,
+      "min_provider_count": 1
+    }
+  },
+  "paths": {
+    "ADA/USD": {
+      "paths": [
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ADA",
+                "Quote": "USD"
+              },
+              "provider": "coinbase_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ADA",
+                "Quote": "USD"
+              },
+              "provider": "coinbase_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ADA",
+                "Quote": "USD"
+              },
+              "provider": "kraken_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ADA",
+                "Quote": "USD"
+              },
+              "provider": "okx_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ADA",
+                "Quote": "USD"
+              },
+              "provider": "kraken_api"
+            }
+          ]
+        }
+      ]
+    },
+    "ADA/USDC": {
+      "paths": [
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ADA",
+                "Quote": "USDC"
+              },
+              "provider": "kucoin_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ADA",
+                "Quote": "USDC"
+              },
+              "provider": "mexc_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ADA",
+                "Quote": "USDC"
+              },
+              "provider": "okx_ws"
+            }
+          ]
+        }
+      ]
+    },
+    "ADA/USDT": {
+      "paths": [
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ADA",
+                "Quote": "USDT"
+              },
+              "provider": "gate_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ADA",
+                "Quote": "USDT"
+              },
+              "provider": "kucoin_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ADA",
+                "Quote": "USDT"
+              },
+              "provider": "mexc_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ADA",
+                "Quote": "USDT"
+              },
+              "provider": "okx_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ADA",
+                "Quote": "USDT"
+              },
+              "provider": "binance_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ADA",
+                "Quote": "USDT"
+              },
+              "provider": "kraken_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ADA",
+                "Quote": "USDT"
+              },
+              "provider": "bybit_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ADA",
+                "Quote": "USDT"
+              },
+              "provider": "huobi_ws"
+            }
+          ]
+        }
+      ]
+    },
+    "APE/USD": {
+      "paths": [
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "APE",
+                "Quote": "USD"
+              },
+              "provider": "coinbase_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "APE",
+                "Quote": "USD"
+              },
+              "provider": "coinbase_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "APE",
+                "Quote": "USD"
+              },
+              "provider": "kraken_ws"
+            }
+          ]
+        }
+      ]
+    },
+    "APE/USDC": {
+      "paths": [
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "APE",
+                "Quote": "USDC"
+              },
+              "provider": "coinbase_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "APE",
+                "Quote": "USDC"
+              },
+              "provider": "kucoin_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "APE",
+                "Quote": "USDC"
+              },
+              "provider": "okx_ws"
+            }
+          ]
+        }
+      ]
+    },
+    "APE/USDT": {
+      "paths": [
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "APE",
+                "Quote": "USDT"
+              },
+              "provider": "gate_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "APE",
+                "Quote": "USDT"
+              },
+              "provider": "coinbase_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "APE",
+                "Quote": "USDT"
+              },
+              "provider": "coinbase_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "APE",
+                "Quote": "USDT"
+              },
+              "provider": "kucoin_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "APE",
+                "Quote": "USDT"
+              },
+              "provider": "mexc_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "APE",
+                "Quote": "USDT"
+              },
+              "provider": "okx_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "APE",
+                "Quote": "USDT"
+              },
+              "provider": "binance_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "APE",
+                "Quote": "USDT"
+              },
+              "provider": "kraken_api"
+            }
+          ]
+        }
+      ]
+    },
+    "APT/USD": {
+      "paths": [
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "APT",
+                "Quote": "USD"
+              },
+              "provider": "coinbase_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "APT",
+                "Quote": "USD"
+              },
+              "provider": "coinbase_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "APT",
+                "Quote": "USD"
+              },
+              "provider": "kraken_api"
+            }
+          ]
+        }
+      ]
+    },
+    "APT/USDC": {
+      "paths": [
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "APT",
+                "Quote": "USDC"
+              },
+              "provider": "okx_ws"
+            }
+          ]
+        }
+      ]
+    },
+    "APT/USDT": {
+      "paths": [
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "APT",
+                "Quote": "USDT"
+              },
+              "provider": "gate_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "APT",
+                "Quote": "USDT"
+              },
+              "provider": "kucoin_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "APT",
+                "Quote": "USDT"
+              },
+              "provider": "mexc_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "APT",
+                "Quote": "USDT"
+              },
+              "provider": "okx_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "APT",
+                "Quote": "USDT"
+              },
+              "provider": "binance_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "APT",
+                "Quote": "USDT"
+              },
+              "provider": "bybit_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "APT",
+                "Quote": "USDT"
+              },
+              "provider": "huobi_ws"
+            }
+          ]
+        }
+      ]
+    },
+    "ARB/USD": {
+      "paths": [
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ARB",
+                "Quote": "USD"
+              },
+              "provider": "coinbase_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ARB",
+                "Quote": "USD"
+              },
+              "provider": "coinbase_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ARB",
+                "Quote": "USD"
+              },
+              "provider": "kraken_api"
+            }
+          ]
+        }
+      ]
+    },
+    "ARB/USDT": {
+      "paths": [
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ARB",
+                "Quote": "USDT"
+              },
+              "provider": "gate_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ARB",
+                "Quote": "USDT"
+              },
+              "provider": "kucoin_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ARB",
+                "Quote": "USDT"
+              },
+              "provider": "mexc_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ARB",
+                "Quote": "USDT"
+              },
+              "provider": "okx_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ARB",
+                "Quote": "USDT"
+              },
+              "provider": "binance_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ARB",
+                "Quote": "USDT"
+              },
+              "provider": "bybit_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ARB",
+                "Quote": "USDT"
+              },
+              "provider": "huobi_ws"
+            }
+          ]
+        }
+      ]
+    },
+    "ATOM/USD": {
+      "paths": [
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ATOM",
+                "Quote": "USD"
+              },
+              "provider": "crypto_dot_com_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ATOM",
+                "Quote": "USD"
+              },
+              "provider": "coingecko_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ATOM",
+                "Quote": "USD"
+              },
+              "provider": "coinbase_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ATOM",
+                "Quote": "USD"
+              },
+              "provider": "coinbase_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ATOM",
+                "Quote": "USD"
+              },
+              "provider": "kraken_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ATOM",
+                "Quote": "USD"
+              },
+              "provider": "okx_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ATOM",
+                "Quote": "USD"
+              },
+              "provider": "kraken_api"
+            }
+          ]
+        }
+      ]
+    },
+    "ATOM/USDC": {
+      "paths": [
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ATOM",
+                "Quote": "USDC"
+              },
+              "provider": "coinbase_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ATOM",
+                "Quote": "USDC"
+              },
+              "provider": "kucoin_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ATOM",
+                "Quote": "USDC"
+              },
+              "provider": "mexc_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ATOM",
+                "Quote": "USDC"
+              },
+              "provider": "okx_ws"
+            }
+          ]
+        }
+      ]
+    },
+    "ATOM/USDT": {
+      "paths": [
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ATOM",
+                "Quote": "USDT"
+              },
+              "provider": "crypto_dot_com_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ATOM",
+                "Quote": "USDT"
+              },
+              "provider": "gate_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ATOM",
+                "Quote": "USDT"
+              },
+              "provider": "coinbase_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ATOM",
+                "Quote": "USDT"
+              },
+              "provider": "coinbase_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ATOM",
+                "Quote": "USDT"
+              },
+              "provider": "kucoin_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ATOM",
+                "Quote": "USDT"
+              },
+              "provider": "mexc_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ATOM",
+                "Quote": "USDT"
+              },
+              "provider": "okx_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ATOM",
+                "Quote": "USDT"
+              },
+              "provider": "binance_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ATOM",
+                "Quote": "USDT"
+              },
+              "provider": "kraken_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ATOM",
+                "Quote": "USDT"
+              },
+              "provider": "bybit_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ATOM",
+                "Quote": "USDT"
+              },
+              "provider": "huobi_ws"
+            }
+          ]
+        }
+      ]
+    },
+    "AVAX/USD": {
+      "paths": [
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "AVAX",
+                "Quote": "USD"
+              },
+              "provider": "bitstamp_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "AVAX",
+                "Quote": "USD"
+              },
+              "provider": "crypto_dot_com_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "AVAX",
+                "Quote": "USD"
+              },
+              "provider": "coinbase_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "AVAX",
+                "Quote": "USD"
+              },
+              "provider": "coinbase_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "AVAX",
+                "Quote": "USD"
+              },
+              "provider": "kraken_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "AVAX",
+                "Quote": "USD"
+              },
+              "provider": "okx_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "AVAX",
+                "Quote": "USD"
+              },
+              "provider": "kraken_api"
+            }
+          ]
+        }
+      ]
+    },
+    "AVAX/USDC": {
+      "paths": [
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "AVAX",
+                "Quote": "USDC"
+              },
+              "provider": "coinbase_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "AVAX",
+                "Quote": "USDC"
+              },
+              "provider": "kucoin_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "AVAX",
+                "Quote": "USDC"
+              },
+              "provider": "mexc_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "AVAX",
+                "Quote": "USDC"
+              },
+              "provider": "okx_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "AVAX",
+                "Quote": "USDC"
+              },
+              "provider": "bybit_ws"
+            }
+          ]
+        }
+      ]
+    },
+    "AVAX/USDT": {
+      "paths": [
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "AVAX",
+                "Quote": "USDT"
+              },
+              "provider": "crypto_dot_com_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "AVAX",
+                "Quote": "USDT"
+              },
+              "provider": "gate_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "AVAX",
+                "Quote": "USDT"
+              },
+              "provider": "coinbase_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "AVAX",
+                "Quote": "USDT"
+              },
+              "provider": "coinbase_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "AVAX",
+                "Quote": "USDT"
+              },
+              "provider": "kucoin_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "AVAX",
+                "Quote": "USDT"
+              },
+              "provider": "kraken_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "AVAX",
+                "Quote": "USDT"
+              },
+              "provider": "mexc_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "AVAX",
+                "Quote": "USDT"
+              },
+              "provider": "okx_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "AVAX",
+                "Quote": "USDT"
+              },
+              "provider": "binance_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "AVAX",
+                "Quote": "USDT"
+              },
+              "provider": "kraken_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "AVAX",
+                "Quote": "USDT"
+              },
+              "provider": "bybit_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "AVAX",
+                "Quote": "USDT"
+              },
+              "provider": "huobi_ws"
+            }
+          ]
+        }
+      ]
+    },
+    "BCH/USD": {
+      "paths": [
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "BCH",
+                "Quote": "USD"
+              },
+              "provider": "coinbase_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "BCH",
+                "Quote": "USD"
+              },
+              "provider": "coinbase_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "BCH",
+                "Quote": "USD"
+              },
+              "provider": "kraken_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "BCH",
+                "Quote": "USD"
+              },
+              "provider": "kraken_api"
+            }
+          ]
+        }
+      ]
+    },
+    "BCH/USDT": {
+      "paths": [
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "BCH",
+                "Quote": "USDT"
+              },
+              "provider": "gate_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "BCH",
+                "Quote": "USDT"
+              },
+              "provider": "kucoin_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "BCH",
+                "Quote": "USDT"
+              },
+              "provider": "mexc_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "BCH",
+                "Quote": "USDT"
+              },
+              "provider": "okx_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "BCH",
+                "Quote": "USDT"
+              },
+              "provider": "binance_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "BCH",
+                "Quote": "USDT"
+              },
+              "provider": "kraken_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "BCH",
+                "Quote": "USDT"
+              },
+              "provider": "bybit_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "BCH",
+                "Quote": "USDT"
+              },
+              "provider": "huobi_ws"
+            }
+          ]
+        }
+      ]
+    },
+    "BLUR/USD": {
+      "paths": [
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "BLUR",
+                "Quote": "USD"
+              },
+              "provider": "coinbase_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "BLUR",
+                "Quote": "USD"
+              },
+              "provider": "coinbase_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "BLUR",
+                "Quote": "USD"
+              },
+              "provider": "kraken_ws"
+            }
+          ]
+        }
+      ]
+    },
+    "BLUR/USDT": {
+      "paths": [
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "BLUR",
+                "Quote": "USDT"
+              },
+              "provider": "gate_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "BLUR",
+                "Quote": "USDT"
+              },
+              "provider": "kucoin_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "BLUR",
+                "Quote": "USDT"
+              },
+              "provider": "mexc_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "BLUR",
+                "Quote": "USDT"
+              },
+              "provider": "okx_ws"
+            }
+          ]
+        }
+      ]
+    },
+    "BTC/USD": {
+      "paths": [
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "BTC",
+                "Quote": "USD"
+              },
+              "provider": "bitstamp_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "BTC",
+                "Quote": "USD"
+              },
+              "provider": "crypto_dot_com_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "BTC",
+                "Quote": "USD"
+              },
+              "provider": "coingecko_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "BTC",
+                "Quote": "USD"
+              },
+              "provider": "coinbase_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "BTC",
+                "Quote": "USD"
+              },
+              "provider": "coinbase_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "BTC",
+                "Quote": "USD"
+              },
+              "provider": "kraken_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "BTC",
+                "Quote": "USD"
+              },
+              "provider": "okx_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "BTC",
+                "Quote": "USD"
+              },
+              "provider": "kraken_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "BTC",
+                "Quote": "USD"
+              },
+              "provider": "bitfinex_ws"
+            }
+          ]
+        }
+      ]
+    },
+    "BTC/USDC": {
+      "paths": [
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "BTC",
+                "Quote": "USDC"
+              },
+              "provider": "bitstamp_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "BTC",
+                "Quote": "USDC"
+              },
+              "provider": "coinbase_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "BTC",
+                "Quote": "USDC"
+              },
+              "provider": "kucoin_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "BTC",
+                "Quote": "USDC"
+              },
+              "provider": "kraken_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "BTC",
+                "Quote": "USDC"
+              },
+              "provider": "mexc_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "BTC",
+                "Quote": "USDC"
+              },
+              "provider": "okx_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "BTC",
+                "Quote": "USDC"
+              },
+              "provider": "binance_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "BTC",
+                "Quote": "USDC"
+              },
+              "provider": "kraken_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "BTC",
+                "Quote": "USDC"
+              },
+              "provider": "bybit_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "BTC",
+                "Quote": "USDC"
+              },
+              "provider": "huobi_ws"
+            }
+          ]
+        }
+      ]
+    },
+    "BTC/USDT": {
+      "paths": [
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "BTC",
+                "Quote": "USDT"
+              },
+              "provider": "bitstamp_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "BTC",
+                "Quote": "USDT"
+              },
+              "provider": "crypto_dot_com_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "BTC",
+                "Quote": "USDT"
+              },
+              "provider": "gate_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "BTC",
+                "Quote": "USDT"
+              },
+              "provider": "coinbase_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "BTC",
+                "Quote": "USDT"
+              },
+              "provider": "coinbase_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "BTC",
+                "Quote": "USDT"
+              },
+              "provider": "kucoin_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "BTC",
+                "Quote": "USDT"
+              },
+              "provider": "kraken_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "BTC",
+                "Quote": "USDT"
+              },
+              "provider": "mexc_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "BTC",
+                "Quote": "USDT"
+              },
+              "provider": "okx_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "BTC",
+                "Quote": "USDT"
+              },
+              "provider": "binance_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "BTC",
+                "Quote": "USDT"
+              },
+              "provider": "kraken_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "BTC",
+                "Quote": "USDT"
+              },
+              "provider": "bybit_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "BTC",
+                "Quote": "USDT"
+              },
+              "provider": "huobi_ws"
+            }
+          ]
+        }
+      ]
+    },
+    "COMP/USD": {
+      "paths": [
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "COMP",
+                "Quote": "USD"
+              },
+              "provider": "coinbase_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "COMP",
+                "Quote": "USD"
+              },
+              "provider": "coinbase_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "COMP",
+                "Quote": "USD"
+              },
+              "provider": "kraken_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "COMP",
+                "Quote": "USD"
+              },
+              "provider": "kraken_api"
+            }
+          ]
+        }
+      ]
+    },
+    "COMP/USDT": {
+      "paths": [
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "COMP",
+                "Quote": "USDT"
+              },
+              "provider": "gate_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "COMP",
+                "Quote": "USDT"
+              },
+              "provider": "mexc_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "COMP",
+                "Quote": "USDT"
+              },
+              "provider": "okx_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "COMP",
+                "Quote": "USDT"
+              },
+              "provider": "binance_api"
+            }
+          ]
+        }
+      ]
+    },
+    "CRV/USD": {
+      "paths": [
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "CRV",
+                "Quote": "USD"
+              },
+              "provider": "coinbase_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "CRV",
+                "Quote": "USD"
+              },
+              "provider": "coinbase_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "CRV",
+                "Quote": "USD"
+              },
+              "provider": "kraken_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "CRV",
+                "Quote": "USD"
+              },
+              "provider": "kraken_api"
+            }
+          ]
+        }
+      ]
+    },
+    "CRV/USDT": {
+      "paths": [
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "CRV",
+                "Quote": "USDT"
+              },
+              "provider": "gate_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "CRV",
+                "Quote": "USDT"
+              },
+              "provider": "kucoin_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "CRV",
+                "Quote": "USDT"
+              },
+              "provider": "mexc_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "CRV",
+                "Quote": "USDT"
+              },
+              "provider": "okx_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "CRV",
+                "Quote": "USDT"
+              },
+              "provider": "binance_api"
+            }
+          ]
+        }
+      ]
+    },
+    "DOGE/USD": {
+      "paths": [
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "DOGE",
+                "Quote": "USD"
+              },
+              "provider": "coinbase_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "DOGE",
+                "Quote": "USD"
+              },
+              "provider": "coinbase_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "DOGE",
+                "Quote": "USD"
+              },
+              "provider": "kraken_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "DOGE",
+                "Quote": "USD"
+              },
+              "provider": "kraken_api"
+            }
+          ]
+        }
+      ]
+    },
+    "DOGE/USDT": {
+      "paths": [
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "DOGE",
+                "Quote": "USDT"
+              },
+              "provider": "gate_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "DOGE",
+                "Quote": "USDT"
+              },
+              "provider": "kucoin_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "DOGE",
+                "Quote": "USDT"
+              },
+              "provider": "mexc_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "DOGE",
+                "Quote": "USDT"
+              },
+              "provider": "okx_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "DOGE",
+                "Quote": "USDT"
+              },
+              "provider": "binance_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "DOGE",
+                "Quote": "USDT"
+              },
+              "provider": "kraken_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "DOGE",
+                "Quote": "USDT"
+              },
+              "provider": "bybit_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "DOGE",
+                "Quote": "USDT"
+              },
+              "provider": "huobi_ws"
+            }
+          ]
+        }
+      ]
+    },
+    "DOT/USD": {
+      "paths": [
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "DOT",
+                "Quote": "USD"
+              },
+              "provider": "coinbase_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "DOT",
+                "Quote": "USD"
+              },
+              "provider": "coinbase_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "DOT",
+                "Quote": "USD"
+              },
+              "provider": "kraken_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "DOT",
+                "Quote": "USD"
+              },
+              "provider": "kraken_api"
+            }
+          ]
+        }
+      ]
+    },
+    "DOT/USDT": {
+      "paths": [
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "DOT",
+                "Quote": "USDT"
+              },
+              "provider": "gate_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "DOT",
+                "Quote": "USDT"
+              },
+              "provider": "kucoin_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "DOT",
+                "Quote": "USDT"
+              },
+              "provider": "mexc_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "DOT",
+                "Quote": "USDT"
+              },
+              "provider": "okx_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "DOT",
+                "Quote": "USDT"
+              },
+              "provider": "binance_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "DOT",
+                "Quote": "USDT"
+              },
+              "provider": "kraken_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "DOT",
+                "Quote": "USDT"
+              },
+              "provider": "bybit_ws"
+            }
+          ]
+        }
+      ]
+    },
+    "DYDX/USD": {
+      "paths": [
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "DYDX",
+                "Quote": "USD"
+              },
+              "provider": "crypto_dot_com_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "DYDX",
+                "Quote": "USD"
+              },
+              "provider": "coingecko_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "DYDX",
+                "Quote": "USD"
+              },
+              "provider": "coinbase_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "DYDX",
+                "Quote": "USD"
+              },
+              "provider": "kraken_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "DYDX",
+                "Quote": "USD"
+              },
+              "provider": "okx_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "DYDX",
+                "Quote": "USD"
+              },
+              "provider": "kraken_api"
+            }
+          ]
+        }
+      ]
+    },
+    "DYDX/USDC": {
+      "paths": [
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "DYDX",
+                "Quote": "USDC"
+              },
+              "provider": "coinbase_api"
+            }
+          ]
+        }
+      ]
+    },
+    "DYDX/USDT": {
+      "paths": [
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "DYDX",
+                "Quote": "USDT"
+              },
+              "provider": "crypto_dot_com_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "DYDX",
+                "Quote": "USDT"
+              },
+              "provider": "gate_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "DYDX",
+                "Quote": "USDT"
+              },
+              "provider": "coinbase_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "DYDX",
+                "Quote": "USDT"
+              },
+              "provider": "kucoin_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "DYDX",
+                "Quote": "USDT"
+              },
+              "provider": "mexc_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "DYDX",
+                "Quote": "USDT"
+              },
+              "provider": "okx_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "DYDX",
+                "Quote": "USDT"
+              },
+              "provider": "binance_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "DYDX",
+                "Quote": "USDT"
+              },
+              "provider": "bybit_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "DYDX",
+                "Quote": "USDT"
+              },
+              "provider": "huobi_ws"
+            }
+          ]
+        }
+      ]
+    },
+    "ETC/USD": {
+      "paths": [
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ETC",
+                "Quote": "USD"
+              },
+              "provider": "coinbase_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ETC",
+                "Quote": "USD"
+              },
+              "provider": "coinbase_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ETC",
+                "Quote": "USD"
+              },
+              "provider": "kraken_api"
+            }
+          ]
+        }
+      ]
+    },
+    "ETC/USDT": {
+      "paths": [
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ETC",
+                "Quote": "USDT"
+              },
+              "provider": "gate_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ETC",
+                "Quote": "USDT"
+              },
+              "provider": "kucoin_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ETC",
+                "Quote": "USDT"
+              },
+              "provider": "mexc_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ETC",
+                "Quote": "USDT"
+              },
+              "provider": "okx_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ETC",
+                "Quote": "USDT"
+              },
+              "provider": "binance_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ETC",
+                "Quote": "USDT"
+              },
+              "provider": "huobi_ws"
+            }
+          ]
+        }
+      ]
+    },
+    "ETH/BTC": {
+      "paths": [
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ETH",
+                "Quote": "BTC"
+              },
+              "provider": "bitstamp_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ETH",
+                "Quote": "BTC"
+              },
+              "provider": "crypto_dot_com_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ETH",
+                "Quote": "BTC"
+              },
+              "provider": "gate_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ETH",
+                "Quote": "BTC"
+              },
+              "provider": "coingecko_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ETH",
+                "Quote": "BTC"
+              },
+              "provider": "coinbase_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ETH",
+                "Quote": "BTC"
+              },
+              "provider": "coinbase_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ETH",
+                "Quote": "BTC"
+              },
+              "provider": "kucoin_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ETH",
+                "Quote": "BTC"
+              },
+              "provider": "kraken_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ETH",
+                "Quote": "BTC"
+              },
+              "provider": "mexc_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ETH",
+                "Quote": "BTC"
+              },
+              "provider": "okx_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ETH",
+                "Quote": "BTC"
+              },
+              "provider": "binance_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ETH",
+                "Quote": "BTC"
+              },
+              "provider": "kraken_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ETH",
+                "Quote": "BTC"
+              },
+              "provider": "bitfinex_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ETH",
+                "Quote": "BTC"
+              },
+              "provider": "huobi_ws"
+            }
+          ]
+        }
+      ]
+    },
+    "ETH/USD": {
+      "paths": [
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ETH",
+                "Quote": "USD"
+              },
+              "provider": "bitstamp_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ETH",
+                "Quote": "USD"
+              },
+              "provider": "crypto_dot_com_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ETH",
+                "Quote": "USD"
+              },
+              "provider": "coingecko_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ETH",
+                "Quote": "USD"
+              },
+              "provider": "coinbase_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ETH",
+                "Quote": "USD"
+              },
+              "provider": "coinbase_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ETH",
+                "Quote": "USD"
+              },
+              "provider": "kraken_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ETH",
+                "Quote": "USD"
+              },
+              "provider": "okx_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ETH",
+                "Quote": "USD"
+              },
+              "provider": "kraken_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ETH",
+                "Quote": "USD"
+              },
+              "provider": "bitfinex_ws"
+            }
+          ]
+        }
+      ]
+    },
+    "ETH/USDC": {
+      "paths": [
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ETH",
+                "Quote": "USDC"
+              },
+              "provider": "coinbase_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ETH",
+                "Quote": "USDC"
+              },
+              "provider": "kucoin_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ETH",
+                "Quote": "USDC"
+              },
+              "provider": "kraken_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ETH",
+                "Quote": "USDC"
+              },
+              "provider": "mexc_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ETH",
+                "Quote": "USDC"
+              },
+              "provider": "okx_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ETH",
+                "Quote": "USDC"
+              },
+              "provider": "binance_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ETH",
+                "Quote": "USDC"
+              },
+              "provider": "kraken_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ETH",
+                "Quote": "USDC"
+              },
+              "provider": "bybit_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ETH",
+                "Quote": "USDC"
+              },
+              "provider": "huobi_ws"
+            }
+          ]
+        }
+      ]
+    },
+    "ETH/USDT": {
+      "paths": [
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ETH",
+                "Quote": "USDT"
+              },
+              "provider": "crypto_dot_com_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ETH",
+                "Quote": "USDT"
+              },
+              "provider": "gate_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ETH",
+                "Quote": "USDT"
+              },
+              "provider": "coinbase_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ETH",
+                "Quote": "USDT"
+              },
+              "provider": "coinbase_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ETH",
+                "Quote": "USDT"
+              },
+              "provider": "kucoin_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ETH",
+                "Quote": "USDT"
+              },
+              "provider": "kraken_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ETH",
+                "Quote": "USDT"
+              },
+              "provider": "mexc_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ETH",
+                "Quote": "USDT"
+              },
+              "provider": "okx_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ETH",
+                "Quote": "USDT"
+              },
+              "provider": "binance_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ETH",
+                "Quote": "USDT"
+              },
+              "provider": "kraken_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ETH",
+                "Quote": "USDT"
+              },
+              "provider": "bybit_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "ETH",
+                "Quote": "USDT"
+              },
+              "provider": "huobi_ws"
+            }
+          ]
+        }
+      ]
+    },
+    "FIL/USD": {
+      "paths": [
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "FIL",
+                "Quote": "USD"
+              },
+              "provider": "coinbase_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "FIL",
+                "Quote": "USD"
+              },
+              "provider": "coinbase_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "FIL",
+                "Quote": "USD"
+              },
+              "provider": "kraken_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "FIL",
+                "Quote": "USD"
+              },
+              "provider": "kraken_api"
+            }
+          ]
+        }
+      ]
+    },
+    "FIL/USDT": {
+      "paths": [
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "FIL",
+                "Quote": "USDT"
+              },
+              "provider": "gate_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "FIL",
+                "Quote": "USDT"
+              },
+              "provider": "mexc_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "FIL",
+                "Quote": "USDT"
+              },
+              "provider": "okx_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "FIL",
+                "Quote": "USDT"
+              },
+              "provider": "binance_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "FIL",
+                "Quote": "USDT"
+              },
+              "provider": "huobi_ws"
+            }
+          ]
+        }
+      ]
+    },
+    "LDO/USD": {
+      "paths": [
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "LDO",
+                "Quote": "USD"
+              },
+              "provider": "coinbase_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "LDO",
+                "Quote": "USD"
+              },
+              "provider": "coinbase_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "LDO",
+                "Quote": "USD"
+              },
+              "provider": "kraken_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "LDO",
+                "Quote": "USD"
+              },
+              "provider": "kraken_api"
+            }
+          ]
+        }
+      ]
+    },
+    "LDO/USDT": {
+      "paths": [
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "LDO",
+                "Quote": "USDT"
+              },
+              "provider": "kucoin_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "LDO",
+                "Quote": "USDT"
+              },
+              "provider": "mexc_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "LDO",
+                "Quote": "USDT"
+              },
+              "provider": "okx_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "LDO",
+                "Quote": "USDT"
+              },
+              "provider": "binance_api"
+            }
+          ]
+        }
+      ]
+    },
+    "LINK/USD": {
+      "paths": [
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "LINK",
+                "Quote": "USD"
+              },
+              "provider": "coinbase_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "LINK",
+                "Quote": "USD"
+              },
+              "provider": "coinbase_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "LINK",
+                "Quote": "USD"
+              },
+              "provider": "kraken_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "LINK",
+                "Quote": "USD"
+              },
+              "provider": "kraken_api"
+            }
+          ]
+        }
+      ]
+    },
+    "LINK/USDT": {
+      "paths": [
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "LINK",
+                "Quote": "USDT"
+              },
+              "provider": "kucoin_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "LINK",
+                "Quote": "USDT"
+              },
+              "provider": "mexc_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "LINK",
+                "Quote": "USDT"
+              },
+              "provider": "okx_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "LINK",
+                "Quote": "USDT"
+              },
+              "provider": "binance_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "LINK",
+                "Quote": "USDT"
+              },
+              "provider": "kraken_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "LINK",
+                "Quote": "USDT"
+              },
+              "provider": "bybit_ws"
+            }
+          ]
+        }
+      ]
+    },
+    "LTC/USD": {
+      "paths": [
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "LTC",
+                "Quote": "USD"
+              },
+              "provider": "coinbase_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "LTC",
+                "Quote": "USD"
+              },
+              "provider": "coinbase_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "LTC",
+                "Quote": "USD"
+              },
+              "provider": "kraken_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "LTC",
+                "Quote": "USD"
+              },
+              "provider": "kraken_api"
+            }
+          ]
+        }
+      ]
+    },
+    "LTC/USDT": {
+      "paths": [
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "LTC",
+                "Quote": "USDT"
+              },
+              "provider": "kucoin_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "LTC",
+                "Quote": "USDT"
+              },
+              "provider": "mexc_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "LTC",
+                "Quote": "USDT"
+              },
+              "provider": "okx_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "LTC",
+                "Quote": "USDT"
+              },
+              "provider": "binance_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "LTC",
+                "Quote": "USDT"
+              },
+              "provider": "kraken_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "LTC",
+                "Quote": "USDT"
+              },
+              "provider": "bybit_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "LTC",
+                "Quote": "USDT"
+              },
+              "provider": "huobi_ws"
+            }
+          ]
+        }
+      ]
+    },
+    "MATIC/USD": {
+      "paths": [
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "MATIC",
+                "Quote": "USD"
+              },
+              "provider": "coinbase_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "MATIC",
+                "Quote": "USD"
+              },
+              "provider": "coinbase_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "MATIC",
+                "Quote": "USD"
+              },
+              "provider": "kraken_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "MATIC",
+                "Quote": "USD"
+              },
+              "provider": "kraken_api"
+            }
+          ]
+        }
+      ]
+    },
+    "MATIC/USDT": {
+      "paths": [
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "MATIC",
+                "Quote": "USDT"
+              },
+              "provider": "gate_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "MATIC",
+                "Quote": "USDT"
+              },
+              "provider": "kucoin_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "MATIC",
+                "Quote": "USDT"
+              },
+              "provider": "mexc_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "MATIC",
+                "Quote": "USDT"
+              },
+              "provider": "okx_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "MATIC",
+                "Quote": "USDT"
+              },
+              "provider": "binance_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "MATIC",
+                "Quote": "USDT"
+              },
+              "provider": "kraken_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "MATIC",
+                "Quote": "USDT"
+              },
+              "provider": "bybit_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "MATIC",
+                "Quote": "USDT"
+              },
+              "provider": "huobi_ws"
+            }
+          ]
+        }
+      ]
+    },
+    "MKR/USD": {
+      "paths": [
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "MKR",
+                "Quote": "USD"
+              },
+              "provider": "coinbase_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "MKR",
+                "Quote": "USD"
+              },
+              "provider": "coinbase_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "MKR",
+                "Quote": "USD"
+              },
+              "provider": "kraken_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "MKR",
+                "Quote": "USD"
+              },
+              "provider": "kraken_api"
+            }
+          ]
+        }
+      ]
+    },
+    "MKR/USDT": {
+      "paths": [
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "MKR",
+                "Quote": "USDT"
+              },
+              "provider": "kucoin_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "MKR",
+                "Quote": "USDT"
+              },
+              "provider": "mexc_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "MKR",
+                "Quote": "USDT"
+              },
+              "provider": "okx_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "MKR",
+                "Quote": "USDT"
+              },
+              "provider": "binance_api"
+            }
+          ]
+        }
+      ]
+    },
+    "MOG/USD": {
+      "paths": [
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "MOG",
+                "Quote": "USD"
+              },
+              "provider": "gecko_terminal_api"
+            }
+          ]
+        }
+      ]
+    },
+    "NEAR/USD": {
+      "paths": [
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "NEAR",
+                "Quote": "USD"
+              },
+              "provider": "coinbase_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "NEAR",
+                "Quote": "USD"
+              },
+              "provider": "coinbase_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "NEAR",
+                "Quote": "USD"
+              },
+              "provider": "kraken_api"
+            }
+          ]
+        }
+      ]
+    },
+    "NEAR/USDT": {
+      "paths": [
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "NEAR",
+                "Quote": "USDT"
+              },
+              "provider": "gate_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "NEAR",
+                "Quote": "USDT"
+              },
+              "provider": "kucoin_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "NEAR",
+                "Quote": "USDT"
+              },
+              "provider": "mexc_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "NEAR",
+                "Quote": "USDT"
+              },
+              "provider": "okx_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "NEAR",
+                "Quote": "USDT"
+              },
+              "provider": "binance_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "NEAR",
+                "Quote": "USDT"
+              },
+              "provider": "huobi_ws"
+            }
+          ]
+        }
+      ]
+    },
+    "OP/USD": {
+      "paths": [
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "OP",
+                "Quote": "USD"
+              },
+              "provider": "coinbase_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "OP",
+                "Quote": "USD"
+              },
+              "provider": "coinbase_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "OP",
+                "Quote": "USD"
+              },
+              "provider": "kraken_api"
+            }
+          ]
+        }
+      ]
+    },
+    "OP/USDT": {
+      "paths": [
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "OP",
+                "Quote": "USDT"
+              },
+              "provider": "gate_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "OP",
+                "Quote": "USDT"
+              },
+              "provider": "kucoin_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "OP",
+                "Quote": "USDT"
+              },
+              "provider": "mexc_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "OP",
+                "Quote": "USDT"
+              },
+              "provider": "okx_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "OP",
+                "Quote": "USDT"
+              },
+              "provider": "binance_api"
+            }
+          ]
+        }
+      ]
+    },
+    "OSMO/USD": {
+      "paths": [
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "OSMO",
+                "Quote": "USD"
+              },
+              "provider": "crypto_dot_com_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "OSMO",
+                "Quote": "USD"
+              },
+              "provider": "coingecko_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "OSMO",
+                "Quote": "USD"
+              },
+              "provider": "coinbase_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "OSMO",
+                "Quote": "USD"
+              },
+              "provider": "coinbase_ws"
+            }
+          ]
+        }
+      ]
+    },
+    "OSMO/USDC": {
+      "paths": [
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "OSMO",
+                "Quote": "USDC"
+              },
+              "provider": "coinbase_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "OSMO",
+                "Quote": "USDC"
+              },
+              "provider": "coinbase_ws"
+            }
+          ]
+        }
+      ]
+    },
+    "OSMO/USDT": {
+      "paths": [
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "OSMO",
+                "Quote": "USDT"
+              },
+              "provider": "coinbase_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "OSMO",
+                "Quote": "USDT"
+              },
+              "provider": "coinbase_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "OSMO",
+                "Quote": "USDT"
+              },
+              "provider": "kucoin_ws"
+            }
+          ]
+        }
+      ]
+    },
+    "PEPE/USD": {
+      "paths": [
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "PEPE",
+                "Quote": "USD"
+              },
+              "provider": "gecko_terminal_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "PEPE",
+                "Quote": "USD"
+              },
+              "provider": "kraken_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "PEPE",
+                "Quote": "USD"
+              },
+              "provider": "kraken_api"
+            }
+          ]
+        }
+      ]
+    },
+    "PEPE/USDT": {
+      "paths": [
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "PEPE",
+                "Quote": "USDT"
+              },
+              "provider": "gate_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "PEPE",
+                "Quote": "USDT"
+              },
+              "provider": "kucoin_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "PEPE",
+                "Quote": "USDT"
+              },
+              "provider": "mexc_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "PEPE",
+                "Quote": "USDT"
+              },
+              "provider": "okx_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "PEPE",
+                "Quote": "USDT"
+              },
+              "provider": "binance_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "PEPE",
+                "Quote": "USDT"
+              },
+              "provider": "bybit_ws"
+            }
+          ]
+        }
+      ]
+    },
+    "SEI/USD": {
+      "paths": [
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "SEI",
+                "Quote": "USD"
+              },
+              "provider": "coinbase_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "SEI",
+                "Quote": "USD"
+              },
+              "provider": "coinbase_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "SEI",
+                "Quote": "USD"
+              },
+              "provider": "kraken_api"
+            }
+          ]
+        }
+      ]
+    },
+    "SEI/USDT": {
+      "paths": [
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "SEI",
+                "Quote": "USDT"
+              },
+              "provider": "gate_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "SEI",
+                "Quote": "USDT"
+              },
+              "provider": "kucoin_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "SEI",
+                "Quote": "USDT"
+              },
+              "provider": "mexc_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "SEI",
+                "Quote": "USDT"
+              },
+              "provider": "binance_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "SEI",
+                "Quote": "USDT"
+              },
+              "provider": "bybit_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "SEI",
+                "Quote": "USDT"
+              },
+              "provider": "huobi_ws"
+            }
+          ]
+        }
+      ]
+    },
+    "SHIB/USD": {
+      "paths": [
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "SHIB",
+                "Quote": "USD"
+              },
+              "provider": "coinbase_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "SHIB",
+                "Quote": "USD"
+              },
+              "provider": "coinbase_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "SHIB",
+                "Quote": "USD"
+              },
+              "provider": "kraken_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "SHIB",
+                "Quote": "USD"
+              },
+              "provider": "kraken_api"
+            }
+          ]
+        }
+      ]
+    },
+    "SHIB/USDT": {
+      "paths": [
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "SHIB",
+                "Quote": "USDT"
+              },
+              "provider": "gate_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "SHIB",
+                "Quote": "USDT"
+              },
+              "provider": "kucoin_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "SHIB",
+                "Quote": "USDT"
+              },
+              "provider": "mexc_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "SHIB",
+                "Quote": "USDT"
+              },
+              "provider": "okx_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "SHIB",
+                "Quote": "USDT"
+              },
+              "provider": "binance_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "SHIB",
+                "Quote": "USDT"
+              },
+              "provider": "kraken_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "SHIB",
+                "Quote": "USDT"
+              },
+              "provider": "bybit_ws"
+            }
+          ]
+        }
+      ]
+    },
+    "SOL/USD": {
+      "paths": [
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "SOL",
+                "Quote": "USD"
+              },
+              "provider": "bitstamp_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "SOL",
+                "Quote": "USD"
+              },
+              "provider": "crypto_dot_com_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "SOL",
+                "Quote": "USD"
+              },
+              "provider": "coingecko_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "SOL",
+                "Quote": "USD"
+              },
+              "provider": "coinbase_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "SOL",
+                "Quote": "USD"
+              },
+              "provider": "coinbase_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "SOL",
+                "Quote": "USD"
+              },
+              "provider": "kraken_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "SOL",
+                "Quote": "USD"
+              },
+              "provider": "okx_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "SOL",
+                "Quote": "USD"
+              },
+              "provider": "kraken_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "SOL",
+                "Quote": "USD"
+              },
+              "provider": "bitfinex_ws"
+            }
+          ]
+        }
+      ]
+    },
+    "SOL/USDC": {
+      "paths": [
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "SOL",
+                "Quote": "USDC"
+              },
+              "provider": "gate_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "SOL",
+                "Quote": "USDC"
+              },
+              "provider": "coinbase_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "SOL",
+                "Quote": "USDC"
+              },
+              "provider": "coinbase_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "SOL",
+                "Quote": "USDC"
+              },
+              "provider": "kucoin_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "SOL",
+                "Quote": "USDC"
+              },
+              "provider": "mexc_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "SOL",
+                "Quote": "USDC"
+              },
+              "provider": "okx_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "SOL",
+                "Quote": "USDC"
+              },
+              "provider": "binance_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "SOL",
+                "Quote": "USDC"
+              },
+              "provider": "bybit_ws"
+            }
+          ]
+        }
+      ]
+    },
+    "SOL/USDT": {
+      "paths": [
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "SOL",
+                "Quote": "USDT"
+              },
+              "provider": "crypto_dot_com_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "SOL",
+                "Quote": "USDT"
+              },
+              "provider": "gate_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "SOL",
+                "Quote": "USDT"
+              },
+              "provider": "coinbase_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "SOL",
+                "Quote": "USDT"
+              },
+              "provider": "coinbase_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "SOL",
+                "Quote": "USDT"
+              },
+              "provider": "kucoin_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "SOL",
+                "Quote": "USDT"
+              },
+              "provider": "kraken_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "SOL",
+                "Quote": "USDT"
+              },
+              "provider": "mexc_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "SOL",
+                "Quote": "USDT"
+              },
+              "provider": "okx_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "SOL",
+                "Quote": "USDT"
+              },
+              "provider": "binance_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "SOL",
+                "Quote": "USDT"
+              },
+              "provider": "kraken_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "SOL",
+                "Quote": "USDT"
+              },
+              "provider": "bybit_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "SOL",
+                "Quote": "USDT"
+              },
+              "provider": "huobi_ws"
+            }
+          ]
+        }
+      ]
+    },
+    "SUI/USD": {
+      "paths": [
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "SUI",
+                "Quote": "USD"
+              },
+              "provider": "coinbase_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "SUI",
+                "Quote": "USD"
+              },
+              "provider": "coinbase_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "SUI",
+                "Quote": "USD"
+              },
+              "provider": "kraken_api"
+            }
+          ]
+        }
+      ]
+    },
+    "SUI/USDT": {
+      "paths": [
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "SUI",
+                "Quote": "USDT"
+              },
+              "provider": "gate_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "SUI",
+                "Quote": "USDT"
+              },
+              "provider": "kucoin_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "SUI",
+                "Quote": "USDT"
+              },
+              "provider": "mexc_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "SUI",
+                "Quote": "USDT"
+              },
+              "provider": "okx_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "SUI",
+                "Quote": "USDT"
+              },
+              "provider": "binance_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "SUI",
+                "Quote": "USDT"
+              },
+              "provider": "bybit_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "SUI",
+                "Quote": "USDT"
+              },
+              "provider": "huobi_ws"
+            }
+          ]
+        }
+      ]
+    },
+    "TIA/USD": {
+      "paths": [
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "TIA",
+                "Quote": "USD"
+              },
+              "provider": "crypto_dot_com_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "TIA",
+                "Quote": "USD"
+              },
+              "provider": "coingecko_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "TIA",
+                "Quote": "USD"
+              },
+              "provider": "coinbase_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "TIA",
+                "Quote": "USD"
+              },
+              "provider": "coinbase_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "TIA",
+                "Quote": "USD"
+              },
+              "provider": "kraken_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "TIA",
+                "Quote": "USD"
+              },
+              "provider": "okx_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "TIA",
+                "Quote": "USD"
+              },
+              "provider": "bitfinex_ws"
+            }
+          ]
+        }
+      ]
+    },
+    "TIA/USDC": {
+      "paths": [
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "TIA",
+                "Quote": "USDC"
+              },
+              "provider": "coinbase_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "TIA",
+                "Quote": "USDC"
+              },
+              "provider": "coinbase_ws"
+            }
+          ]
+        }
+      ]
+    },
+    "TIA/USDT": {
+      "paths": [
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "TIA",
+                "Quote": "USDT"
+              },
+              "provider": "crypto_dot_com_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "TIA",
+                "Quote": "USDT"
+              },
+              "provider": "gate_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "TIA",
+                "Quote": "USDT"
+              },
+              "provider": "coinbase_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "TIA",
+                "Quote": "USDT"
+              },
+              "provider": "coinbase_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "TIA",
+                "Quote": "USDT"
+              },
+              "provider": "kucoin_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "TIA",
+                "Quote": "USDT"
+              },
+              "provider": "okx_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "TIA",
+                "Quote": "USDT"
+              },
+              "provider": "huobi_ws"
+            }
+          ]
+        }
+      ]
+    },
+    "TRX/USD": {
+      "paths": [
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "TRX",
+                "Quote": "USD"
+              },
+              "provider": "kraken_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "TRX",
+                "Quote": "USD"
+              },
+              "provider": "kraken_api"
+            }
+          ]
+        }
+      ]
+    },
+    "TRX/USDT": {
+      "paths": [
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "TRX",
+                "Quote": "USDT"
+              },
+              "provider": "gate_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "TRX",
+                "Quote": "USDT"
+              },
+              "provider": "kucoin_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "TRX",
+                "Quote": "USDT"
+              },
+              "provider": "mexc_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "TRX",
+                "Quote": "USDT"
+              },
+              "provider": "okx_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "TRX",
+                "Quote": "USDT"
+              },
+              "provider": "binance_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "TRX",
+                "Quote": "USDT"
+              },
+              "provider": "bybit_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "TRX",
+                "Quote": "USDT"
+              },
+              "provider": "huobi_ws"
+            }
+          ]
+        }
+      ]
+    },
+    "UNI/USD": {
+      "paths": [
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "UNI",
+                "Quote": "USD"
+              },
+              "provider": "coinbase_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "UNI",
+                "Quote": "USD"
+              },
+              "provider": "coinbase_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "UNI",
+                "Quote": "USD"
+              },
+              "provider": "kraken_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "UNI",
+                "Quote": "USD"
+              },
+              "provider": "kraken_api"
+            }
+          ]
+        }
+      ]
+    },
+    "UNI/USDT": {
+      "paths": [
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "UNI",
+                "Quote": "USDT"
+              },
+              "provider": "gate_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "UNI",
+                "Quote": "USDT"
+              },
+              "provider": "kucoin_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "UNI",
+                "Quote": "USDT"
+              },
+              "provider": "okx_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "UNI",
+                "Quote": "USDT"
+              },
+              "provider": "binance_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "UNI",
+                "Quote": "USDT"
+              },
+              "provider": "bybit_ws"
+            }
+          ]
+        }
+      ]
+    },
+    "USDC/USD": {
+      "paths": [
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "USDC",
+                "Quote": "USD"
+              },
+              "provider": "coinbase_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "USDC",
+                "Quote": "USD"
+              },
+              "provider": "kraken_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "USDC",
+                "Quote": "USD"
+              },
+              "provider": "okx_ws"
+            }
+          ]
+        }
+      ]
+    },
+    "USDC/USDT": {
+      "paths": [
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "USDC",
+                "Quote": "USDT"
+              },
+              "provider": "bitstamp_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "USDC",
+                "Quote": "USDT"
+              },
+              "provider": "gate_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "USDC",
+                "Quote": "USDT"
+              },
+              "provider": "coinbase_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "USDC",
+                "Quote": "USDT"
+              },
+              "provider": "coinbase_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "USDC",
+                "Quote": "USDT"
+              },
+              "provider": "kucoin_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "USDC",
+                "Quote": "USDT"
+              },
+              "provider": "kraken_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "USDC",
+                "Quote": "USDT"
+              },
+              "provider": "mexc_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "USDC",
+                "Quote": "USDT"
+              },
+              "provider": "okx_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "USDC",
+                "Quote": "USDT"
+              },
+              "provider": "binance_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "USDC",
+                "Quote": "USDT"
+              },
+              "provider": "kraken_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "USDC",
+                "Quote": "USDT"
+              },
+              "provider": "bybit_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "USDC",
+                "Quote": "USDT"
+              },
+              "provider": "huobi_ws"
+            }
+          ]
+        }
+      ]
+    },
+    "USDT/USD": {
+      "paths": [
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "USDT",
+                "Quote": "USD"
+              },
+              "provider": "bitstamp_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "USDT",
+                "Quote": "USD"
+              },
+              "provider": "crypto_dot_com_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "USDT",
+                "Quote": "USD"
+              },
+              "provider": "coinbase_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "USDT",
+                "Quote": "USD"
+              },
+              "provider": "coinbase_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "USDT",
+                "Quote": "USD"
+              },
+              "provider": "kraken_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "USDT",
+                "Quote": "USD"
+              },
+              "provider": "okx_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "USDT",
+                "Quote": "USD"
+              },
+              "provider": "binance_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "USDT",
+                "Quote": "USD"
+              },
+              "provider": "kraken_api"
+            }
+          ]
+        }
+      ]
+    },
+    "WLD/USDT": {
+      "paths": [
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "WLD",
+                "Quote": "USDT"
+              },
+              "provider": "gate_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "WLD",
+                "Quote": "USDT"
+              },
+              "provider": "kucoin_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "WLD",
+                "Quote": "USDT"
+              },
+              "provider": "mexc_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "WLD",
+                "Quote": "USDT"
+              },
+              "provider": "okx_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "WLD",
+                "Quote": "USDT"
+              },
+              "provider": "binance_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "WLD",
+                "Quote": "USDT"
+              },
+              "provider": "bybit_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "WLD",
+                "Quote": "USDT"
+              },
+              "provider": "huobi_ws"
+            }
+          ]
+        }
+      ]
+    },
+    "XLM/USD": {
+      "paths": [
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "XLM",
+                "Quote": "USD"
+              },
+              "provider": "coinbase_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "XLM",
+                "Quote": "USD"
+              },
+              "provider": "coinbase_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "XLM",
+                "Quote": "USD"
+              },
+              "provider": "kraken_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "XLM",
+                "Quote": "USD"
+              },
+              "provider": "kraken_api"
+            }
+          ]
+        }
+      ]
+    },
+    "XLM/USDT": {
+      "paths": [
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "XLM",
+                "Quote": "USDT"
+              },
+              "provider": "kucoin_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "XLM",
+                "Quote": "USDT"
+              },
+              "provider": "mexc_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "XLM",
+                "Quote": "USDT"
+              },
+              "provider": "okx_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "XLM",
+                "Quote": "USDT"
+              },
+              "provider": "binance_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "XLM",
+                "Quote": "USDT"
+              },
+              "provider": "bybit_ws"
+            }
+          ]
+        }
+      ]
+    },
+    "XRP/USD": {
+      "paths": [
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "XRP",
+                "Quote": "USD"
+              },
+              "provider": "coinbase_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "XRP",
+                "Quote": "USD"
+              },
+              "provider": "coinbase_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "XRP",
+                "Quote": "USD"
+              },
+              "provider": "kraken_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "XRP",
+                "Quote": "USD"
+              },
+              "provider": "kraken_api"
+            }
+          ]
+        }
+      ]
+    },
+    "XRP/USDT": {
+      "paths": [
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "XRP",
+                "Quote": "USDT"
+              },
+              "provider": "gate_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "XRP",
+                "Quote": "USDT"
+              },
+              "provider": "kucoin_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "XRP",
+                "Quote": "USDT"
+              },
+              "provider": "mexc_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "XRP",
+                "Quote": "USDT"
+              },
+              "provider": "okx_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "XRP",
+                "Quote": "USDT"
+              },
+              "provider": "binance_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "XRP",
+                "Quote": "USDT"
+              },
+              "provider": "kraken_api"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "XRP",
+                "Quote": "USDT"
+              },
+              "provider": "bybit_ws"
+            }
+          ]
+        },
+        {
+          "operations": [
+            {
+              "currency_pair": {
+                "Base": "XRP",
+                "Quote": "USDT"
+              },
+              "provider": "huobi_ws"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "providers": {
+    "ADA/USD": {
+      "providers": [
+        {
+          "name": "coinbase_api",
+          "off_chain_ticker": "ADA-USD"
+        },
+        {
+          "name": "coinbase_ws",
+          "off_chain_ticker": "ADA-USD"
+        },
+        {
+          "name": "kraken_ws",
+          "off_chain_ticker": "ADA/USD"
+        },
+        {
+          "name": "okx_ws",
+          "off_chain_ticker": "ADA-USD"
+        },
+        {
+          "name": "kraken_api",
+          "off_chain_ticker": "ADAUSD"
+        }
+      ]
+    },
+    "ADA/USDC": {
+      "providers": [
+        {
+          "name": "kucoin_ws",
+          "off_chain_ticker": "ADA-USDC"
+        },
+        {
+          "name": "mexc_ws",
+          "off_chain_ticker": "ADAUSDC"
+        },
+        {
+          "name": "okx_ws",
+          "off_chain_ticker": "ADA-USDC"
+        }
+      ]
+    },
+    "ADA/USDT": {
+      "providers": [
+        {
+          "name": "gate_ws",
+          "off_chain_ticker": "ADA_USDT"
+        },
+        {
+          "name": "kucoin_ws",
+          "off_chain_ticker": "ADA-USDT"
+        },
+        {
+          "name": "mexc_ws",
+          "off_chain_ticker": "ADAUSDT"
+        },
+        {
+          "name": "okx_ws",
+          "off_chain_ticker": "ADA-USDT"
+        },
+        {
+          "name": "binance_api",
+          "off_chain_ticker": "ADAUSDT"
+        },
+        {
+          "name": "kraken_api",
+          "off_chain_ticker": "ADAUSDT"
+        },
+        {
+          "name": "bybit_ws",
+          "off_chain_ticker": "ADAUSDT"
+        },
+        {
+          "name": "huobi_ws",
+          "off_chain_ticker": "adausdt"
+        }
+      ]
+    },
+    "APE/USD": {
+      "providers": [
+        {
+          "name": "coinbase_api",
+          "off_chain_ticker": "APE-USD"
+        },
+        {
+          "name": "coinbase_ws",
+          "off_chain_ticker": "APE-USD"
+        },
+        {
+          "name": "kraken_ws",
+          "off_chain_ticker": "APE/USD"
+        }
+      ]
+    },
+    "APE/USDC": {
+      "providers": [
+        {
+          "name": "coinbase_api",
+          "off_chain_ticker": "APE-USDC"
+        },
+        {
+          "name": "kucoin_ws",
+          "off_chain_ticker": "APE-USDC"
+        },
+        {
+          "name": "okx_ws",
+          "off_chain_ticker": "APE-USDC"
+        }
+      ]
+    },
+    "APE/USDT": {
+      "providers": [
+        {
+          "name": "gate_ws",
+          "off_chain_ticker": "APE_USDT"
+        },
+        {
+          "name": "coinbase_api",
+          "off_chain_ticker": "APE-USDT"
+        },
+        {
+          "name": "coinbase_ws",
+          "off_chain_ticker": "APE-USDT"
+        },
+        {
+          "name": "kucoin_ws",
+          "off_chain_ticker": "APE-USDT"
+        },
+        {
+          "name": "mexc_ws",
+          "off_chain_ticker": "APEUSDT"
+        },
+        {
+          "name": "okx_ws",
+          "off_chain_ticker": "APE-USDT"
+        },
+        {
+          "name": "binance_api",
+          "off_chain_ticker": "APEUSDT"
+        },
+        {
+          "name": "kraken_api",
+          "off_chain_ticker": "APEUSDT"
+        }
+      ]
+    },
+    "APT/USD": {
+      "providers": [
+        {
+          "name": "coinbase_api",
+          "off_chain_ticker": "APT-USD"
+        },
+        {
+          "name": "coinbase_ws",
+          "off_chain_ticker": "APT-USD"
+        },
+        {
+          "name": "kraken_api",
+          "off_chain_ticker": "APTUSD"
+        }
+      ]
+    },
+    "APT/USDC": {
+      "providers": [
+        {
+          "name": "okx_ws",
+          "off_chain_ticker": "APT-USDC"
+        }
+      ]
+    },
+    "APT/USDT": {
+      "providers": [
+        {
+          "name": "gate_ws",
+          "off_chain_ticker": "APT_USDT"
+        },
+        {
+          "name": "kucoin_ws",
+          "off_chain_ticker": "APT-USDT"
+        },
+        {
+          "name": "mexc_ws",
+          "off_chain_ticker": "APTUSDT"
+        },
+        {
+          "name": "okx_ws",
+          "off_chain_ticker": "APT-USDT"
+        },
+        {
+          "name": "binance_api",
+          "off_chain_ticker": "APTUSDT"
+        },
+        {
+          "name": "bybit_ws",
+          "off_chain_ticker": "APTUSDT"
+        },
+        {
+          "name": "huobi_ws",
+          "off_chain_ticker": "aptusdt"
+        }
+      ]
+    },
+    "ARB/USD": {
+      "providers": [
+        {
+          "name": "coinbase_api",
+          "off_chain_ticker": "ARB-USD"
+        },
+        {
+          "name": "coinbase_ws",
+          "off_chain_ticker": "ARB-USD"
+        },
+        {
+          "name": "kraken_api",
+          "off_chain_ticker": "ARBUSD"
+        }
+      ]
+    },
+    "ARB/USDT": {
+      "providers": [
+        {
+          "name": "gate_ws",
+          "off_chain_ticker": "ARB_USDT"
+        },
+        {
+          "name": "kucoin_ws",
+          "off_chain_ticker": "ARB-USDT"
+        },
+        {
+          "name": "mexc_ws",
+          "off_chain_ticker": "ARBUSDT"
+        },
+        {
+          "name": "okx_ws",
+          "off_chain_ticker": "ARB-USDT"
+        },
+        {
+          "name": "binance_api",
+          "off_chain_ticker": "ARBUSDT"
+        },
+        {
+          "name": "bybit_ws",
+          "off_chain_ticker": "ARBUSDT"
+        },
+        {
+          "name": "huobi_ws",
+          "off_chain_ticker": "arbusdt"
+        }
+      ]
+    },
+    "ATOM/USD": {
+      "providers": [
+        {
+          "name": "crypto_dot_com_ws",
+          "off_chain_ticker": "ATOMUSD-PERP"
+        },
+        {
+          "name": "coingecko_api",
+          "off_chain_ticker": "cosmos/usd"
+        },
+        {
+          "name": "coinbase_api",
+          "off_chain_ticker": "ATOM-USD"
+        },
+        {
+          "name": "coinbase_ws",
+          "off_chain_ticker": "ATOM-USD"
+        },
+        {
+          "name": "kraken_ws",
+          "off_chain_ticker": "ATOM/USD"
+        },
+        {
+          "name": "okx_ws",
+          "off_chain_ticker": "ATOM-USD"
+        },
+        {
+          "name": "kraken_api",
+          "off_chain_ticker": "ATOMUSD"
+        }
+      ]
+    },
+    "ATOM/USDC": {
+      "providers": [
+        {
+          "name": "coinbase_api",
+          "off_chain_ticker": "ATOM-USDC"
+        },
+        {
+          "name": "kucoin_ws",
+          "off_chain_ticker": "ATOM-USDC"
+        },
+        {
+          "name": "mexc_ws",
+          "off_chain_ticker": "ATOMUSDC"
+        },
+        {
+          "name": "okx_ws",
+          "off_chain_ticker": "ATOM-USDC"
+        }
+      ]
+    },
+    "ATOM/USDT": {
+      "providers": [
+        {
+          "name": "crypto_dot_com_ws",
+          "off_chain_ticker": "ATOM_USDT"
+        },
+        {
+          "name": "gate_ws",
+          "off_chain_ticker": "ATOM_USDT"
+        },
+        {
+          "name": "coinbase_api",
+          "off_chain_ticker": "ATOM-USDT"
+        },
+        {
+          "name": "coinbase_ws",
+          "off_chain_ticker": "ATOM-USDT"
+        },
+        {
+          "name": "kucoin_ws",
+          "off_chain_ticker": "ATOM-USDT"
+        },
+        {
+          "name": "mexc_ws",
+          "off_chain_ticker": "ATOMUSDT"
+        },
+        {
+          "name": "okx_ws",
+          "off_chain_ticker": "ATOM-USDT"
+        },
+        {
+          "name": "binance_api",
+          "off_chain_ticker": "ATOMUSDT"
+        },
+        {
+          "name": "kraken_api",
+          "off_chain_ticker": "ATOMUSDT"
+        },
+        {
+          "name": "bybit_ws",
+          "off_chain_ticker": "ATOMUSDT"
+        },
+        {
+          "name": "huobi_ws",
+          "off_chain_ticker": "atomusdt"
+        }
+      ]
+    },
+    "AVAX/USD": {
+      "providers": [
+        {
+          "name": "bitstamp_ws",
+          "off_chain_ticker": "avaxusd"
+        },
+        {
+          "name": "crypto_dot_com_ws",
+          "off_chain_ticker": "AVAXUSD-PERP"
+        },
+        {
+          "name": "coinbase_api",
+          "off_chain_ticker": "AVAX-USD"
+        },
+        {
+          "name": "coinbase_ws",
+          "off_chain_ticker": "AVAX-USD"
+        },
+        {
+          "name": "kraken_ws",
+          "off_chain_ticker": "AVAX/USD"
+        },
+        {
+          "name": "okx_ws",
+          "off_chain_ticker": "AVAX-USD"
+        },
+        {
+          "name": "kraken_api",
+          "off_chain_ticker": "AVAXUSD"
+        }
+      ]
+    },
+    "AVAX/USDC": {
+      "providers": [
+        {
+          "name": "coinbase_api",
+          "off_chain_ticker": "AVAX-USDC"
+        },
+        {
+          "name": "kucoin_ws",
+          "off_chain_ticker": "AVAX-USDC"
+        },
+        {
+          "name": "mexc_ws",
+          "off_chain_ticker": "AVAXUSDC"
+        },
+        {
+          "name": "okx_ws",
+          "off_chain_ticker": "AVAX-USDC"
+        },
+        {
+          "name": "bybit_ws",
+          "off_chain_ticker": "AVAXUSDC"
+        }
+      ]
+    },
+    "AVAX/USDT": {
+      "providers": [
+        {
+          "name": "crypto_dot_com_ws",
+          "off_chain_ticker": "AVAX_USDT"
+        },
+        {
+          "name": "gate_ws",
+          "off_chain_ticker": "AVAX_USDT"
+        },
+        {
+          "name": "coinbase_api",
+          "off_chain_ticker": "AVAX-USDT"
+        },
+        {
+          "name": "coinbase_ws",
+          "off_chain_ticker": "AVAX-USDT"
+        },
+        {
+          "name": "kucoin_ws",
+          "off_chain_ticker": "AVAX-USDT"
+        },
+        {
+          "name": "kraken_ws",
+          "off_chain_ticker": "AVAX/USDT"
+        },
+        {
+          "name": "mexc_ws",
+          "off_chain_ticker": "AVAXUSDT"
+        },
+        {
+          "name": "okx_ws",
+          "off_chain_ticker": "AVAX-USDT"
+        },
+        {
+          "name": "binance_api",
+          "off_chain_ticker": "AVAXUSDT"
+        },
+        {
+          "name": "kraken_api",
+          "off_chain_ticker": "AVAXUSDT"
+        },
+        {
+          "name": "bybit_ws",
+          "off_chain_ticker": "AVAXUSDT"
+        },
+        {
+          "name": "huobi_ws",
+          "off_chain_ticker": "avaxusdt"
+        }
+      ]
+    },
+    "BCH/USD": {
+      "providers": [
+        {
+          "name": "coinbase_api",
+          "off_chain_ticker": "BCH-USD"
+        },
+        {
+          "name": "coinbase_ws",
+          "off_chain_ticker": "BCH-USD"
+        },
+        {
+          "name": "kraken_ws",
+          "off_chain_ticker": "BCH/USD"
+        },
+        {
+          "name": "kraken_api",
+          "off_chain_ticker": "BCHUSD"
+        }
+      ]
+    },
+    "BCH/USDT": {
+      "providers": [
+        {
+          "name": "gate_ws",
+          "off_chain_ticker": "BCH_USDT"
+        },
+        {
+          "name": "kucoin_ws",
+          "off_chain_ticker": "BCH-USDT"
+        },
+        {
+          "name": "mexc_ws",
+          "off_chain_ticker": "BCHUSDT"
+        },
+        {
+          "name": "okx_ws",
+          "off_chain_ticker": "BCH-USDT"
+        },
+        {
+          "name": "binance_api",
+          "off_chain_ticker": "BCHUSDT"
+        },
+        {
+          "name": "kraken_api",
+          "off_chain_ticker": "BCHUSDT"
+        },
+        {
+          "name": "bybit_ws",
+          "off_chain_ticker": "BCHUSDT"
+        },
+        {
+          "name": "huobi_ws",
+          "off_chain_ticker": "bchusdt"
+        }
+      ]
+    },
+    "BLUR/USD": {
+      "providers": [
+        {
+          "name": "coinbase_api",
+          "off_chain_ticker": "BLUR-USD"
+        },
+        {
+          "name": "coinbase_ws",
+          "off_chain_ticker": "BLUR-USD"
+        },
+        {
+          "name": "kraken_ws",
+          "off_chain_ticker": "BLUR/USD"
+        }
+      ]
+    },
+    "BLUR/USDT": {
+      "providers": [
+        {
+          "name": "gate_ws",
+          "off_chain_ticker": "BLUR_USDT"
+        },
+        {
+          "name": "kucoin_ws",
+          "off_chain_ticker": "BLUR-USDT"
+        },
+        {
+          "name": "mexc_ws",
+          "off_chain_ticker": "BLURUSDT"
+        },
+        {
+          "name": "okx_ws",
+          "off_chain_ticker": "BLUR-USDT"
+        }
+      ]
+    },
+    "BTC/USD": {
+      "providers": [
+        {
+          "name": "bitstamp_ws",
+          "off_chain_ticker": "btcusd"
+        },
+        {
+          "name": "crypto_dot_com_ws",
+          "off_chain_ticker": "BTCUSD-PERP"
+        },
+        {
+          "name": "coingecko_api",
+          "off_chain_ticker": "bitcoin/usd"
+        },
+        {
+          "name": "coinbase_api",
+          "off_chain_ticker": "BTC-USD"
+        },
+        {
+          "name": "coinbase_ws",
+          "off_chain_ticker": "BTC-USD"
+        },
+        {
+          "name": "kraken_ws",
+          "off_chain_ticker": "XBT/USD"
+        },
+        {
+          "name": "okx_ws",
+          "off_chain_ticker": "BTC-USD"
+        },
+        {
+          "name": "kraken_api",
+          "off_chain_ticker": "XXBTZUSD"
+        },
+        {
+          "name": "bitfinex_ws",
+          "off_chain_ticker": "BTCUSD"
+        }
+      ]
+    },
+    "BTC/USDC": {
+      "providers": [
+        {
+          "name": "bitstamp_ws",
+          "off_chain_ticker": "btcusdc"
+        },
+        {
+          "name": "coinbase_api",
+          "off_chain_ticker": "BTC-USDC"
+        },
+        {
+          "name": "kucoin_ws",
+          "off_chain_ticker": "BTC-USDC"
+        },
+        {
+          "name": "kraken_ws",
+          "off_chain_ticker": "XBT/USDC"
+        },
+        {
+          "name": "mexc_ws",
+          "off_chain_ticker": "BTCUSDC"
+        },
+        {
+          "name": "okx_ws",
+          "off_chain_ticker": "BTC-USDC"
+        },
+        {
+          "name": "binance_api",
+          "off_chain_ticker": "BTCUSDC"
+        },
+        {
+          "name": "kraken_api",
+          "off_chain_ticker": "XBTUSDC"
+        },
+        {
+          "name": "bybit_ws",
+          "off_chain_ticker": "BTCUSDC"
+        },
+        {
+          "name": "huobi_ws",
+          "off_chain_ticker": "btcusdc"
+        }
+      ]
+    },
+    "BTC/USDT": {
+      "providers": [
+        {
+          "name": "bitstamp_ws",
+          "off_chain_ticker": "btcusdt"
+        },
+        {
+          "name": "crypto_dot_com_ws",
+          "off_chain_ticker": "BTC_USDT"
+        },
+        {
+          "name": "gate_ws",
+          "off_chain_ticker": "BTC_USDT"
+        },
+        {
+          "name": "coinbase_api",
+          "off_chain_ticker": "BTC-USDT"
+        },
+        {
+          "name": "coinbase_ws",
+          "off_chain_ticker": "BTC-USDT"
+        },
+        {
+          "name": "kucoin_ws",
+          "off_chain_ticker": "BTC-USDT"
+        },
+        {
+          "name": "kraken_ws",
+          "off_chain_ticker": "XBT/USDT"
+        },
+        {
+          "name": "mexc_ws",
+          "off_chain_ticker": "BTCUSDT"
+        },
+        {
+          "name": "okx_ws",
+          "off_chain_ticker": "BTC-USDT"
+        },
+        {
+          "name": "binance_api",
+          "off_chain_ticker": "BTCUSDT"
+        },
+        {
+          "name": "kraken_api",
+          "off_chain_ticker": "XBTUSDT"
+        },
+        {
+          "name": "bybit_ws",
+          "off_chain_ticker": "BTCUSDT"
+        },
+        {
+          "name": "huobi_ws",
+          "off_chain_ticker": "btcusdt"
+        }
+      ]
+    },
+    "COMP/USD": {
+      "providers": [
+        {
+          "name": "coinbase_api",
+          "off_chain_ticker": "COMP-USD"
+        },
+        {
+          "name": "coinbase_ws",
+          "off_chain_ticker": "COMP-USD"
+        },
+        {
+          "name": "kraken_ws",
+          "off_chain_ticker": "COMP/USD"
+        },
+        {
+          "name": "kraken_api",
+          "off_chain_ticker": "COMPUSD"
+        }
+      ]
+    },
+    "COMP/USDT": {
+      "providers": [
+        {
+          "name": "gate_ws",
+          "off_chain_ticker": "COMP_USDT"
+        },
+        {
+          "name": "mexc_ws",
+          "off_chain_ticker": "COMPUSDT"
+        },
+        {
+          "name": "okx_ws",
+          "off_chain_ticker": "COMP-USDT"
+        },
+        {
+          "name": "binance_api",
+          "off_chain_ticker": "COMPUSDT"
+        }
+      ]
+    },
+    "CRV/USD": {
+      "providers": [
+        {
+          "name": "coinbase_api",
+          "off_chain_ticker": "CRV-USD"
+        },
+        {
+          "name": "coinbase_ws",
+          "off_chain_ticker": "CRV-USD"
+        },
+        {
+          "name": "kraken_ws",
+          "off_chain_ticker": "CRV/USD"
+        },
+        {
+          "name": "kraken_api",
+          "off_chain_ticker": "CRVUSD"
+        }
+      ]
+    },
+    "CRV/USDT": {
+      "providers": [
+        {
+          "name": "gate_ws",
+          "off_chain_ticker": "CRV_USDT"
+        },
+        {
+          "name": "kucoin_ws",
+          "off_chain_ticker": "CRV-USDT"
+        },
+        {
+          "name": "mexc_ws",
+          "off_chain_ticker": "CRVUSDT"
+        },
+        {
+          "name": "okx_ws",
+          "off_chain_ticker": "CRV-USDT"
+        },
+        {
+          "name": "binance_api",
+          "off_chain_ticker": "CRVUSDT"
+        }
+      ]
+    },
+    "DOGE/USD": {
+      "providers": [
+        {
+          "name": "coinbase_api",
+          "off_chain_ticker": "DOGE-USD"
+        },
+        {
+          "name": "coinbase_ws",
+          "off_chain_ticker": "DOGE-USD"
+        },
+        {
+          "name": "kraken_ws",
+          "off_chain_ticker": "XDG/USD"
+        },
+        {
+          "name": "kraken_api",
+          "off_chain_ticker": "XDGUSD"
+        }
+      ]
+    },
+    "DOGE/USDT": {
+      "providers": [
+        {
+          "name": "gate_ws",
+          "off_chain_ticker": "DOGE_USDT"
+        },
+        {
+          "name": "kucoin_ws",
+          "off_chain_ticker": "DOGE-USDT"
+        },
+        {
+          "name": "mexc_ws",
+          "off_chain_ticker": "DOGEUSDT"
+        },
+        {
+          "name": "okx_ws",
+          "off_chain_ticker": "DOGE-USDT"
+        },
+        {
+          "name": "binance_api",
+          "off_chain_ticker": "DOGEUSDT"
+        },
+        {
+          "name": "kraken_api",
+          "off_chain_ticker": "XDGUSDT"
+        },
+        {
+          "name": "bybit_ws",
+          "off_chain_ticker": "DOGEUSDT"
+        },
+        {
+          "name": "huobi_ws",
+          "off_chain_ticker": "dogeusdt"
+        }
+      ]
+    },
+    "DOT/USD": {
+      "providers": [
+        {
+          "name": "coinbase_api",
+          "off_chain_ticker": "DOT-USD"
+        },
+        {
+          "name": "coinbase_ws",
+          "off_chain_ticker": "DOT-USD"
+        },
+        {
+          "name": "kraken_ws",
+          "off_chain_ticker": "DOT/USD"
+        },
+        {
+          "name": "kraken_api",
+          "off_chain_ticker": "DOTUSD"
+        }
+      ]
+    },
+    "DOT/USDT": {
+      "providers": [
+        {
+          "name": "gate_ws",
+          "off_chain_ticker": "DOT_USDT"
+        },
+        {
+          "name": "kucoin_ws",
+          "off_chain_ticker": "DOT-USDT"
+        },
+        {
+          "name": "mexc_ws",
+          "off_chain_ticker": "DOTUSDT"
+        },
+        {
+          "name": "okx_ws",
+          "off_chain_ticker": "DOT-USDT"
+        },
+        {
+          "name": "binance_api",
+          "off_chain_ticker": "DOTUSDT"
+        },
+        {
+          "name": "kraken_api",
+          "off_chain_ticker": "DOTUSDT"
+        },
+        {
+          "name": "bybit_ws",
+          "off_chain_ticker": "DOTUSDT"
+        }
+      ]
+    },
+    "DYDX/USD": {
+      "providers": [
+        {
+          "name": "crypto_dot_com_ws",
+          "off_chain_ticker": "DYDXUSD-PERP"
+        },
+        {
+          "name": "coingecko_api",
+          "off_chain_ticker": "dydx-chain/usd"
+        },
+        {
+          "name": "coinbase_api",
+          "off_chain_ticker": "DYDX-USD"
+        },
+        {
+          "name": "kraken_ws",
+          "off_chain_ticker": "DYDX/USD"
+        },
+        {
+          "name": "okx_ws",
+          "off_chain_ticker": "DYDX-USD"
+        },
+        {
+          "name": "kraken_api",
+          "off_chain_ticker": "DYDXUSD"
+        }
+      ]
+    },
+    "DYDX/USDC": {
+      "providers": [
+        {
+          "name": "coinbase_api",
+          "off_chain_ticker": "DYDX-USDC"
+        }
+      ]
+    },
+    "DYDX/USDT": {
+      "providers": [
+        {
+          "name": "crypto_dot_com_ws",
+          "off_chain_ticker": "DYDX_USDT"
+        },
+        {
+          "name": "gate_ws",
+          "off_chain_ticker": "DYDX_USDT"
+        },
+        {
+          "name": "coinbase_api",
+          "off_chain_ticker": "DYDX-USDT"
+        },
+        {
+          "name": "kucoin_ws",
+          "off_chain_ticker": "DYDX-USDT"
+        },
+        {
+          "name": "mexc_ws",
+          "off_chain_ticker": "DYDXUSDT"
+        },
+        {
+          "name": "okx_ws",
+          "off_chain_ticker": "DYDX-USDT"
+        },
+        {
+          "name": "binance_api",
+          "off_chain_ticker": "DYDXUSDT"
+        },
+        {
+          "name": "bybit_ws",
+          "off_chain_ticker": "DYDXUSDT"
+        },
+        {
+          "name": "huobi_ws",
+          "off_chain_ticker": "dydxusdt"
+        }
+      ]
+    },
+    "ETC/USD": {
+      "providers": [
+        {
+          "name": "coinbase_api",
+          "off_chain_ticker": "ETC-USD"
+        },
+        {
+          "name": "coinbase_ws",
+          "off_chain_ticker": "ETC-USD"
+        },
+        {
+          "name": "kraken_api",
+          "off_chain_ticker": "ETCUSD"
+        }
+      ]
+    },
+    "ETC/USDT": {
+      "providers": [
+        {
+          "name": "gate_ws",
+          "off_chain_ticker": "ETC_USDT"
+        },
+        {
+          "name": "kucoin_ws",
+          "off_chain_ticker": "ETC-USDT"
+        },
+        {
+          "name": "mexc_ws",
+          "off_chain_ticker": "ETCUSDT"
+        },
+        {
+          "name": "okx_ws",
+          "off_chain_ticker": "ETC-USDT"
+        },
+        {
+          "name": "binance_api",
+          "off_chain_ticker": "ETCUSDT"
+        },
+        {
+          "name": "huobi_ws",
+          "off_chain_ticker": "etcusdt"
+        }
+      ]
+    },
+    "ETH/BTC": {
+      "providers": [
+        {
+          "name": "bitstamp_ws",
+          "off_chain_ticker": "ethbtc"
+        },
+        {
+          "name": "crypto_dot_com_ws",
+          "off_chain_ticker": "ETH_BTC"
+        },
+        {
+          "name": "gate_ws",
+          "off_chain_ticker": "ETH_BTC"
+        },
+        {
+          "name": "coingecko_api",
+          "off_chain_ticker": "ethereum/btc"
+        },
+        {
+          "name": "coinbase_api",
+          "off_chain_ticker": "ETH-BTC"
+        },
+        {
+          "name": "coinbase_ws",
+          "off_chain_ticker": "ETH-BTC"
+        },
+        {
+          "name": "kucoin_ws",
+          "off_chain_ticker": "ETH-BTC"
+        },
+        {
+          "name": "kraken_ws",
+          "off_chain_ticker": "ETH/XBT"
+        },
+        {
+          "name": "mexc_ws",
+          "off_chain_ticker": "ETHBTC"
+        },
+        {
+          "name": "okx_ws",
+          "off_chain_ticker": "ETH-BTC"
+        },
+        {
+          "name": "binance_api",
+          "off_chain_ticker": "ETHBTC"
+        },
+        {
+          "name": "kraken_api",
+          "off_chain_ticker": "XETHXXBT"
+        },
+        {
+          "name": "bitfinex_ws",
+          "off_chain_ticker": "ETHBTC"
+        },
+        {
+          "name": "huobi_ws",
+          "off_chain_ticker": "ethbtc"
+        }
+      ]
+    },
+    "ETH/USD": {
+      "providers": [
+        {
+          "name": "bitstamp_ws",
+          "off_chain_ticker": "ethusd"
+        },
+        {
+          "name": "crypto_dot_com_ws",
+          "off_chain_ticker": "ETHUSD-PERP"
+        },
+        {
+          "name": "coingecko_api",
+          "off_chain_ticker": "ethereum/usd"
+        },
+        {
+          "name": "coinbase_api",
+          "off_chain_ticker": "ETH-USD"
+        },
+        {
+          "name": "coinbase_ws",
+          "off_chain_ticker": "ETH-USD"
+        },
+        {
+          "name": "kraken_ws",
+          "off_chain_ticker": "ETH/USD"
+        },
+        {
+          "name": "okx_ws",
+          "off_chain_ticker": "ETH-USD"
+        },
+        {
+          "name": "kraken_api",
+          "off_chain_ticker": "XETHZUSD"
+        },
+        {
+          "name": "bitfinex_ws",
+          "off_chain_ticker": "ETHUSD"
+        }
+      ]
+    },
+    "ETH/USDC": {
+      "providers": [
+        {
+          "name": "coinbase_api",
+          "off_chain_ticker": "ETH-USDC"
+        },
+        {
+          "name": "kucoin_ws",
+          "off_chain_ticker": "ETH-USDC"
+        },
+        {
+          "name": "kraken_ws",
+          "off_chain_ticker": "ETH/USDC"
+        },
+        {
+          "name": "mexc_ws",
+          "off_chain_ticker": "ETHUSDC"
+        },
+        {
+          "name": "okx_ws",
+          "off_chain_ticker": "ETH-USDC"
+        },
+        {
+          "name": "binance_api",
+          "off_chain_ticker": "ETHUSDC"
+        },
+        {
+          "name": "kraken_api",
+          "off_chain_ticker": "ETHUSDC"
+        },
+        {
+          "name": "bybit_ws",
+          "off_chain_ticker": "ETHUSDC"
+        },
+        {
+          "name": "huobi_ws",
+          "off_chain_ticker": "ethusdc"
+        }
+      ]
+    },
+    "ETH/USDT": {
+      "providers": [
+        {
+          "name": "crypto_dot_com_ws",
+          "off_chain_ticker": "ETH_USDT"
+        },
+        {
+          "name": "gate_ws",
+          "off_chain_ticker": "ETH_USDT"
+        },
+        {
+          "name": "coinbase_api",
+          "off_chain_ticker": "ETH-USDT"
+        },
+        {
+          "name": "coinbase_ws",
+          "off_chain_ticker": "ETH-USDT"
+        },
+        {
+          "name": "kucoin_ws",
+          "off_chain_ticker": "ETH-USDT"
+        },
+        {
+          "name": "kraken_ws",
+          "off_chain_ticker": "ETH/USDT"
+        },
+        {
+          "name": "mexc_ws",
+          "off_chain_ticker": "ETHUSDT"
+        },
+        {
+          "name": "okx_ws",
+          "off_chain_ticker": "ETH-USDT"
+        },
+        {
+          "name": "binance_api",
+          "off_chain_ticker": "ETHUSDT"
+        },
+        {
+          "name": "kraken_api",
+          "off_chain_ticker": "ETHUSDT"
+        },
+        {
+          "name": "bybit_ws",
+          "off_chain_ticker": "ETHUSDT"
+        },
+        {
+          "name": "huobi_ws",
+          "off_chain_ticker": "ethusdt"
+        }
+      ]
+    },
+    "FIL/USD": {
+      "providers": [
+        {
+          "name": "coinbase_api",
+          "off_chain_ticker": "FIL-USD"
+        },
+        {
+          "name": "coinbase_ws",
+          "off_chain_ticker": "FIL-USD"
+        },
+        {
+          "name": "kraken_ws",
+          "off_chain_ticker": "FIL/USD"
+        },
+        {
+          "name": "kraken_api",
+          "off_chain_ticker": "FILUSD"
+        }
+      ]
+    },
+    "FIL/USDT": {
+      "providers": [
+        {
+          "name": "gate_ws",
+          "off_chain_ticker": "FIL_USDT"
+        },
+        {
+          "name": "mexc_ws",
+          "off_chain_ticker": "FILUSDT"
+        },
+        {
+          "name": "okx_ws",
+          "off_chain_ticker": "FIL-USDT"
+        },
+        {
+          "name": "binance_api",
+          "off_chain_ticker": "FILUSDT"
+        },
+        {
+          "name": "huobi_ws",
+          "off_chain_ticker": "filusdt"
+        }
+      ]
+    },
+    "LDO/USD": {
+      "providers": [
+        {
+          "name": "coinbase_api",
+          "off_chain_ticker": "LDO-USD"
+        },
+        {
+          "name": "coinbase_ws",
+          "off_chain_ticker": "LDO-USD"
+        },
+        {
+          "name": "kraken_ws",
+          "off_chain_ticker": "LDO/USD"
+        },
+        {
+          "name": "kraken_api",
+          "off_chain_ticker": "LDOUSD"
+        }
+      ]
+    },
+    "LDO/USDT": {
+      "providers": [
+        {
+          "name": "kucoin_ws",
+          "off_chain_ticker": "LDO-USDT"
+        },
+        {
+          "name": "mexc_ws",
+          "off_chain_ticker": "LDOUSDT"
+        },
+        {
+          "name": "okx_ws",
+          "off_chain_ticker": "LDO-USDT"
+        },
+        {
+          "name": "binance_api",
+          "off_chain_ticker": "LDOUSDT"
+        }
+      ]
+    },
+    "LINK/USD": {
+      "providers": [
+        {
+          "name": "coinbase_api",
+          "off_chain_ticker": "LINK-USD"
+        },
+        {
+          "name": "coinbase_ws",
+          "off_chain_ticker": "LINK-USD"
+        },
+        {
+          "name": "kraken_ws",
+          "off_chain_ticker": "LINK/USD"
+        },
+        {
+          "name": "kraken_api",
+          "off_chain_ticker": "LINKUSD"
+        }
+      ]
+    },
+    "LINK/USDT": {
+      "providers": [
+        {
+          "name": "kucoin_ws",
+          "off_chain_ticker": "LINK-USDT"
+        },
+        {
+          "name": "mexc_ws",
+          "off_chain_ticker": "LINKUSDT"
+        },
+        {
+          "name": "okx_ws",
+          "off_chain_ticker": "LINK-USDT"
+        },
+        {
+          "name": "binance_api",
+          "off_chain_ticker": "LINKUSDT"
+        },
+        {
+          "name": "kraken_api",
+          "off_chain_ticker": "LINKUSDT"
+        },
+        {
+          "name": "bybit_ws",
+          "off_chain_ticker": "LINKUSDT"
+        }
+      ]
+    },
+    "LTC/USD": {
+      "providers": [
+        {
+          "name": "coinbase_api",
+          "off_chain_ticker": "LTC-USD"
+        },
+        {
+          "name": "coinbase_ws",
+          "off_chain_ticker": "LTC-USD"
+        },
+        {
+          "name": "kraken_ws",
+          "off_chain_ticker": "XLTCZ/USD"
+        },
+        {
+          "name": "kraken_api",
+          "off_chain_ticker": "XLTCZUSD"
+        }
+      ]
+    },
+    "LTC/USDT": {
+      "providers": [
+        {
+          "name": "kucoin_ws",
+          "off_chain_ticker": "LTC-USDT"
+        },
+        {
+          "name": "mexc_ws",
+          "off_chain_ticker": "LTCUSDT"
+        },
+        {
+          "name": "okx_ws",
+          "off_chain_ticker": "LTC-USDT"
+        },
+        {
+          "name": "binance_api",
+          "off_chain_ticker": "LTCUSDT"
+        },
+        {
+          "name": "kraken_api",
+          "off_chain_ticker": "LTCUSDT"
+        },
+        {
+          "name": "bybit_ws",
+          "off_chain_ticker": "LTCUSDT"
+        },
+        {
+          "name": "huobi_ws",
+          "off_chain_ticker": "ltcusdt"
+        }
+      ]
+    },
+    "MATIC/USD": {
+      "providers": [
+        {
+          "name": "coinbase_api",
+          "off_chain_ticker": "MATIC-USD"
+        },
+        {
+          "name": "coinbase_ws",
+          "off_chain_ticker": "MATIC-USD"
+        },
+        {
+          "name": "kraken_ws",
+          "off_chain_ticker": "MATIC/USD"
+        },
+        {
+          "name": "kraken_api",
+          "off_chain_ticker": "MATICUSD"
+        }
+      ]
+    },
+    "MATIC/USDT": {
+      "providers": [
+        {
+          "name": "gate_ws",
+          "off_chain_ticker": "MATIC_USDT"
+        },
+        {
+          "name": "kucoin_ws",
+          "off_chain_ticker": "MATIC-USDT"
+        },
+        {
+          "name": "mexc_ws",
+          "off_chain_ticker": "MATICUSDT"
+        },
+        {
+          "name": "okx_ws",
+          "off_chain_ticker": "MATIC-USDT"
+        },
+        {
+          "name": "binance_api",
+          "off_chain_ticker": "MATICUSDT"
+        },
+        {
+          "name": "kraken_api",
+          "off_chain_ticker": "MATICUSDT"
+        },
+        {
+          "name": "bybit_ws",
+          "off_chain_ticker": "MATICUSDT"
+        },
+        {
+          "name": "huobi_ws",
+          "off_chain_ticker": "maticusdt"
+        }
+      ]
+    },
+    "MKR/USD": {
+      "providers": [
+        {
+          "name": "coinbase_api",
+          "off_chain_ticker": "MKR-USD"
+        },
+        {
+          "name": "coinbase_ws",
+          "off_chain_ticker": "MKR-USD"
+        },
+        {
+          "name": "kraken_ws",
+          "off_chain_ticker": "MKR/USD"
+        },
+        {
+          "name": "kraken_api",
+          "off_chain_ticker": "MKRUSD"
+        }
+      ]
+    },
+    "MKR/USDT": {
+      "providers": [
+        {
+          "name": "kucoin_ws",
+          "off_chain_ticker": "MKR-USDT"
+        },
+        {
+          "name": "mexc_ws",
+          "off_chain_ticker": "MKRUSDT"
+        },
+        {
+          "name": "okx_ws",
+          "off_chain_ticker": "MKR-USDT"
+        },
+        {
+          "name": "binance_api",
+          "off_chain_ticker": "MKRUSDT"
+        }
+      ]
+    },
+    "MOG/USD": {
+      "providers": [
+        {
+          "name": "gecko_terminal_api",
+          "off_chain_ticker": "0xaaee1a9723aadb7afa2810263653a34ba2c21c7a"
+        }
+      ]
+    },
+    "NEAR/USD": {
+      "providers": [
+        {
+          "name": "coinbase_api",
+          "off_chain_ticker": "NEAR-USD"
+        },
+        {
+          "name": "coinbase_ws",
+          "off_chain_ticker": "NEAR-USD"
+        },
+        {
+          "name": "kraken_api",
+          "off_chain_ticker": "NEARUSD"
+        }
+      ]
+    },
+    "NEAR/USDT": {
+      "providers": [
+        {
+          "name": "gate_ws",
+          "off_chain_ticker": "NEAR_USDT"
+        },
+        {
+          "name": "kucoin_ws",
+          "off_chain_ticker": "NEAR-USDT"
+        },
+        {
+          "name": "mexc_ws",
+          "off_chain_ticker": "NEARUSDT"
+        },
+        {
+          "name": "okx_ws",
+          "off_chain_ticker": "NEAR-USDT"
+        },
+        {
+          "name": "binance_api",
+          "off_chain_ticker": "NEARUSDT"
+        },
+        {
+          "name": "huobi_ws",
+          "off_chain_ticker": "nearusdt"
+        }
+      ]
+    },
+    "OP/USD": {
+      "providers": [
+        {
+          "name": "coinbase_api",
+          "off_chain_ticker": "OP-USD"
+        },
+        {
+          "name": "coinbase_ws",
+          "off_chain_ticker": "OP-USD"
+        },
+        {
+          "name": "kraken_api",
+          "off_chain_ticker": "OPUSD"
+        }
+      ]
+    },
+    "OP/USDT": {
+      "providers": [
+        {
+          "name": "gate_ws",
+          "off_chain_ticker": "OP_USDT"
+        },
+        {
+          "name": "kucoin_ws",
+          "off_chain_ticker": "OP-USDT"
+        },
+        {
+          "name": "mexc_ws",
+          "off_chain_ticker": "OPUSDT"
+        },
+        {
+          "name": "okx_ws",
+          "off_chain_ticker": "OP-USDT"
+        },
+        {
+          "name": "binance_api",
+          "off_chain_ticker": "OPUSDT"
+        }
+      ]
+    },
+    "OSMO/USD": {
+      "providers": [
+        {
+          "name": "crypto_dot_com_ws",
+          "off_chain_ticker": "OSMO_USD"
+        },
+        {
+          "name": "coingecko_api",
+          "off_chain_ticker": "osmosis/usd"
+        },
+        {
+          "name": "coinbase_api",
+          "off_chain_ticker": "OSMO-USD"
+        },
+        {
+          "name": "coinbase_ws",
+          "off_chain_ticker": "OSMO-USD"
+        }
+      ]
+    },
+    "OSMO/USDC": {
+      "providers": [
+        {
+          "name": "coinbase_api",
+          "off_chain_ticker": "OSMO-USDC"
+        },
+        {
+          "name": "coinbase_ws",
+          "off_chain_ticker": "OSMO-USDC"
+        }
+      ]
+    },
+    "OSMO/USDT": {
+      "providers": [
+        {
+          "name": "coinbase_api",
+          "off_chain_ticker": "OSMO-USDT"
+        },
+        {
+          "name": "coinbase_ws",
+          "off_chain_ticker": "OSMO-USDT"
+        },
+        {
+          "name": "kucoin_ws",
+          "off_chain_ticker": "OSMO-USDT"
+        }
+      ]
+    },
+    "PEPE/USD": {
+      "providers": [
+        {
+          "name": "gecko_terminal_api",
+          "off_chain_ticker": "0x6982508145454Ce325dDbE47a25d4ec3d2311933"
+        },
+        {
+          "name": "kraken_ws",
+          "off_chain_ticker": "PEPE/USD"
+        },
+        {
+          "name": "kraken_api",
+          "off_chain_ticker": "PEPEUSD"
+        }
+      ]
+    },
+    "PEPE/USDT": {
+      "providers": [
+        {
+          "name": "gate_ws",
+          "off_chain_ticker": "PEPE_USDT"
+        },
+        {
+          "name": "kucoin_ws",
+          "off_chain_ticker": "PEPE-USDT"
+        },
+        {
+          "name": "mexc_ws",
+          "off_chain_ticker": "PEPEUSDT"
+        },
+        {
+          "name": "okx_ws",
+          "off_chain_ticker": "PEPE-USDT"
+        },
+        {
+          "name": "binance_api",
+          "off_chain_ticker": "PEPEUSDT"
+        },
+        {
+          "name": "bybit_ws",
+          "off_chain_ticker": "PEPEUSDT"
+        }
+      ]
+    },
+    "SEI/USD": {
+      "providers": [
+        {
+          "name": "coinbase_api",
+          "off_chain_ticker": "SEI-USD"
+        },
+        {
+          "name": "coinbase_ws",
+          "off_chain_ticker": "SEI-USD"
+        },
+        {
+          "name": "kraken_api",
+          "off_chain_ticker": "SEIUSD"
+        }
+      ]
+    },
+    "SEI/USDT": {
+      "providers": [
+        {
+          "name": "gate_ws",
+          "off_chain_ticker": "SEI_USDT"
+        },
+        {
+          "name": "kucoin_ws",
+          "off_chain_ticker": "SEI-USDT"
+        },
+        {
+          "name": "mexc_ws",
+          "off_chain_ticker": "SEIUSDT"
+        },
+        {
+          "name": "binance_api",
+          "off_chain_ticker": "SEIUSDT"
+        },
+        {
+          "name": "bybit_ws",
+          "off_chain_ticker": "SEIUSDT"
+        },
+        {
+          "name": "huobi_ws",
+          "off_chain_ticker": "seiusdt"
+        }
+      ]
+    },
+    "SHIB/USD": {
+      "providers": [
+        {
+          "name": "coinbase_api",
+          "off_chain_ticker": "SHIB-USD"
+        },
+        {
+          "name": "coinbase_ws",
+          "off_chain_ticker": "SHIB-USD"
+        },
+        {
+          "name": "kraken_ws",
+          "off_chain_ticker": "SHIB/USD"
+        },
+        {
+          "name": "kraken_api",
+          "off_chain_ticker": "SHIBUSD"
+        }
+      ]
+    },
+    "SHIB/USDT": {
+      "providers": [
+        {
+          "name": "gate_ws",
+          "off_chain_ticker": "SHIB_USDT"
+        },
+        {
+          "name": "kucoin_ws",
+          "off_chain_ticker": "SHIB-USDT"
+        },
+        {
+          "name": "mexc_ws",
+          "off_chain_ticker": "SHIBUSDT"
+        },
+        {
+          "name": "okx_ws",
+          "off_chain_ticker": "SHIB-USDT"
+        },
+        {
+          "name": "binance_api",
+          "off_chain_ticker": "SHIBUSDT"
+        },
+        {
+          "name": "kraken_api",
+          "off_chain_ticker": "SHIBUSDT"
+        },
+        {
+          "name": "bybit_ws",
+          "off_chain_ticker": "SHIBUSDT"
+        }
+      ]
+    },
+    "SOL/USD": {
+      "providers": [
+        {
+          "name": "bitstamp_ws",
+          "off_chain_ticker": "solusd"
+        },
+        {
+          "name": "crypto_dot_com_ws",
+          "off_chain_ticker": "SOLUSD-PERP"
+        },
+        {
+          "name": "coingecko_api",
+          "off_chain_ticker": "solana/usd"
+        },
+        {
+          "name": "coinbase_api",
+          "off_chain_ticker": "SOL-USD"
+        },
+        {
+          "name": "coinbase_ws",
+          "off_chain_ticker": "SOL-USD"
+        },
+        {
+          "name": "kraken_ws",
+          "off_chain_ticker": "SOL/USD"
+        },
+        {
+          "name": "okx_ws",
+          "off_chain_ticker": "SOL-USD"
+        },
+        {
+          "name": "kraken_api",
+          "off_chain_ticker": "SOLUSD"
+        },
+        {
+          "name": "bitfinex_ws",
+          "off_chain_ticker": "SOLUSD"
+        }
+      ]
+    },
+    "SOL/USDC": {
+      "providers": [
+        {
+          "name": "gate_ws",
+          "off_chain_ticker": "SOL_USDC"
+        },
+        {
+          "name": "coinbase_api",
+          "off_chain_ticker": "SOL-USDC"
+        },
+        {
+          "name": "coinbase_ws",
+          "off_chain_ticker": "SOL-USDC"
+        },
+        {
+          "name": "kucoin_ws",
+          "off_chain_ticker": "SOL-USDC"
+        },
+        {
+          "name": "mexc_ws",
+          "off_chain_ticker": "SOLUSDC"
+        },
+        {
+          "name": "okx_ws",
+          "off_chain_ticker": "SOL-USDC"
+        },
+        {
+          "name": "binance_api",
+          "off_chain_ticker": "SOLUSDC"
+        },
+        {
+          "name": "bybit_ws",
+          "off_chain_ticker": "SOLUSDC"
+        }
+      ]
+    },
+    "SOL/USDT": {
+      "providers": [
+        {
+          "name": "crypto_dot_com_ws",
+          "off_chain_ticker": "SOL_USDT"
+        },
+        {
+          "name": "gate_ws",
+          "off_chain_ticker": "SOL_USDT"
+        },
+        {
+          "name": "coinbase_api",
+          "off_chain_ticker": "SOL-USDT"
+        },
+        {
+          "name": "coinbase_ws",
+          "off_chain_ticker": "SOL-USDT"
+        },
+        {
+          "name": "kucoin_ws",
+          "off_chain_ticker": "SOL-USDT"
+        },
+        {
+          "name": "kraken_ws",
+          "off_chain_ticker": "SOL/USDT"
+        },
+        {
+          "name": "mexc_ws",
+          "off_chain_ticker": "SOLUSDT"
+        },
+        {
+          "name": "okx_ws",
+          "off_chain_ticker": "SOL-USDT"
+        },
+        {
+          "name": "binance_api",
+          "off_chain_ticker": "SOLUSDT"
+        },
+        {
+          "name": "kraken_api",
+          "off_chain_ticker": "SOLUSDT"
+        },
+        {
+          "name": "bybit_ws",
+          "off_chain_ticker": "SOLUSDT"
+        },
+        {
+          "name": "huobi_ws",
+          "off_chain_ticker": "solusdt"
+        }
+      ]
+    },
+    "SUI/USD": {
+      "providers": [
+        {
+          "name": "coinbase_api",
+          "off_chain_ticker": "SUI-USD"
+        },
+        {
+          "name": "coinbase_ws",
+          "off_chain_ticker": "SUI-USD"
+        },
+        {
+          "name": "kraken_api",
+          "off_chain_ticker": "SUIUSD"
+        }
+      ]
+    },
+    "SUI/USDT": {
+      "providers": [
+        {
+          "name": "gate_ws",
+          "off_chain_ticker": "SUI_USDT"
+        },
+        {
+          "name": "kucoin_ws",
+          "off_chain_ticker": "SUI-USDT"
+        },
+        {
+          "name": "mexc_ws",
+          "off_chain_ticker": "SUIUSDT"
+        },
+        {
+          "name": "okx_ws",
+          "off_chain_ticker": "SUI-USDT"
+        },
+        {
+          "name": "binance_api",
+          "off_chain_ticker": "SUIUSDT"
+        },
+        {
+          "name": "bybit_ws",
+          "off_chain_ticker": "SUIUSDT"
+        },
+        {
+          "name": "huobi_ws",
+          "off_chain_ticker": "suiusdt"
+        }
+      ]
+    },
+    "TIA/USD": {
+      "providers": [
+        {
+          "name": "crypto_dot_com_ws",
+          "off_chain_ticker": "TIAUSD-PERP"
+        },
+        {
+          "name": "coingecko_api",
+          "off_chain_ticker": "celestia/usd"
+        },
+        {
+          "name": "coinbase_api",
+          "off_chain_ticker": "TIA-USD"
+        },
+        {
+          "name": "coinbase_ws",
+          "off_chain_ticker": "TIA-USD"
+        },
+        {
+          "name": "kraken_ws",
+          "off_chain_ticker": "TIA/USD"
+        },
+        {
+          "name": "okx_ws",
+          "off_chain_ticker": "TIA-USD"
+        },
+        {
+          "name": "bitfinex_ws",
+          "off_chain_ticker": "TIAUSD"
+        }
+      ]
+    },
+    "TIA/USDC": {
+      "providers": [
+        {
+          "name": "coinbase_api",
+          "off_chain_ticker": "TIA-USDC"
+        },
+        {
+          "name": "coinbase_ws",
+          "off_chain_ticker": "TIA-USDC"
+        }
+      ]
+    },
+    "TIA/USDT": {
+      "providers": [
+        {
+          "name": "crypto_dot_com_ws",
+          "off_chain_ticker": "TIA_USDT"
+        },
+        {
+          "name": "gate_ws",
+          "off_chain_ticker": "TIA_USDT"
+        },
+        {
+          "name": "coinbase_api",
+          "off_chain_ticker": "TIA-USDT"
+        },
+        {
+          "name": "coinbase_ws",
+          "off_chain_ticker": "TIA-USDT"
+        },
+        {
+          "name": "kucoin_ws",
+          "off_chain_ticker": "TIA-USDT"
+        },
+        {
+          "name": "okx_ws",
+          "off_chain_ticker": "TIA-USDT"
+        },
+        {
+          "name": "huobi_ws",
+          "off_chain_ticker": "tiausdt"
+        }
+      ]
+    },
+    "TRX/USD": {
+      "providers": [
+        {
+          "name": "kraken_ws",
+          "off_chain_ticker": "TRX/USD"
+        },
+        {
+          "name": "kraken_api",
+          "off_chain_ticker": "TRXUSD"
+        }
+      ]
+    },
+    "TRX/USDT": {
+      "providers": [
+        {
+          "name": "gate_ws",
+          "off_chain_ticker": "TRX_USDT"
+        },
+        {
+          "name": "kucoin_ws",
+          "off_chain_ticker": "TRX-USDT"
+        },
+        {
+          "name": "mexc_ws",
+          "off_chain_ticker": "TRXUSDT"
+        },
+        {
+          "name": "okx_ws",
+          "off_chain_ticker": "TRX-USDT"
+        },
+        {
+          "name": "binance_api",
+          "off_chain_ticker": "TRXUSDT"
+        },
+        {
+          "name": "bybit_ws",
+          "off_chain_ticker": "TRXUSDT"
+        },
+        {
+          "name": "huobi_ws",
+          "off_chain_ticker": "trxusdt"
+        }
+      ]
+    },
+    "UNI/USD": {
+      "providers": [
+        {
+          "name": "coinbase_api",
+          "off_chain_ticker": "UNI-USD"
+        },
+        {
+          "name": "coinbase_ws",
+          "off_chain_ticker": "UNI-USD"
+        },
+        {
+          "name": "kraken_ws",
+          "off_chain_ticker": "UNI/USD"
+        },
+        {
+          "name": "kraken_api",
+          "off_chain_ticker": "UNIUSD"
+        }
+      ]
+    },
+    "UNI/USDT": {
+      "providers": [
+        {
+          "name": "gate_ws",
+          "off_chain_ticker": "UNI_USDT"
+        },
+        {
+          "name": "kucoin_ws",
+          "off_chain_ticker": "UNI-USDT"
+        },
+        {
+          "name": "okx_ws",
+          "off_chain_ticker": "UNI-USDT"
+        },
+        {
+          "name": "binance_api",
+          "off_chain_ticker": "UNIUSDT"
+        },
+        {
+          "name": "bybit_ws",
+          "off_chain_ticker": "UNIUSDT"
+        }
+      ]
+    },
+    "USDC/USD": {
+      "providers": [
+        {
+          "name": "coinbase_api",
+          "off_chain_ticker": "USDC-USD"
+        },
+        {
+          "name": "kraken_ws",
+          "off_chain_ticker": "USDC/USD"
+        },
+        {
+          "name": "okx_ws",
+          "off_chain_ticker": "USDC-USD"
+        }
+      ]
+    },
+    "USDC/USDT": {
+      "providers": [
+        {
+          "name": "bitstamp_ws",
+          "off_chain_ticker": "usdcusdt"
+        },
+        {
+          "name": "gate_ws",
+          "off_chain_ticker": "USDC_USDT"
+        },
+        {
+          "name": "coinbase_api",
+          "off_chain_ticker": "USDC-USDT"
+        },
+        {
+          "name": "coinbase_ws",
+          "off_chain_ticker": "USDC-USDT"
+        },
+        {
+          "name": "kucoin_ws",
+          "off_chain_ticker": "USDC-USDT"
+        },
+        {
+          "name": "kraken_ws",
+          "off_chain_ticker": "USDC/USDT"
+        },
+        {
+          "name": "mexc_ws",
+          "off_chain_ticker": "USDCUSDT"
+        },
+        {
+          "name": "okx_ws",
+          "off_chain_ticker": "USDC-USDT"
+        },
+        {
+          "name": "binance_api",
+          "off_chain_ticker": "USDCUSDT"
+        },
+        {
+          "name": "kraken_api",
+          "off_chain_ticker": "USDCUSDT"
+        },
+        {
+          "name": "bybit_ws",
+          "off_chain_ticker": "USDCUSDT"
+        },
+        {
+          "name": "huobi_ws",
+          "off_chain_ticker": "usdcusdt"
+        }
+      ]
+    },
+    "USDT/USD": {
+      "providers": [
+        {
+          "name": "bitstamp_ws",
+          "off_chain_ticker": "usdtusd"
+        },
+        {
+          "name": "crypto_dot_com_ws",
+          "off_chain_ticker": "USDT_USD"
+        },
+        {
+          "name": "coinbase_api",
+          "off_chain_ticker": "USDT-USD"
+        },
+        {
+          "name": "coinbase_ws",
+          "off_chain_ticker": "USDT-USD"
+        },
+        {
+          "name": "kraken_ws",
+          "off_chain_ticker": "USDT/USD"
+        },
+        {
+          "name": "okx_ws",
+          "off_chain_ticker": "USDT-USD"
+        },
+        {
+          "name": "binance_api",
+          "off_chain_ticker": "USDTUSD"
+        },
+        {
+          "name": "kraken_api",
+          "off_chain_ticker": "USDTZUSD"
+        }
+      ]
+    },
+    "WLD/USDT": {
+      "providers": [
+        {
+          "name": "gate_ws",
+          "off_chain_ticker": "WLD_USDT"
+        },
+        {
+          "name": "kucoin_ws",
+          "off_chain_ticker": "WLD-USDT"
+        },
+        {
+          "name": "mexc_ws",
+          "off_chain_ticker": "WLDUSDT"
+        },
+        {
+          "name": "okx_ws",
+          "off_chain_ticker": "WLD-USDT"
+        },
+        {
+          "name": "binance_api",
+          "off_chain_ticker": "WLDUSDT"
+        },
+        {
+          "name": "bybit_ws",
+          "off_chain_ticker": "WLDUSDT"
+        },
+        {
+          "name": "huobi_ws",
+          "off_chain_ticker": "wldusdt"
+        }
+      ]
+    },
+    "XLM/USD": {
+      "providers": [
+        {
+          "name": "coinbase_api",
+          "off_chain_ticker": "XLM-USD"
+        },
+        {
+          "name": "coinbase_ws",
+          "off_chain_ticker": "XLM-USD"
+        },
+        {
+          "name": "kraken_ws",
+          "off_chain_ticker": "XXLMZ/USD"
+        },
+        {
+          "name": "kraken_api",
+          "off_chain_ticker": "XXLMZUSD"
+        }
+      ]
+    },
+    "XLM/USDT": {
+      "providers": [
+        {
+          "name": "kucoin_ws",
+          "off_chain_ticker": "XLM-USDT"
+        },
+        {
+          "name": "mexc_ws",
+          "off_chain_ticker": "XLMUSDT"
+        },
+        {
+          "name": "okx_ws",
+          "off_chain_ticker": "XLM-USDT"
+        },
+        {
+          "name": "binance_api",
+          "off_chain_ticker": "XLMUSDT"
+        },
+        {
+          "name": "bybit_ws",
+          "off_chain_ticker": "XLMUSDT"
+        }
+      ]
+    },
+    "XRP/USD": {
+      "providers": [
+        {
+          "name": "coinbase_api",
+          "off_chain_ticker": "XRP-USD"
+        },
+        {
+          "name": "coinbase_ws",
+          "off_chain_ticker": "XRP-USD"
+        },
+        {
+          "name": "kraken_ws",
+          "off_chain_ticker": "XXRPZ/USD"
+        },
+        {
+          "name": "kraken_api",
+          "off_chain_ticker": "XXRPZUSD"
+        }
+      ]
+    },
+    "XRP/USDT": {
+      "providers": [
+        {
+          "name": "gate_ws",
+          "off_chain_ticker": "XRP_USDT"
+        },
+        {
+          "name": "kucoin_ws",
+          "off_chain_ticker": "XRP-USDT"
+        },
+        {
+          "name": "mexc_ws",
+          "off_chain_ticker": "XRPUSDT"
+        },
+        {
+          "name": "okx_ws",
+          "off_chain_ticker": "XRP-USDT"
+        },
+        {
+          "name": "binance_api",
+          "off_chain_ticker": "XRPUSDT"
+        },
+        {
+          "name": "kraken_api",
+          "off_chain_ticker": "XRPUSDT"
+        },
+        {
+          "name": "bybit_ws",
+          "off_chain_ticker": "XRPUSDT"
+        },
+        {
+          "name": "huobi_ws",
+          "off_chain_ticker": "xrpusdt"
+        }
+      ]
+    }
+  }
+}

@@ -7,16 +7,13 @@ import (
 	"path/filepath"
 	"time"
 
-	"cosmossdk.io/log"
-	dbm "github.com/cosmos/cosmos-db"
-	"go.uber.org/zap"
-
 	"cosmossdk.io/depinject"
+	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
 	circuitkeeper "cosmossdk.io/x/circuit/keeper"
 	"cosmossdk.io/x/upgrade"
 	upgradekeeper "cosmossdk.io/x/upgrade/keeper"
-
+	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -40,8 +37,6 @@ import (
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	"github.com/cosmos/cosmos-sdk/x/consensus"
 	consensuskeeper "github.com/cosmos/cosmos-sdk/x/consensus/keeper"
-	"github.com/cosmos/cosmos-sdk/x/crisis"
-	crisiskeeper "github.com/cosmos/cosmos-sdk/x/crisis/keeper"
 	distr "github.com/cosmos/cosmos-sdk/x/distribution"
 	distrkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
@@ -61,6 +56,7 @@ import (
 	slashingkeeper "github.com/cosmos/cosmos-sdk/x/slashing/keeper"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
+	"go.uber.org/zap"
 
 	oraclepreblock "github.com/skip-mev/slinky/abci/preblock/oracle"
 	"github.com/skip-mev/slinky/abci/proposals"
@@ -76,6 +72,8 @@ import (
 	alertskeeper "github.com/skip-mev/slinky/x/alerts/keeper"
 	"github.com/skip-mev/slinky/x/incentives"
 	incentiveskeeper "github.com/skip-mev/slinky/x/incentives/keeper"
+	marketmapkeeper "github.com/skip-mev/slinky/x/marketmap/keeper"
+	marketmapmodule "github.com/skip-mev/slinky/x/marketmap/module"
 	"github.com/skip-mev/slinky/x/oracle"
 	oraclekeeper "github.com/skip-mev/slinky/x/oracle/keeper"
 )
@@ -106,7 +104,6 @@ var (
 			},
 		),
 		params.AppModuleBasic{},
-		crisis.AppModuleBasic{},
 		slashing.AppModuleBasic{},
 		upgrade.AppModuleBasic{},
 		authzmodule.AppModuleBasic{},
@@ -116,6 +113,7 @@ var (
 		oracle.AppModuleBasic{},
 		incentives.AppModuleBasic{},
 		alerts.AppModuleBasic{},
+		marketmapmodule.AppModuleBasic{},
 	)
 )
 
@@ -142,16 +140,16 @@ type SimApp struct {
 	MintKeeper            mintkeeper.Keeper
 	DistrKeeper           distrkeeper.Keeper
 	GovKeeper             *govkeeper.Keeper
-	CrisisKeeper          *crisiskeeper.Keeper
 	UpgradeKeeper         *upgradekeeper.Keeper
 	ParamsKeeper          paramskeeper.Keeper
 	AuthzKeeper           authzkeeper.Keeper
 	GroupKeeper           groupkeeper.Keeper
 	ConsensusParamsKeeper consensuskeeper.Keeper
 	CircuitBreakerKeeper  circuitkeeper.Keeper
-	OracleKeeper          oraclekeeper.Keeper
+	OracleKeeper          *oraclekeeper.Keeper
 	IncentivesKeeper      incentiveskeeper.Keeper
 	AlertsKeeper          alertskeeper.Keeper
+	MarketMapKeeper       *marketmapkeeper.Keeper
 
 	// simulation manager
 	sm *module.SimulationManager
@@ -198,12 +196,12 @@ func NewSimApp(
 				// AUTH
 				//
 				// For providing a custom function required in auth to generate custom account types
-				// add it below. By default the auth module uses simulation.RandomGenesisAccounts.
+				// add it below. By default, the auth module uses simulation.RandomGenesisAccounts.
 				//
 				// authtypes.RandomGenesisAccountsFn(simulation.RandomGenesisAccounts),
 
 				// For providing a custom a base account type add it below.
-				// By default the auth module uses authtypes.ProtoBaseAccount().
+				// By default, the auth module uses authtypes.ProtoBaseAccount().
 				//
 				// func() sdk.AccountI { return authtypes.ProtoBaseAccount() },
 
@@ -231,13 +229,13 @@ func NewSimApp(
 		&app.MintKeeper,
 		&app.DistrKeeper,
 		&app.GovKeeper,
-		&app.CrisisKeeper,
 		&app.UpgradeKeeper,
 		&app.ParamsKeeper,
 		&app.AuthzKeeper,
 		&app.GroupKeeper,
 		&app.ConsensusParamsKeeper,
 		&app.CircuitBreakerKeeper,
+		&app.MarketMapKeeper,
 		&app.OracleKeeper,
 		&app.IncentivesKeeper,
 		&app.AlertsKeeper,
@@ -272,6 +270,9 @@ func NewSimApp(
 	// baseAppOptions = append(baseAppOptions, prepareOpt)
 
 	app.App = appBuilder.Build(db, traceStore, baseAppOptions...)
+
+	// set hooks
+	app.MarketMapKeeper.SetHooks(app.OracleKeeper.Hooks())
 
 	//----------------------------------------------------------------------//
 	//						  ORACLE INITIALIZATION 						//
@@ -343,7 +344,7 @@ func NewSimApp(
 		app.Logger(),
 		baseapp.NoOpPrepareProposal(),
 		baseapp.NoOpProcessProposal(),
-		ve.NewDefaultValidateVoteExtensionsFn(app.ChainID(), app.StakingKeeper),
+		ve.NewDefaultValidateVoteExtensionsFn(app.StakingKeeper),
 		compression.NewCompressionVoteExtensionCodec(
 			compression.NewDefaultVoteExtensionCodec(),
 			compression.NewZLibCompressor(),
@@ -405,8 +406,6 @@ func NewSimApp(
 
 	/****  Module Options ****/
 
-	app.ModuleManager.RegisterInvariants(app.CrisisKeeper)
-
 	// RegisterUpgradeHandlers is used for registering any on-chain upgrades.
 	// app.RegisterUpgradeHandlers()
 
@@ -428,7 +427,7 @@ func NewSimApp(
 	// By default, when using app wiring enabled module, this is not required.
 	// For instance, the upgrade module will set automatically the module version map in its init genesis thanks to app wiring.
 	// However, when registering a module manually (i.e. that does not support app wiring), the module version map
-	// must be set manually as follow. The upgrade module will de-duplicate the module version map.
+	// must be set manually as follows. The upgrade module will de-duplicate the module version map.
 	//
 	// app.SetInitChainer(func(ctx sdk.Context, req *cometabci.RequestInitChain) (*cometabci.ResponseInitChain, error) {
 	// 	req.ConsensusParams.Abci.VoteExtensionsEnableHeight = 2

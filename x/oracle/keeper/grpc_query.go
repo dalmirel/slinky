@@ -6,6 +6,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	slinkytypes "github.com/skip-mev/slinky/pkg/types"
 	"github.com/skip-mev/slinky/x/oracle/types"
 )
 
@@ -43,32 +44,14 @@ func (q queryServer) GetAllCurrencyPairs(ctx context.Context, _ *types.GetAllCur
 // CurrencyPairSelector (either the stringified CurrencyPair, or the CurrencyPair itself). If the request is nil this method fails.
 // If the selector is an incorrectly formatted string this method fails. If the QuotePrice / Nonce do not exist for this CurrencyPair, this method fails.
 func (q queryServer) GetPrice(goCtx context.Context, req *types.GetPriceRequest) (_ *types.GetPriceResponse, err error) {
-	var cp types.CurrencyPair
-
 	// fail on nil requests
 	if req == nil {
 		return nil, fmt.Errorf("request cannot be nil")
 	}
-	// determine what type the selector from the response is giving
-	switch cpI := req.CurrencyPairSelector.(type) {
 
-	case *types.GetPriceRequest_CurrencyPairId:
-		// retrieve the currency pair from the stringified ID, and fail if incorrectly formatted
-		cp, err = types.CurrencyPairFromString(cpI.CurrencyPairId)
-		if err != nil {
-			return nil, fmt.Errorf("error unmarshalling CurrencyPairID: %w", err)
-		}
-
-	case *types.GetPriceRequest_CurrencyPair:
-		// retrieve CurrencyPair directly from selector
-		if cpI.CurrencyPair == nil {
-			return nil, fmt.Errorf("currency Pair cannot be nil")
-		}
-		cp = *cpI.CurrencyPair
-
-	default:
-		// fail if any other type of CurrencyPairSelector is given
-		return nil, fmt.Errorf("invalid CurrencyPairSelector given in request (consult documentation)")
+	cp := req.CurrencyPair
+	if err := cp.ValidateBasic(); err != nil {
+		return nil, fmt.Errorf("invalid currency pair: %w", err)
 	}
 
 	// unwrap ctx
@@ -77,26 +60,31 @@ func (q queryServer) GetPrice(goCtx context.Context, req *types.GetPriceRequest)
 	// get the QuotePrice + nonce for the given CurrencyPair
 	qpn, err := q.k.GetPriceWithNonceForCurrencyPair(ctx, cp)
 	if err != nil {
-		return nil, fmt.Errorf("no price / nonce reported for CurrencyPair: %v, the module is not tracking this CurrencyPair", cp)
+		return nil, fmt.Errorf("no price / nonce reported for CurrencyPair: %s, the module is not tracking this CurrencyPair", cp.String())
 	}
 
 	id, ok := q.k.GetIDForCurrencyPair(ctx, cp)
 	if !ok {
-		return nil, fmt.Errorf("no ID found for CurrencyPair: %v", cp)
+		return nil, fmt.Errorf("no ID found for CurrencyPair: %s", cp.String())
+	}
+
+	decimals, err := q.k.GetDecimalsForCurrencyPair(ctx, cp)
+	if err != nil {
+		return nil, err
 	}
 
 	// return the QuotePrice + Nonce
 	return &types.GetPriceResponse{
 		Price:    &qpn.QuotePrice,
 		Nonce:    qpn.Nonce(),
-		Decimals: uint64(cp.Decimals()),
+		Decimals: decimals,
 		Id:       id,
 	}, nil
 }
 
-// GetPrice gets the array of the QuotePrice and the nonce for the QuotePrice for a given CurrencyPairs.
+// GetPrices gets the array of the QuotePrice and the nonce for the QuotePrice for a given CurrencyPairs.
 func (q queryServer) GetPrices(goCtx context.Context, req *types.GetPricesRequest) (_ *types.GetPricesResponse, err error) {
-	var cp types.CurrencyPair
+	var cp slinkytypes.CurrencyPair
 
 	// fail on nil requests
 	if req == nil {
@@ -105,7 +93,7 @@ func (q queryServer) GetPrices(goCtx context.Context, req *types.GetPricesReques
 
 	prices := make([]types.GetPriceResponse, 0, len(req.CurrencyPairIds))
 	for _, cid := range req.CurrencyPairIds {
-		cp, err = types.CurrencyPairFromString(cid)
+		cp, err = slinkytypes.CurrencyPairFromString(cid)
 		if err != nil {
 			return nil, fmt.Errorf("error unmarshalling CurrencyPairID: %w", err)
 		}
@@ -124,10 +112,15 @@ func (q queryServer) GetPrices(goCtx context.Context, req *types.GetPricesReques
 			return nil, fmt.Errorf("no ID found for CurrencyPair: %v", cp)
 		}
 
+		decimals, err := q.k.GetDecimalsForCurrencyPair(ctx, cp)
+		if err != nil {
+			return nil, err
+		}
+
 		prices = append(prices, types.GetPriceResponse{
 			Price:    &qpn.QuotePrice,
 			Nonce:    qpn.Nonce(),
-			Decimals: uint64(cp.Decimals()),
+			Decimals: decimals,
 			Id:       id,
 		})
 	}

@@ -39,15 +39,8 @@ func NewMsgAlert(a Alert) *MsgAlert {
 	}
 }
 
-// GetSigners gets the expected signers for the MsgAlert, i.e the signer of the
-// underlying alert.
-func (msg MsgAlert) GetSigners() []sdk.AccAddress {
-	signer := sdk.MustAccAddressFromBech32(msg.Alert.Signer)
-	return []sdk.AccAddress{signer}
-}
-
-// ValidateBasic performs basic validation of the MsgAlert fields, i.e on the underlying Alert.
-func (msg MsgAlert) ValidateBasic() error {
+// ValidateBasic performs basic validation of the MsgAlert fields, i.e. on the underlying Alert.
+func (msg *MsgAlert) ValidateBasic() error {
 	return msg.Alert.ValidateBasic()
 }
 
@@ -70,15 +63,9 @@ func NewMsgConclusion(c Conclusion, signer sdk.AccAddress) *MsgConclusion {
 	return msg
 }
 
-// GetSigners gets the expected signers for the MsgConclusion.
-func (msg MsgConclusion) GetSigners() []sdk.AccAddress {
-	signer := sdk.MustAccAddressFromBech32(msg.Signer)
-	return []sdk.AccAddress{signer}
-}
-
-// ValidateBasic performs basic validation of the MsgConclusion fields, i.e that the signer address
+// ValidateBasic performs basic validation of the MsgConclusion fields, i.e. that the signer address
 // is valid, and the alert is non-nil.
-func (msg MsgConclusion) ValidateBasic() error {
+func (msg *MsgConclusion) ValidateBasic() error {
 	// check signer validity
 	if _, err := sdk.AccAddressFromBech32(msg.Signer); err != nil {
 		return err
@@ -109,7 +96,7 @@ func NewMsgUpdateParams(params Params, authority sdk.AccAddress) *MsgUpdateParam
 
 // ValidateBasic checks that the params in the msg are valid, and that the authority address is valid
 // if either check fails the method will error.
-func (m MsgUpdateParams) ValidateBasic() error {
+func (m *MsgUpdateParams) ValidateBasic() error {
 	// check authority address
 	if _, err := sdk.AccAddressFromBech32(m.Authority); err != nil {
 		return err

@@ -13,22 +13,28 @@ import (
 // data providers for the currency pairs at the specified update interval.
 type OracleConfig struct {
 	// UpdateInterval is the interval at which the oracle will fetch prices from providers.
-	UpdateInterval time.Duration `mapstructure:"update_interval" toml:"update_interval"`
+	UpdateInterval time.Duration `json:"updateInterval"`
+
+	// MaxPriceAge is the maximum age of a price that the oracle will consider valid. If a
+	// price is older than this, the oracle will not consider it valid and will not return it in /prices
+	// requests.
+	MaxPriceAge time.Duration `json:"maxPriceAge"`
 
 	// Providers is the list of providers that the oracle will fetch prices from.
-	Providers []ProviderConfig `mapstructure:"providers" toml:"providers"`
-
-	// Market defines the market configurations for how currency pairs will be resolved to a
-	// final price. Each currency pair can have a list of convertable markets that will be used
-	// to convert the price of the currency pair to a common currency pair.
-	Market AggregateMarketConfig `mapstructure:"market" toml:"market"`
+	Providers []ProviderConfig `json:"providers"`
 
 	// Production specifies whether the oracle is running in production mode. This is used to
 	// determine whether the oracle should be run in debug mode or not.
-	Production bool `mapstructure:"production" toml:"production"`
+	Production bool `json:"production"`
 
 	// Metrics is the metrics configurations for the oracle.
-	Metrics MetricsConfig `mapstructure:"metrics" toml:"metrics"`
+	Metrics MetricsConfig `json:"metrics"`
+
+	// Host is the host that the oracle will listen on.
+	Host string `json:"host"`
+
+	// Port is the port that the oracle will listen on.
+	Port string `json:"port"`
 }
 
 // ValidateBasic performs basic validation on the oracle config.
@@ -37,14 +43,22 @@ func (c *OracleConfig) ValidateBasic() error {
 		return fmt.Errorf("oracle update interval must be greater than 0")
 	}
 
+	if c.MaxPriceAge <= 0 {
+		return fmt.Errorf("oracle max price age must be greater than 0")
+	}
+
 	for _, p := range c.Providers {
 		if err := p.ValidateBasic(); err != nil {
 			return fmt.Errorf("provider is not formatted correctly: %w", err)
 		}
 	}
 
-	if err := c.Market.ValidateBasic(); err != nil {
-		return fmt.Errorf("market is not formatted correctly: %w", err)
+	if len(c.Host) == 0 {
+		return fmt.Errorf("oracle host cannot be empty")
+	}
+
+	if len(c.Port) == 0 {
+		return fmt.Errorf("oracle port cannot be empty")
 	}
 
 	return c.Metrics.ValidateBasic()
@@ -54,7 +68,7 @@ func (c *OracleConfig) ValidateBasic() error {
 func ReadOracleConfigFromFile(path string) (OracleConfig, error) {
 	// Read in config file.
 	viper.SetConfigFile(path)
-	viper.SetConfigType("toml")
+	viper.SetConfigType("json")
 
 	if err := viper.ReadInConfig(); err != nil {
 		return OracleConfig{}, err

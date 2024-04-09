@@ -1,12 +1,11 @@
 package kraken
 
 import (
-	"encoding/json"
-	"fmt"
 	"time"
 
 	"github.com/skip-mev/slinky/oracle/config"
-	oracletypes "github.com/skip-mev/slinky/x/oracle/types"
+	"github.com/skip-mev/slinky/oracle/constants"
+	"github.com/skip-mev/slinky/oracle/types"
 )
 
 const (
@@ -15,13 +14,13 @@ const (
 	// unauthenticated websocket. The URLs defined below are all unauthenticated.
 
 	// Name is the name of the Kraken provider.
-	Name = "kraken"
+	Name = "kraken_ws"
 
 	// URL is the production websocket URL for Kraken.
 	URL = "wss://ws.kraken.com"
 
 	// URL_BETA is the demo websocket URL for Kraken.
-	URL_BETA = "wss://beta-ws.kraken.com" //nolint
+	URL_BETA = "wss://beta-ws.kraken.com"
 )
 
 var (
@@ -44,110 +43,154 @@ var (
 	}
 
 	// DefaultMarketConfig is the default market configuration for Kraken.
-	DefaultMarketConfig = config.MarketConfig{
-		Name: Name,
-		CurrencyPairToMarketConfigs: map[string]config.CurrencyPairMarketConfig{
-			"ATOM/USD": {
-				Ticker:       "ATOM/USD",
-				CurrencyPair: oracletypes.NewCurrencyPair("ATOM", "USD"),
-			},
-			"AVAX/USD": {
-				Ticker:       "AVAX/USD",
-				CurrencyPair: oracletypes.NewCurrencyPair("AVAX", "USD"),
-			},
-			"AVAX/USDT": {
-				Ticker:       "AVAX/USDT",
-				CurrencyPair: oracletypes.NewCurrencyPair("AVAX", "USDT"),
-			},
-			"BITCOIN/USD": {
-				Ticker:       "XBT/USD",
-				CurrencyPair: oracletypes.NewCurrencyPair("BITCOIN", "USD"),
-			},
-			"BITCOIN/USDC": {
-				Ticker:       "XBT/USDC",
-				CurrencyPair: oracletypes.NewCurrencyPair("BITCOIN", "USDC"),
-			},
-			"BITCOIN/USDT": {
-				Ticker:       "XBT/USDT",
-				CurrencyPair: oracletypes.NewCurrencyPair("BITCOIN", "USDT"),
-			},
-			"CELESTIA/USD": {
-				Ticker:       "TIA/USD",
-				CurrencyPair: oracletypes.NewCurrencyPair("CELESTIA", "USD"),
-			},
-			"DYDX/USD": {
-				Ticker:       "DYDX/USD",
-				CurrencyPair: oracletypes.NewCurrencyPair("DYDX", "USD"),
-			},
-			"ETHEREUM/BITCOIN": {
-				Ticker:       "ETH/XBT",
-				CurrencyPair: oracletypes.NewCurrencyPair("ETHEREUM", "BITCOIN"),
-			},
-			"ETHEREUM/USD": {
-				Ticker:       "ETH/USD",
-				CurrencyPair: oracletypes.NewCurrencyPair("ETHEREUM", "USD"),
-			},
-			"ETHEREUM/USDC": {
-				Ticker:       "ETH/USDC",
-				CurrencyPair: oracletypes.NewCurrencyPair("ETHEREUM", "USDC"),
-			},
-			"ETHEREUM/USDT": {
-				Ticker:       "ETH/USDT",
-				CurrencyPair: oracletypes.NewCurrencyPair("ETHEREUM", "USDT"),
-			},
-			"SOLANA/USD": {
-				Ticker:       "SOL/USD",
-				CurrencyPair: oracletypes.NewCurrencyPair("SOLANA", "USD"),
-			},
-			"SOLANA/USDT": {
-				Ticker:       "SOL/USDT",
-				CurrencyPair: oracletypes.NewCurrencyPair("SOLANA", "USDT"),
-			},
-			"USDC/USD": {
-				Ticker:       "USDC/USD",
-				CurrencyPair: oracletypes.NewCurrencyPair("USDC", "USD"),
-			},
-			"USDC/USDT": {
-				Ticker:       "USDC/USDT",
-				CurrencyPair: oracletypes.NewCurrencyPair("USDC", "USDT"),
-			},
-			"USDT/USD": {
-				Ticker:       "USDT/USD",
-				CurrencyPair: oracletypes.NewCurrencyPair("USDT", "USD"),
-			},
+	DefaultMarketConfig = types.TickerToProviderConfig{
+		constants.APE_USD: {
+			Name:           Name,
+			OffChainTicker: "APE/USD",
+		},
+		constants.ATOM_USD: {
+			Name:           Name,
+			OffChainTicker: "ATOM/USD",
+		},
+		constants.AVAX_USD: {
+			Name:           Name,
+			OffChainTicker: "AVAX/USD",
+		},
+		constants.AVAX_USDT: {
+			Name:           Name,
+			OffChainTicker: "AVAX/USDT",
+		},
+		constants.BCH_USD: {
+			Name:           Name,
+			OffChainTicker: "BCH/USD",
+		},
+		constants.BITCOIN_USD: {
+			Name:           Name,
+			OffChainTicker: "XBT/USD",
+		},
+		constants.BITCOIN_USDC: {
+			Name:           Name,
+			OffChainTicker: "XBT/USDC",
+		},
+		constants.BITCOIN_USDT: {
+			Name:           Name,
+			OffChainTicker: "XBT/USDT",
+		},
+		constants.BLUR_USD: {
+			Name:           Name,
+			OffChainTicker: "BLUR/USD",
+		},
+		constants.CARDANO_USD: {
+			Name:           Name,
+			OffChainTicker: "ADA/USD",
+		},
+		constants.CELESTIA_USD: {
+			Name:           Name,
+			OffChainTicker: "TIA/USD",
+		},
+		constants.CHAINLINK_USD: {
+			Name:           Name,
+			OffChainTicker: "LINK/USD",
+		},
+		constants.COMPOUND_USD: {
+			Name:           Name,
+			OffChainTicker: "COMP/USD",
+		},
+		constants.CURVE_USD: {
+			Name:           Name,
+			OffChainTicker: "CRV/USD",
+		},
+		constants.DOGE_USD: {
+			Name:           Name,
+			OffChainTicker: "XDG/USD",
+		},
+		constants.DYDX_USD: {
+			Name:           Name,
+			OffChainTicker: "DYDX/USD",
+		},
+		constants.ETHEREUM_BITCOIN: {
+			Name:           Name,
+			OffChainTicker: "ETH/XBT",
+		},
+		constants.ETHEREUM_USD: {
+			Name:           Name,
+			OffChainTicker: "ETH/USD",
+		},
+		constants.ETHEREUM_USDC: {
+			Name:           Name,
+			OffChainTicker: "ETH/USDC",
+		},
+		constants.ETHEREUM_USDT: {
+			Name:           Name,
+			OffChainTicker: "ETH/USDT",
+		},
+		constants.FILECOIN_USD: {
+			Name:           Name,
+			OffChainTicker: "FIL/USD",
+		},
+		constants.LIDO_USD: {
+			Name:           Name,
+			OffChainTicker: "LDO/USD",
+		},
+		constants.LITECOIN_USD: {
+			Name:           Name,
+			OffChainTicker: "XLTCZ/USD",
+		},
+		constants.MAKER_USD: {
+			Name:           Name,
+			OffChainTicker: "MKR/USD",
+		},
+		constants.PEPE_USD: {
+			Name:           Name,
+			OffChainTicker: "PEPE/USD",
+		},
+		constants.POLKADOT_USD: {
+			Name:           Name,
+			OffChainTicker: "DOT/USD",
+		},
+		constants.POLYGON_USD: {
+			Name:           Name,
+			OffChainTicker: "MATIC/USD",
+		},
+		constants.RIPPLE_USD: {
+			Name:           Name,
+			OffChainTicker: "XXRPZ/USD",
+		},
+		constants.SHIBA_USD: {
+			Name:           Name,
+			OffChainTicker: "SHIB/USD",
+		},
+		constants.SOLANA_USD: {
+			Name:           Name,
+			OffChainTicker: "SOL/USD",
+		},
+		constants.SOLANA_USDT: {
+			Name:           Name,
+			OffChainTicker: "SOL/USDT",
+		},
+		constants.STELLAR_USD: {
+			Name:           Name,
+			OffChainTicker: "XXLMZ/USD",
+		},
+		constants.TRON_USD: {
+			Name:           Name,
+			OffChainTicker: "TRX/USD",
+		},
+		constants.UNISWAP_USD: {
+			Name:           Name,
+			OffChainTicker: "UNI/USD",
+		},
+		constants.USDC_USD: {
+			Name:           Name,
+			OffChainTicker: "USDC/USD",
+		},
+		constants.USDC_USDT: {
+			Name:           Name,
+			OffChainTicker: "USDC/USDT",
+		},
+		constants.USDT_USD: {
+			Name:           Name,
+			OffChainTicker: "USDT/USD",
 		},
 	}
 )
-
-// DecodeTickerResponseMessage decodes a ticker response message .
-func DecodeTickerResponseMessage(message []byte) (TickerResponseMessage, error) {
-	var rawResponse []json.RawMessage
-	if err := json.Unmarshal(message, &rawResponse); err != nil {
-		return TickerResponseMessage{}, err
-	}
-
-	if len(rawResponse) != ExpectedTickerResponseMessageLength {
-		return TickerResponseMessage{}, fmt.Errorf(
-			"invalid ticker response message; expected length %d, got %d", ExpectedTickerResponseMessageLength, len(rawResponse),
-		)
-	}
-
-	var response TickerResponseMessage
-	if err := json.Unmarshal(rawResponse[ChannelIDIndex], &response.ChannelID); err != nil {
-		return TickerResponseMessage{}, err
-	}
-
-	if err := json.Unmarshal(rawResponse[TickerDataIndex], &response.TickerData); err != nil {
-		return TickerResponseMessage{}, err
-	}
-
-	if err := json.Unmarshal(rawResponse[ChannelNameIndex], &response.ChannelName); err != nil {
-		return TickerResponseMessage{}, err
-	}
-
-	if err := json.Unmarshal(rawResponse[PairIndex], &response.Pair); err != nil {
-		return TickerResponseMessage{}, err
-	}
-
-	return response, nil
-}

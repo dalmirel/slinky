@@ -3,8 +3,6 @@ package oracle
 import (
 	"context"
 	"fmt"
-	"math/big"
-	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -12,10 +10,10 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/skip-mev/slinky/aggregator"
-	"github.com/skip-mev/slinky/oracle/metrics"
+	oraclemetrics "github.com/skip-mev/slinky/oracle/metrics"
+	"github.com/skip-mev/slinky/oracle/types"
+	"github.com/skip-mev/slinky/pkg/math/median"
 	ssync "github.com/skip-mev/slinky/pkg/sync"
-	providertypes "github.com/skip-mev/slinky/providers/types"
-	oracletypes "github.com/skip-mev/slinky/x/oracle/types"
 )
 
 var _ Oracle = (*OracleImpl)(nil)
@@ -26,7 +24,7 @@ var _ Oracle = (*OracleImpl)(nil)
 type Oracle interface {
 	IsRunning() bool
 	GetLastSyncTime() time.Time
-	GetPrices() map[oracletypes.CurrencyPair]*big.Int
+	GetPrices() types.TickerPrices
 	Start(ctx context.Context) error
 	Stop()
 }
@@ -44,11 +42,7 @@ type OracleImpl struct { //nolint
 	// Each provider is responsible for fetching prices for a given set of
 	// currency pairs (base, quote). The oracle will fetch prices from each
 	// provider concurrently.
-	providers []providertypes.Provider[oracletypes.CurrencyPair, *big.Int]
-
-	// providerCh is the channel that the oracle will use to signal whether all of the
-	// providers are running or not.
-	providerCh chan error
+	providers []types.PriceProviderI
 
 	// --------------------- Oracle Config --------------------- //
 	// lastPriceSync is the last time the oracle successfully updated its prices.
@@ -59,14 +53,17 @@ type OracleImpl struct { //nolint
 
 	// priceAggregator maintains the state of prices for each provider and
 	// computes the aggregate price for each currency pair.
-	priceAggregator *aggregator.DataAggregator[string, map[oracletypes.CurrencyPair]*big.Int]
+	priceAggregator types.PriceAggregator
 
 	// metrics is the set of metrics that the oracle will expose.
-	metrics metrics.Metrics
+	metrics oraclemetrics.Metrics
 
 	// updateInterval is the interval at which the oracle will fetch prices from
 	// each provider.
 	updateInterval time.Duration
+
+	// maxCacheAge is the longest amount of time a price will stay in our cache
+	maxCacheAge time.Duration
 }
 
 // New returns a new instance of an Oracle. The oracle inputs providers that are
@@ -81,11 +78,12 @@ func New(opts ...Option) (*OracleImpl, error) {
 	o := &OracleImpl{
 		closer:  ssync.NewCloser(),
 		logger:  zap.NewNop(),
-		metrics: metrics.NewNopMetrics(),
-		priceAggregator: aggregator.NewDataAggregator[string, map[oracletypes.CurrencyPair]*big.Int](
-			aggregator.WithAggregateFn(aggregator.ComputeMedian()),
+		metrics: oraclemetrics.NewNopMetrics(),
+		priceAggregator: types.NewPriceAggregator(
+			aggregator.WithAggregateFn(median.ComputeMedian()),
 		),
 		updateInterval: 1 * time.Second,
+		maxCacheAge:    time.Minute, // default max cache age is 1 minute
 	}
 
 	for _, opt := range opts {
@@ -107,12 +105,6 @@ func (o *OracleImpl) IsRunning() bool {
 // provider concurrently every oracleTicker interval.
 func (o *OracleImpl) Start(ctx context.Context) error {
 	o.logger.Info("starting oracle")
-
-	ctx, cancel := context.WithCancel(ctx)
-	defer cancel()
-
-	o.providerCh = make(chan error)
-	go o.StartProviders(ctx)
 
 	o.running.Store(true)
 	defer o.running.Store(false)
@@ -143,10 +135,6 @@ func (o *OracleImpl) Stop() {
 
 	o.closer.Close()
 	<-o.closer.Done()
-
-	// Wait for the providers to exit.
-	err := <-o.providerCh
-	o.logger.Info("providers exited", zap.Error(err))
 }
 
 // tick executes a single oracle tick. It fetches prices from each provider's
@@ -182,38 +170,45 @@ func (o *OracleImpl) tick() {
 
 // fetchPrices retrieves the latest prices from a given provider and updates the aggregator
 // iff the price age is less than the update interval.
-func (o *OracleImpl) fetchPrices(provider providertypes.Provider[oracletypes.CurrencyPair, *big.Int]) {
+func (o *OracleImpl) fetchPrices(provider types.PriceProviderI) {
 	defer func() {
 		if r := recover(); r != nil {
 			o.logger.Error("provider panicked", zap.Error(fmt.Errorf("%v", r)))
 		}
 	}()
 
-	o.logger.Info("retrieving prices", zap.String("provider", provider.Name()), zap.String("data handler type", string(provider.Type())))
+	if !provider.IsRunning() {
+		o.logger.Debug(
+			"provider is not running",
+			zap.String("provider", provider.Name()),
+		)
+
+		return
+	}
+
+	o.logger.Info(
+		"retrieving prices",
+		zap.String("provider", provider.Name()),
+		zap.String("data handler type",
+			string(provider.Type())),
+	)
 
 	// Fetch and set prices from the provider.
 	prices := provider.GetData()
 	if prices == nil {
-		o.logger.Info("provider returned nil prices", zap.String("provider", provider.Name()), zap.String("data handler type", string(provider.Type())))
+		o.logger.Info(
+			"provider returned nil prices",
+			zap.String("provider", provider.Name()),
+			zap.String("data handler type", string(provider.Type())),
+		)
 		return
 	}
 
-	timeFilteredPrices := make(map[oracletypes.CurrencyPair]*big.Int)
+	timeFilteredPrices := make(types.TickerPrices)
 	for pair, result := range prices {
-		floatValue, _ := result.Value.Float64() // we ignore the accuracy in this conversion
-
-		// Update price metrics.
-		o.metrics.UpdatePrice(
-			provider.Name(),
-			string(provider.Type()),
-			strings.ToLower(pair.String()),
-			pair.Decimals(),
-			floatValue,
-		)
-
-		// If the price is older than the update interval, skip it.
+		// If the price is older than the maxCacheAge, skip it.
 		diff := time.Now().UTC().Sub(result.Timestamp)
-		if diff > o.updateInterval {
+		if diff > o.maxCacheAge {
 			o.logger.Debug(
 				"skipping price",
 				zap.String("provider", provider.Name()),
@@ -260,21 +255,7 @@ func (o *OracleImpl) setLastSyncTime(t time.Time) {
 }
 
 // GetPrices returns the aggregate prices from the oracle.
-func (o *OracleImpl) GetPrices() map[oracletypes.CurrencyPair]*big.Int {
+func (o *OracleImpl) GetPrices() types.TickerPrices {
 	prices := o.priceAggregator.GetAggregatedData()
-
-	// set metrics in background
-	go func() {
-		for cp, price := range prices {
-			floatValue, _ := price.Float64() // we ignore the accuracy in this conversion
-
-			o.metrics.UpdateAggregatePrice(
-				strings.ToLower(cp.String()),
-				cp.Decimals(),
-				floatValue,
-			)
-		}
-	}()
-
 	return prices
 }

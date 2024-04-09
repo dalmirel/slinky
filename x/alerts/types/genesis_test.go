@@ -6,10 +6,10 @@ import (
 
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
+	slinkytypes "github.com/skip-mev/slinky/pkg/types"
 	"github.com/skip-mev/slinky/x/alerts/types"
-	oracletypes "github.com/skip-mev/slinky/x/oracle/types"
 )
 
 func TestGenesisValidation(t *testing.T) {
@@ -21,22 +21,21 @@ func TestGenesisValidation(t *testing.T) {
 
 	cases := []testCase{
 		{
-			"genesis with invalid params - fail",
-			types.GenesisState{
-				Params: types.NewParams(types.AlertParams{false, sdk.NewCoin("test", math.NewInt(1000000)), 0}, nil, types.PruningParams{}),
+			name: "genesis with invalid params - fail",
+			genesis: types.GenesisState{
+				Params: types.NewParams(types.AlertParams{BondAmount: sdk.NewCoin("test", math.NewInt(1000000))}, nil, types.PruningParams{}),
 			},
-			false,
 		},
 		{
-			"genesis with valid params - pass",
-			types.GenesisState{
-				Params: types.NewParams(types.AlertParams{false, sdk.NewCoin("test", math.NewInt(0)), 0}, nil, types.PruningParams{}),
+			name: "genesis with valid params - pass",
+			genesis: types.GenesisState{
+				Params: types.NewParams(types.AlertParams{BondAmount: sdk.NewCoin("test", math.NewInt(0))}, nil, types.PruningParams{}),
 			},
-			true,
+			valid: true,
 		},
 		{
-			"genesis with an invalid alert - fail",
-			types.NewGenesisState(types.NewParams(types.AlertParams{true, sdk.NewCoin("test", math.NewInt(1000000)), 1}, nil, types.PruningParams{}), []types.AlertWithStatus{
+			name: "genesis with an invalid alert - fail",
+			genesis: types.NewGenesisState(types.NewParams(types.AlertParams{Enabled: true, BondAmount: sdk.NewCoin("test", math.NewInt(1000000)), MaxBlockAge: 1}, nil, types.PruningParams{}), []types.AlertWithStatus{
 				types.NewAlertWithStatus(
 					types.Alert{
 						Height: 1,
@@ -45,51 +44,49 @@ func TestGenesisValidation(t *testing.T) {
 					types.NewAlertStatus(1, 2, time.Now(), 1),
 				),
 				types.NewAlertWithStatus(
-					types.NewAlert(1, sdk.AccAddress("test"), oracletypes.NewCurrencyPair("BASE", "QUOTE")),
+					types.NewAlert(1, sdk.AccAddress("test"), slinkytypes.NewCurrencyPair("BASE", "QUOTE")),
 					types.NewAlertStatus(1, 2, time.Now(), 1),
 				),
 			}),
-			false,
 		},
 		{
-			"genesis with duplicate alerts - fail",
-			types.NewGenesisState(types.NewParams(types.AlertParams{true, sdk.NewCoin("test", math.NewInt(1000000)), 1}, nil, types.PruningParams{}), []types.AlertWithStatus{
+			name: "genesis with duplicate alerts - fail",
+			genesis: types.NewGenesisState(types.NewParams(types.AlertParams{Enabled: true, BondAmount: sdk.NewCoin("test", math.NewInt(1000000)), MaxBlockAge: 1}, nil, types.PruningParams{}), []types.AlertWithStatus{
 				types.NewAlertWithStatus(
-					types.NewAlert(1, sdk.AccAddress("test"), oracletypes.NewCurrencyPair("BASE", "QUOTE")),
+					types.NewAlert(1, sdk.AccAddress("test"), slinkytypes.NewCurrencyPair("BASE", "QUOTE")),
 					types.NewAlertStatus(1, 2, time.Now(), 1),
 				),
 				types.NewAlertWithStatus(
-					types.NewAlert(1, sdk.AccAddress("test1"), oracletypes.NewCurrencyPair("BASE", "QUOTE")),
+					types.NewAlert(1, sdk.AccAddress("test1"), slinkytypes.NewCurrencyPair("BASE", "QUOTE")),
 					types.NewAlertStatus(1, 2, time.Now(), 0),
 				),
 			}),
-			false,
 		},
 		{
-			"genesis with valid non-duplicatge alerts - pass",
-			types.NewGenesisState(types.NewParams(types.AlertParams{true, sdk.NewCoin("test", math.NewInt(1000000)), 1}, nil, types.PruningParams{}), []types.AlertWithStatus{
+			name: "genesis with valid non-duplicate alerts - pass",
+			genesis: types.NewGenesisState(types.NewParams(types.AlertParams{Enabled: true, BondAmount: sdk.NewCoin("test", math.NewInt(1000000)), MaxBlockAge: 1}, nil, types.PruningParams{}), []types.AlertWithStatus{
 				types.NewAlertWithStatus(
-					types.NewAlert(1, sdk.AccAddress("test"), oracletypes.NewCurrencyPair("BASE", "QUOTE")),
+					types.NewAlert(1, sdk.AccAddress("test"), slinkytypes.NewCurrencyPair("BASE", "QUOTE")),
 					types.NewAlertStatus(1, 2, time.Now(), 1),
 				),
 				types.NewAlertWithStatus(
-					types.NewAlert(0, sdk.AccAddress("test"), oracletypes.NewCurrencyPair("BASE2", "QUOTE2")),
+					types.NewAlert(0, sdk.AccAddress("test"), slinkytypes.NewCurrencyPair("BASE2", "QUOTE2")),
 					types.NewAlertStatus(1, 2, time.Now(), 0),
 				),
 			}),
-			true,
+			valid: true,
 		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			err := tc.genesis.ValidateBasic()
-			if tc.valid && err != nil {
-				t.Errorf("expected genesis to be valid, got error: %v", err)
+			if tc.valid {
+				require.Nil(t, err)
+				return
 			}
-			if !tc.valid && err == nil {
-				t.Errorf("expected genesis to be invalid, got nil error")
-			}
+
+			require.NotNil(t, err)
 		})
 	}
 }
@@ -97,5 +94,5 @@ func TestGenesisValidation(t *testing.T) {
 func TestDefaultGenesisValidation(t *testing.T) {
 	// test that the default genesis is valid
 	genesis := types.DefaultGenesisState()
-	assert.NoError(t, genesis.ValidateBasic())
+	require.NoError(t, genesis.ValidateBasic())
 }

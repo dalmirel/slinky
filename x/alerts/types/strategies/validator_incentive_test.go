@@ -10,16 +10,15 @@ import (
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	slinkyabci "github.com/skip-mev/slinky/abci/ve/types"
+	slinkytypes "github.com/skip-mev/slinky/pkg/types"
 	"github.com/skip-mev/slinky/x/alerts/types"
 	"github.com/skip-mev/slinky/x/alerts/types/mocks"
 	"github.com/skip-mev/slinky/x/alerts/types/strategies"
 	incentivetypes "github.com/skip-mev/slinky/x/incentives/types"
 	"github.com/skip-mev/slinky/x/incentives/types/examples/goodprice"
-	oracletypes "github.com/skip-mev/slinky/x/oracle/types"
 )
 
 func TestValidatorAlertIncentive(t *testing.T) {
@@ -96,7 +95,7 @@ func TestValidatorAlertIncentive(t *testing.T) {
 			Power:   1,
 		}, 1, sdk.AccAddress("test"))
 
-		assert.Equal(t, ic.Type(), strategies.ValidatorAlertIncentiveType)
+		require.Equal(t, ic.Type(), strategies.ValidatorAlertIncentiveType)
 	})
 
 	t.Run("test copy", func(t *testing.T) {
@@ -107,8 +106,8 @@ func TestValidatorAlertIncentive(t *testing.T) {
 
 		icCopy := ic.Copy()
 
-		assert.Equal(t, ic, icCopy)
-		assert.False(t, &ic == &icCopy)
+		require.Equal(t, ic, icCopy)
+		require.False(t, &ic == &icCopy)
 
 		// assert addresses are diff
 		addr1 := ic.(*strategies.ValidatorAlertIncentive).Validator.Address
@@ -116,7 +115,7 @@ func TestValidatorAlertIncentive(t *testing.T) {
 
 		addr1[0] = 1
 
-		assert.NotEqual(t, addr1, addr2)
+		require.NotEqual(t, addr1, addr2)
 	})
 }
 
@@ -302,7 +301,7 @@ func TestDefaultHandler(t *testing.T) {
 			types.Alert{
 				Signer: sdk.AccAddress("test").String(),
 				Height: 1,
-				CurrencyPair: oracletypes.CurrencyPair{
+				CurrencyPair: slinkytypes.CurrencyPair{
 					Base:  "A",
 					Quote: "B",
 				},
@@ -326,7 +325,7 @@ func TestDefaultHandler(t *testing.T) {
 			types.Alert{
 				Signer: sdk.AccAddress("test").String(),
 				Height: 1,
-				CurrencyPair: oracletypes.CurrencyPair{
+				CurrencyPair: slinkytypes.CurrencyPair{
 					Base:  "A",
 					Quote: "B",
 				},
@@ -352,7 +351,7 @@ func TestDefaultHandler(t *testing.T) {
 			types.Alert{
 				Signer: sdk.AccAddress("signer").String(),
 				Height: 1,
-				CurrencyPair: oracletypes.CurrencyPair{
+				CurrencyPair: slinkytypes.CurrencyPair{
 					Base:  "A",
 					Quote: "B",
 				},
@@ -384,7 +383,7 @@ func TestDefaultHandler(t *testing.T) {
 			types.Alert{
 				Signer: sdk.AccAddress("signer").String(),
 				Height: 1,
-				CurrencyPair: oracletypes.CurrencyPair{
+				CurrencyPair: slinkytypes.CurrencyPair{
 					Base:  "A",
 					Quote: "B",
 				},
@@ -416,7 +415,7 @@ func TestDefaultHandler(t *testing.T) {
 			types.Alert{
 				Signer: sdk.AccAddress("signer").String(),
 				Height: 1,
-				CurrencyPair: oracletypes.CurrencyPair{
+				CurrencyPair: slinkytypes.CurrencyPair{
 					Base:  "A",
 					Quote: "B",
 				},

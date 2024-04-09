@@ -6,13 +6,10 @@ import (
 	"testing"
 	"time"
 
-	servicemetrics "github.com/skip-mev/slinky/service/metrics"
-
-	cmttypes "github.com/cometbft/cometbft/types"
-
 	"cosmossdk.io/log"
-
 	cometabci "github.com/cometbft/cometbft/abci/types"
+	cometproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	cmttypes "github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/mock"
@@ -26,8 +23,8 @@ import (
 	"github.com/skip-mev/slinky/abci/testutils"
 	"github.com/skip-mev/slinky/abci/types"
 	"github.com/skip-mev/slinky/abci/ve"
+	servicemetrics "github.com/skip-mev/slinky/service/metrics"
 	servicemetricsmocks "github.com/skip-mev/slinky/service/metrics/mocks"
-	oracletypes "github.com/skip-mev/slinky/x/oracle/types"
 )
 
 var (
@@ -37,16 +34,6 @@ var (
 	twoHundred   = big.NewInt(200)
 	threeHundred = big.NewInt(300)
 	fourHundred  = big.NewInt(400)
-
-	btcUSD = oracletypes.CurrencyPair{ // id 0
-		Base:  "BTC",
-		Quote: "USD",
-	}
-
-	ethUSD = oracletypes.CurrencyPair{ // id 1
-		Base:  "ETH",
-		Quote: "USD",
-	}
 
 	prices1 = map[uint64][]byte{
 		0: oneHundred.Bytes(),
@@ -166,7 +153,7 @@ func (s *ProposalsTestSuite) TestPrepareProposal() {
 		{
 			name: "vote extensions enabled with no txs and a single vote extension",
 			request: func() *cometabci.RequestPrepareProposal {
-				proposal := [][]byte{}
+				var proposal [][]byte
 
 				valVoteInfo, err := testutils.CreateExtendedVoteInfo(val1, prices1, s.codec)
 				s.Require().NoError(err)
@@ -183,10 +170,7 @@ func (s *ProposalsTestSuite) TestPrepareProposal() {
 			veEnabled: true,
 			currencyPairStrategy: func() currencypair.CurrencyPairStrategy {
 				cpStrategy := currencypairmocks.NewCurrencyPairStrategy(s.T())
-
-				cpStrategy.On("FromID", mock.Anything, uint64(0)).Return(btcUSD, nil)
-				cpStrategy.On("GetDecodedPrice", mock.Anything, btcUSD, mock.Anything).Return(big.NewInt(10), nil)
-
+				cpStrategy.On("GetMaxNumCP", mock.Anything).Return(uint64(0), nil).Once()
 				return cpStrategy
 			},
 			expectedProposalTxns: 1,
@@ -215,10 +199,7 @@ func (s *ProposalsTestSuite) TestPrepareProposal() {
 			veEnabled: true,
 			currencyPairStrategy: func() currencypair.CurrencyPairStrategy {
 				cpStrategy := currencypairmocks.NewCurrencyPairStrategy(s.T())
-
-				cpStrategy.On("FromID", mock.Anything, uint64(0)).Return(btcUSD, nil)
-				cpStrategy.On("GetDecodedPrice", mock.Anything, btcUSD, mock.Anything).Return(big.NewInt(10), nil)
-
+				cpStrategy.On("GetMaxNumCP", mock.Anything).Return(uint64(1), nil).Once()
 				return cpStrategy
 			},
 			expectedProposalTxns: 3,
@@ -227,7 +208,7 @@ func (s *ProposalsTestSuite) TestPrepareProposal() {
 		{
 			name: "vote extensions enabled with multiple vote extensions",
 			request: func() *cometabci.RequestPrepareProposal {
-				proposal := [][]byte{}
+				var proposal [][]byte
 
 				valVoteInfo1, err := testutils.CreateExtendedVoteInfo(val1, prices1, s.codec)
 				s.Require().NoError(err)
@@ -253,28 +234,16 @@ func (s *ProposalsTestSuite) TestPrepareProposal() {
 			veEnabled: true,
 			currencyPairStrategy: func() currencypair.CurrencyPairStrategy {
 				cpStrategy := currencypairmocks.NewCurrencyPairStrategy(s.T())
-
-				cpStrategy.On("FromID", mock.Anything, uint64(0)).Return(btcUSD, nil)
-				cpStrategy.On("GetDecodedPrice", mock.Anything, btcUSD, mock.Anything).Return(big.NewInt(10), nil)
-
-				cpStrategy.On("FromID", mock.Anything, uint64(1)).Return(ethUSD, nil)
-				cpStrategy.On("GetDecodedPrice", mock.Anything, ethUSD, mock.Anything).Return(big.NewInt(20), nil)
-
-				cpStrategy.On("FromID", mock.Anything, uint64(0)).Return(btcUSD, nil)
-				cpStrategy.On("GetDecodedPrice", mock.Anything, btcUSD, mock.Anything).Return(big.NewInt(10), nil)
-
-				cpStrategy.On("FromID", mock.Anything, uint64(1)).Return(ethUSD, nil)
-				cpStrategy.On("GetDecodedPrice", mock.Anything, ethUSD, mock.Anything).Return(big.NewInt(20), nil)
-
+				cpStrategy.On("GetMaxNumCP", mock.Anything).Return(uint64(2), nil).Times(3)
 				return cpStrategy
 			},
 			expectedProposalTxns: 1,
 			expectedError:        false,
 		},
 		{
-			name: "cannot build block with invalid a vote extension",
+			name: "cannot build block with invalid a vote extension - will be pruned",
 			request: func() *cometabci.RequestPrepareProposal {
-				proposal := [][]byte{}
+				var proposal [][]byte
 
 				valVoteInfo1, err := testutils.CreateExtendedVoteInfo(val1, prices1, s.codec)
 				s.Require().NoError(err)
@@ -298,13 +267,13 @@ func (s *ProposalsTestSuite) TestPrepareProposal() {
 			currencyPairStrategy: func() currencypair.CurrencyPairStrategy {
 				return currencypairmocks.NewCurrencyPairStrategy(s.T())
 			},
-			expectedProposalTxns: 0,
-			expectedError:        true,
+			expectedProposalTxns: 1,
+			expectedError:        false,
 		},
 		{
-			name: "can reject a block with malformed prices",
+			name: "can reject a block with malformed prices - will be pruned",
 			request: func() *cometabci.RequestPrepareProposal {
-				proposal := [][]byte{}
+				var proposal [][]byte
 
 				valVoteInfo, err := testutils.CreateExtendedVoteInfo(val1, malformedPrices, s.codec)
 				s.Require().NoError(err)
@@ -320,67 +289,12 @@ func (s *ProposalsTestSuite) TestPrepareProposal() {
 			},
 			veEnabled: true,
 			currencyPairStrategy: func() currencypair.CurrencyPairStrategy {
-				return currencypairmocks.NewCurrencyPairStrategy(s.T())
-			},
-			expectedProposalTxns: 1,
-			expectedError:        true,
-		},
-		{
-			name: "can reject a request with ve that contains invalid currency pair id",
-			request: func() *cometabci.RequestPrepareProposal {
-				proposal := [][]byte{}
-
-				valVoteInfo, err := testutils.CreateExtendedVoteInfo(val1, prices1, s.codec)
-				s.Require().NoError(err)
-
-				commitInfo, _, err := testutils.CreateExtendedCommitInfo([]cometabci.ExtendedVoteInfo{valVoteInfo}, s.extCommitCodec)
-				s.Require().NoError(err)
-
-				return s.createRequestPrepareProposal(
-					commitInfo,
-					proposal,
-					3,
-				)
-			},
-			veEnabled: true,
-			currencyPairStrategy: func() currencypair.CurrencyPairStrategy {
 				cpStrategy := currencypairmocks.NewCurrencyPairStrategy(s.T())
-
-				cpStrategy.On("FromID", mock.Anything, uint64(0)).Return(btcUSD, fmt.Errorf("no rizz error ha"))
-
+				cpStrategy.On("GetMaxNumCP", mock.Anything).Return(uint64(1), nil).Once()
 				return cpStrategy
 			},
 			expectedProposalTxns: 1,
-			expectedError:        true,
-		},
-		{
-			name: "can reject a request with ve that contains invalid price bytes",
-			request: func() *cometabci.RequestPrepareProposal {
-				proposal := [][]byte{}
-
-				valVoteInfo, err := testutils.CreateExtendedVoteInfo(val1, prices1, s.codec)
-				s.Require().NoError(err)
-
-				commitInfo, _, err := testutils.CreateExtendedCommitInfo([]cometabci.ExtendedVoteInfo{valVoteInfo}, s.extCommitCodec)
-				s.Require().NoError(err)
-
-				return s.createRequestPrepareProposal(
-					commitInfo,
-					proposal,
-					3,
-				)
-			},
-			veEnabled: true,
-			currencyPairStrategy: func() currencypair.CurrencyPairStrategy {
-				cpStrategy := currencypairmocks.NewCurrencyPairStrategy(s.T())
-
-				cpStrategy.On("FromID", mock.Anything, uint64(0)).Return(btcUSD, nil)
-				cpStrategy.On("GetDecodedPrice", mock.Anything, btcUSD, mock.Anything).Return(big.NewInt(10), fmt.Errorf(">:("))
-
-				return cpStrategy
-			},
-			expectedProposalTxns: 1,
-			expectedError:        true,
+			expectedError:        false,
 		},
 		{
 			name: "can limit tx inclusion based on MaxTxBytes",
@@ -408,10 +322,7 @@ func (s *ProposalsTestSuite) TestPrepareProposal() {
 			veEnabled: true,
 			currencyPairStrategy: func() currencypair.CurrencyPairStrategy {
 				cpStrategy := currencypairmocks.NewCurrencyPairStrategy(s.T())
-
-				cpStrategy.On("FromID", mock.Anything, uint64(0)).Return(btcUSD, nil)
-				cpStrategy.On("GetDecodedPrice", mock.Anything, btcUSD, mock.Anything).Return(big.NewInt(10), nil)
-
+				cpStrategy.On("GetMaxNumCP", mock.Anything).Return(uint64(1), nil).Once()
 				return cpStrategy
 			},
 			expectedProposalTxns: 3,
@@ -420,7 +331,7 @@ func (s *ProposalsTestSuite) TestPrepareProposal() {
 		{
 			name: "can re-inject removed VE Txn",
 			request: func() *cometabci.RequestPrepareProposal {
-				proposal := [][]byte{}
+				var proposal [][]byte
 
 				valVoteInfo, err := testutils.CreateExtendedVoteInfo(val1, prices1, s.codec)
 				s.Require().NoError(err)
@@ -439,10 +350,7 @@ func (s *ProposalsTestSuite) TestPrepareProposal() {
 			veEnabled: true,
 			currencyPairStrategy: func() currencypair.CurrencyPairStrategy {
 				cpStrategy := currencypairmocks.NewCurrencyPairStrategy(s.T())
-
-				cpStrategy.On("FromID", mock.Anything, uint64(0)).Return(btcUSD, nil)
-				cpStrategy.On("GetDecodedPrice", mock.Anything, btcUSD, mock.Anything).Return(big.NewInt(10), nil)
-
+				cpStrategy.On("GetMaxNumCP", mock.Anything).Return(uint64(1), nil).Once()
 				return cpStrategy
 			},
 			expectedProposalTxns:   1,
@@ -450,7 +358,7 @@ func (s *ProposalsTestSuite) TestPrepareProposal() {
 			prepareProposalHandler: &removeFirstTxn,
 		},
 		{
-			name: "can exclude VE Txn when it's too large",
+			name: "will fail if VE Txn is too large",
 			request: func() *cometabci.RequestPrepareProposal {
 				proposal := [][]byte{
 					[]byte("one"),
@@ -474,14 +382,11 @@ func (s *ProposalsTestSuite) TestPrepareProposal() {
 			veEnabled: true,
 			currencyPairStrategy: func() currencypair.CurrencyPairStrategy {
 				cpStrategy := currencypairmocks.NewCurrencyPairStrategy(s.T())
-
-				cpStrategy.On("FromID", mock.Anything, uint64(0)).Return(btcUSD, nil)
-				cpStrategy.On("GetDecodedPrice", mock.Anything, btcUSD, mock.Anything).Return(big.NewInt(10), nil)
-
+				cpStrategy.On("GetMaxNumCP", mock.Anything).Return(uint64(1), nil).Once()
 				return cpStrategy
 			},
-			expectedProposalTxns: 2,
-			expectedError:        false,
+			expectedProposalTxns: 0,
+			expectedError:        true,
 		},
 	}
 
@@ -516,7 +421,7 @@ func (s *ProposalsTestSuite) TestPrepareProposal() {
 
 			s.Require().NoError(err)
 
-			s.Require().Equal(len(response.Txs), tc.expectedProposalTxns)
+			s.Require().Equal(tc.expectedProposalTxns, len(response.Txs))
 
 			if tc.veEnabled {
 				bz, err := s.extCommitCodec.Encode(req.LocalLastCommit)
@@ -532,12 +437,22 @@ func (s *ProposalsTestSuite) TestPrepareProposal() {
 func (s *ProposalsTestSuite) TestPrepareProposalRetainOracleData() {
 	// If retain option is given we feed oracle-data into prepare / process
 	s.Run("test RetainOracleDataInWrappedProposalHandler", func() {
-		codec := codec.NewDefaultExtendedCommitCodec()
+		exCodec := codec.NewDefaultExtendedCommitCodec()
+		veCodec := codec.NewDefaultVoteExtensionCodec()
+
+		cpStrategy := currencypairmocks.NewCurrencyPairStrategy(s.T())
+		cpStrategy.On("GetMaxNumCP", mock.Anything).Return(uint64(0), nil).Once()
+
+		emptyVote, err := testutils.CreateExtendedVoteInfo(val1, map[uint64][]byte{}, veCodec)
+		s.Require().NoError(err)
 
 		extendedCommit := cometabci.ExtendedCommitInfo{
 			Round: 1,
+			Votes: []cometabci.ExtendedVoteInfo{
+				emptyVote,
+			},
 		}
-		bz, err := codec.Encode(extendedCommit)
+		bz, err := exCodec.Encode(extendedCommit)
 		s.Require().NoError(err)
 
 		handler := proposals.NewProposalHandler(
@@ -553,9 +468,9 @@ func (s *ProposalsTestSuite) TestPrepareProposalRetainOracleData() {
 				return &cometabci.ResponseProcessProposal{}, nil
 			},
 			ve.NoOpValidateVoteExtensions,
-			nil,
-			codec,
-			nil,
+			veCodec,
+			exCodec,
+			cpStrategy,
 			servicemetrics.NewNopMetrics(),
 			proposals.RetainOracleDataInWrappedProposalHandler(),
 		)
@@ -576,6 +491,10 @@ func (s *ProposalsTestSuite) TestPrepareProposalRetainOracleData() {
 
 		// process proposal
 		req2 := &cometabci.RequestProcessProposal{
+			ProposedLastCommit: cometabci.CommitInfo{
+				Round: 1,
+				Votes: nil,
+			},
 			Txs: [][]byte{bz},
 		}
 		_, err = handler.ProcessProposalHandler()(s.ctx, req2)
@@ -584,12 +503,22 @@ func (s *ProposalsTestSuite) TestPrepareProposalRetainOracleData() {
 
 	// Otherwise, we don't
 	s.Run("test that oracle-data is not passed if not RetainOracleDataInWrappedProposalHandler", func() {
-		codec := codec.NewDefaultExtendedCommitCodec()
+		exCodec := codec.NewDefaultExtendedCommitCodec()
+		veCodec := codec.NewDefaultVoteExtensionCodec()
+
+		cpStrategy := currencypairmocks.NewCurrencyPairStrategy(s.T())
+		cpStrategy.On("GetMaxNumCP", mock.Anything).Return(uint64(0), nil).Once()
+
+		emptyVote, err := testutils.CreateExtendedVoteInfo(val1, map[uint64][]byte{}, veCodec)
+		s.Require().NoError(err)
 
 		extendedCommit := cometabci.ExtendedCommitInfo{
 			Round: 1,
+			Votes: []cometabci.ExtendedVoteInfo{
+				emptyVote,
+			},
 		}
-		bz, err := codec.Encode(extendedCommit)
+		bz, err := exCodec.Encode(extendedCommit)
 		s.Require().NoError(err)
 
 		handler := proposals.NewProposalHandler(
@@ -605,9 +534,9 @@ func (s *ProposalsTestSuite) TestPrepareProposalRetainOracleData() {
 				return &cometabci.ResponseProcessProposal{}, nil
 			},
 			ve.NoOpValidateVoteExtensions,
-			nil,
-			codec,
-			nil,
+			veCodec,
+			exCodec,
+			cpStrategy,
 			servicemetrics.NewNopMetrics(),
 		)
 
@@ -627,6 +556,10 @@ func (s *ProposalsTestSuite) TestPrepareProposalRetainOracleData() {
 
 		// process proposal
 		req2 := &cometabci.RequestProcessProposal{
+			ProposedLastCommit: cometabci.CommitInfo{
+				Round: 1,
+				Votes: nil,
+			},
 			Txs: [][]byte{bz},
 		}
 		_, err = handler.ProcessProposalHandler()(s.ctx, req2)
@@ -639,6 +572,7 @@ func (s *ProposalsTestSuite) TestProcessProposal() {
 		name                 string
 		request              func() *cometabci.RequestProcessProposal
 		veEnabled            bool
+		lastCommit           cometabci.CommitInfo
 		currencyPairStrategy func() currencypair.CurrencyPairStrategy
 		expectedError        bool
 		expectedResp         *cometabci.ResponseProcessProposal
@@ -658,6 +592,7 @@ func (s *ProposalsTestSuite) TestProcessProposal() {
 			request: func() *cometabci.RequestProcessProposal {
 				return s.createRequestProcessProposal(
 					[][]byte{},
+					cometabci.CommitInfo{},
 					1,
 				)
 			},
@@ -677,8 +612,14 @@ func (s *ProposalsTestSuite) TestProcessProposal() {
 					[]byte("tx1"),
 				}
 
+				lastCommit := cometabci.CommitInfo{
+					Round: 3,
+					Votes: []cometabci.VoteInfo{},
+				}
+
 				return s.createRequestProcessProposal(
 					proposal,
+					lastCommit,
 					1,
 				)
 			},
@@ -694,10 +635,16 @@ func (s *ProposalsTestSuite) TestProcessProposal() {
 		{
 			name: "rejects a block with missing vote extensions",
 			request: func() *cometabci.RequestProcessProposal {
-				proposal := [][]byte{}
+				var proposal [][]byte
+
+				lastCommit := cometabci.CommitInfo{
+					Round: 3,
+					Votes: []cometabci.VoteInfo{},
+				}
 
 				return s.createRequestProcessProposal(
 					proposal,
+					lastCommit,
 					3,
 				)
 			},
@@ -716,7 +663,7 @@ func (s *ProposalsTestSuite) TestProcessProposal() {
 				valVoteInfo, err := testutils.CreateExtendedVoteInfo(val1, prices1, s.codec)
 				s.Require().NoError(err)
 
-				_, commitInfoBz, err := testutils.CreateExtendedCommitInfo([]cometabci.ExtendedVoteInfo{valVoteInfo}, s.extCommitCodec)
+				ext, commitInfoBz, err := testutils.CreateExtendedCommitInfo([]cometabci.ExtendedVoteInfo{valVoteInfo}, s.extCommitCodec)
 				s.Require().NoError(err)
 
 				proposal := [][]byte{
@@ -724,18 +671,26 @@ func (s *ProposalsTestSuite) TestProcessProposal() {
 					[]byte("tx1"),
 				}
 
+				lastCommit := cometabci.CommitInfo{
+					Round: ext.Round,
+					Votes: []cometabci.VoteInfo{
+						{
+							Validator:   valVoteInfo.Validator,
+							BlockIdFlag: valVoteInfo.BlockIdFlag,
+						},
+					},
+				}
+
 				return s.createRequestProcessProposal(
 					proposal,
+					lastCommit,
 					3,
 				)
 			},
 			veEnabled: true,
 			currencyPairStrategy: func() currencypair.CurrencyPairStrategy {
 				cpStrategy := currencypairmocks.NewCurrencyPairStrategy(s.T())
-
-				cpStrategy.On("FromID", mock.Anything, uint64(0)).Return(btcUSD, nil)
-				cpStrategy.On("GetDecodedPrice", mock.Anything, btcUSD, mock.Anything).Return(big.NewInt(10), nil)
-
+				cpStrategy.On("GetMaxNumCP", mock.Anything).Return(uint64(1), nil).Once()
 				return cpStrategy
 			},
 			expectedError: false,
@@ -755,7 +710,7 @@ func (s *ProposalsTestSuite) TestProcessProposal() {
 				valVoteInfo3, err := testutils.CreateExtendedVoteInfo(val3, prices3, s.codec)
 				s.Require().NoError(err)
 
-				_, commitInfoBz, err := testutils.CreateExtendedCommitInfo(
+				ext, commitInfoBz, err := testutils.CreateExtendedCommitInfo(
 					[]cometabci.ExtendedVoteInfo{valVoteInfo1, valVoteInfo2, valVoteInfo3},
 					s.extCommitCodec,
 				)
@@ -766,27 +721,99 @@ func (s *ProposalsTestSuite) TestProcessProposal() {
 					[]byte("tx1"),
 				}
 
+				lastCommit := cometabci.CommitInfo{
+					Round: ext.Round,
+					Votes: []cometabci.VoteInfo{
+						{
+							Validator:   valVoteInfo1.Validator,
+							BlockIdFlag: valVoteInfo1.BlockIdFlag,
+						},
+						{
+							Validator:   valVoteInfo2.Validator,
+							BlockIdFlag: valVoteInfo2.BlockIdFlag,
+						},
+						{
+							Validator:   valVoteInfo3.Validator,
+							BlockIdFlag: valVoteInfo3.BlockIdFlag,
+						},
+					},
+				}
+
 				return s.createRequestProcessProposal(
 					proposal,
+					lastCommit,
+
 					3,
 				)
 			},
 			veEnabled: true,
 			currencyPairStrategy: func() currencypair.CurrencyPairStrategy {
 				cpStrategy := currencypairmocks.NewCurrencyPairStrategy(s.T())
+				cpStrategy.On("GetMaxNumCP", mock.Anything).Return(uint64(2), nil).Times(3)
+				return cpStrategy
+			},
+			expectedError: false,
+			expectedResp: &cometabci.ResponseProcessProposal{
+				Status: cometabci.ResponseProcessProposal_ACCEPT,
+			},
+		},
+		{
+			name: "can process a block with valid pruned vote extension",
+			request: func() *cometabci.RequestProcessProposal {
+				valVoteInfo1, err := testutils.CreateExtendedVoteInfo(val1, prices1, s.codec)
+				s.Require().NoError(err)
 
-				cpStrategy.On("FromID", mock.Anything, uint64(0)).Return(btcUSD, nil)
-				cpStrategy.On("GetDecodedPrice", mock.Anything, btcUSD, mock.Anything).Return(big.NewInt(10), nil)
+				valVoteInfo2, err := testutils.CreateExtendedVoteInfo(val2, prices2, s.codec)
+				s.Require().NoError(err)
 
-				cpStrategy.On("FromID", mock.Anything, uint64(1)).Return(ethUSD, nil)
-				cpStrategy.On("GetDecodedPrice", mock.Anything, ethUSD, mock.Anything).Return(big.NewInt(20), nil)
+				valVoteInfo3, err := testutils.CreateExtendedVoteInfo(val3, prices3, s.codec)
+				s.Require().NoError(err)
 
-				cpStrategy.On("FromID", mock.Anything, uint64(0)).Return(btcUSD, nil)
-				cpStrategy.On("GetDecodedPrice", mock.Anything, btcUSD, mock.Anything).Return(big.NewInt(10), nil)
+				valVoteInfo3Modified := valVoteInfo3
+				valVoteInfo3Modified.BlockIdFlag = cometproto.BlockIDFlagAbsent
+				valVoteInfo3Modified.VoteExtension = nil
+				valVoteInfo3Modified.ExtensionSignature = nil
 
-				cpStrategy.On("FromID", mock.Anything, uint64(1)).Return(ethUSD, nil)
-				cpStrategy.On("GetDecodedPrice", mock.Anything, ethUSD, mock.Anything).Return(big.NewInt(20), nil)
+				ext, commitInfoBz, err := testutils.CreateExtendedCommitInfo(
+					[]cometabci.ExtendedVoteInfo{valVoteInfo1, valVoteInfo2, valVoteInfo3Modified},
+					s.extCommitCodec,
+				)
+				s.Require().NoError(err)
 
+				proposal := [][]byte{
+					commitInfoBz,
+					[]byte("tx1"),
+				}
+
+				lastCommit := cometabci.CommitInfo{
+					Round: ext.Round,
+					Votes: []cometabci.VoteInfo{
+						{
+							Validator:   valVoteInfo1.Validator,
+							BlockIdFlag: valVoteInfo1.BlockIdFlag,
+						},
+						{
+							Validator:   valVoteInfo2.Validator,
+							BlockIdFlag: valVoteInfo2.BlockIdFlag,
+						},
+						{
+							Validator:   valVoteInfo3.Validator,
+							BlockIdFlag: valVoteInfo3.BlockIdFlag,
+						},
+					},
+				}
+
+				return s.createRequestProcessProposal(
+					proposal,
+					lastCommit,
+
+					3,
+				)
+			},
+			veEnabled: true,
+			currencyPairStrategy: func() currencypair.CurrencyPairStrategy {
+				cpStrategy := currencypairmocks.NewCurrencyPairStrategy(s.T())
+				cpStrategy.On("GetMaxNumCP", mock.Anything).Return(uint64(2), nil).Times(2)
 				return cpStrategy
 			},
 			expectedError: false,
@@ -797,13 +824,13 @@ func (s *ProposalsTestSuite) TestProcessProposal() {
 		{
 			name: "rejects a block with an invalid vote extension",
 			request: func() *cometabci.RequestProcessProposal {
-				valVoteInfo1, err := testutils.CreateExtendedVoteInfo(val1, prices1, s.codec)
+				valVoteInfo, err := testutils.CreateExtendedVoteInfo(val1, prices1, s.codec)
 				s.Require().NoError(err)
 
-				valVoteInfo1.VoteExtension = []byte("bad vote extension")
+				valVoteInfo.VoteExtension = []byte("bad vote extension")
 
-				_, commitInfoBz, err := testutils.CreateExtendedCommitInfo(
-					[]cometabci.ExtendedVoteInfo{valVoteInfo1},
+				ext, commitInfoBz, err := testutils.CreateExtendedCommitInfo(
+					[]cometabci.ExtendedVoteInfo{valVoteInfo},
 					s.extCommitCodec,
 				)
 				s.Require().NoError(err)
@@ -813,8 +840,19 @@ func (s *ProposalsTestSuite) TestProcessProposal() {
 					[]byte("tx1"),
 				}
 
+				lastCommit := cometabci.CommitInfo{
+					Round: ext.Round,
+					Votes: []cometabci.VoteInfo{
+						{
+							Validator:   valVoteInfo.Validator,
+							BlockIdFlag: valVoteInfo.BlockIdFlag,
+						},
+					},
+				}
+
 				return s.createRequestProcessProposal(
 					proposal,
+					lastCommit,
 					3,
 				)
 			},
@@ -833,7 +871,7 @@ func (s *ProposalsTestSuite) TestProcessProposal() {
 				valVoteInfo, err := testutils.CreateExtendedVoteInfo(val1, malformedPrices, s.codec)
 				s.Require().NoError(err)
 
-				_, commitInfoBz, err := testutils.CreateExtendedCommitInfo(
+				ext, commitInfoBz, err := testutils.CreateExtendedCommitInfo(
 					[]cometabci.ExtendedVoteInfo{valVoteInfo},
 					s.extCommitCodec,
 				)
@@ -844,84 +882,26 @@ func (s *ProposalsTestSuite) TestProcessProposal() {
 					[]byte("tx1"),
 				}
 
-				return s.createRequestProcessProposal(
-					proposal,
-					3,
-				)
-			},
-			veEnabled: true,
-			currencyPairStrategy: func() currencypair.CurrencyPairStrategy {
-				return currencypairmocks.NewCurrencyPairStrategy(s.T())
-			},
-			expectedError: true,
-			expectedResp: &cometabci.ResponseProcessProposal{
-				Status: cometabci.ResponseProcessProposal_REJECT,
-			},
-		},
-		{
-			name: "rejects a request with ve that contains invalid currency pair id",
-			request: func() *cometabci.RequestProcessProposal {
-				valVoteInfo, err := testutils.CreateExtendedVoteInfo(val1, prices1, s.codec)
-				s.Require().NoError(err)
-
-				_, commitInfoBz, err := testutils.CreateExtendedCommitInfo(
-					[]cometabci.ExtendedVoteInfo{valVoteInfo},
-					s.extCommitCodec,
-				)
-				s.Require().NoError(err)
-
-				proposal := [][]byte{
-					commitInfoBz,
-					[]byte("tx1"),
+				lastCommit := cometabci.CommitInfo{
+					Round: ext.Round,
+					Votes: []cometabci.VoteInfo{
+						{
+							Validator:   valVoteInfo.Validator,
+							BlockIdFlag: valVoteInfo.BlockIdFlag,
+						},
+					},
 				}
 
 				return s.createRequestProcessProposal(
 					proposal,
+					lastCommit,
 					3,
 				)
 			},
 			veEnabled: true,
 			currencyPairStrategy: func() currencypair.CurrencyPairStrategy {
 				cpStrategy := currencypairmocks.NewCurrencyPairStrategy(s.T())
-
-				cpStrategy.On("FromID", mock.Anything, uint64(0)).Return(btcUSD, fmt.Errorf("no rizz error ha"))
-
-				return cpStrategy
-			},
-			expectedError: true,
-			expectedResp: &cometabci.ResponseProcessProposal{
-				Status: cometabci.ResponseProcessProposal_REJECT,
-			},
-		},
-		{
-			name: "rejects a request with ve that contains invalid price bytes",
-			request: func() *cometabci.RequestProcessProposal {
-				valVoteInfo, err := testutils.CreateExtendedVoteInfo(val1, prices1, s.codec)
-				s.Require().NoError(err)
-
-				_, commitInfoBz, err := testutils.CreateExtendedCommitInfo(
-					[]cometabci.ExtendedVoteInfo{valVoteInfo},
-					s.extCommitCodec,
-				)
-				s.Require().NoError(err)
-
-				proposal := [][]byte{
-					commitInfoBz,
-					[]byte("tx1"),
-				}
-
-				return s.createRequestProcessProposal(
-					proposal,
-					3,
-				)
-			},
-			veEnabled: true,
-			currencyPairStrategy: func() currencypair.CurrencyPairStrategy {
-				cpStrategy := currencypairmocks.NewCurrencyPairStrategy(s.T())
-
-				cpStrategy.On("FromID", mock.Anything, uint64(0)).Return(btcUSD, nil)
-				cpStrategy.On("GetDecodedPrice", mock.Anything, btcUSD, mock.Anything).Return(big.NewInt(10), fmt.Errorf(">:("))
-
+				cpStrategy.On("GetMaxNumCP", mock.Anything).Return(uint64(1), nil).Once()
 				return cpStrategy
 			},
 			expectedError: true,
@@ -939,18 +919,23 @@ func (s *ProposalsTestSuite) TestProcessProposal() {
 				log.NewTestLogger(s.T()),
 				s.prepareProposalHandler,
 				s.processProposalHandler,
-				ve.NoOpValidateVoteExtensions,
+				ValidateVoteExtensionsAgainstLastCommit,
 				s.codec,
 				s.extCommitCodec,
 				tc.currencyPairStrategy(),
 				servicemetrics.NewNopMetrics(),
 			)
 
+			req := tc.request()
 			if tc.veEnabled {
-				s.ctx = s.ctx.WithBlockHeight(3)
+				s.ctx = s.ctx.WithBlockHeight(3).WithCometInfo(baseapp.NewBlockInfo(
+					nil,
+					nil,
+					nil,
+					req.ProposedLastCommit,
+				))
 			}
 
-			req := tc.request()
 			response, err := s.proposalHandler.ProcessProposalHandler()(s.ctx, req)
 
 			s.Require().Equal(tc.expectedResp, response)
@@ -963,9 +948,19 @@ func (s *ProposalsTestSuite) TestProcessProposal() {
 	}
 }
 
+func ValidateVoteExtensionsAgainstLastCommit(
+	ctx sdk.Context,
+	extCommit cometabci.ExtendedCommitInfo,
+) error {
+	commitInfo := ctx.CometInfo().GetLastCommit()
+	return ve.ValidateExtendedCommitAgainstLastCommit(extCommit, commitInfo)
+}
+
 func (s *ProposalsTestSuite) TestProposalLatency() {
 	// check that no latency is reported for a failed PrepareProposal
-	metricsmocks := servicemetricsmocks.NewMetrics(s.T())
+	metricsMocks := servicemetricsmocks.NewMetrics(s.T())
+	cpStrategy := currencypairmocks.NewCurrencyPairStrategy(s.T())
+	cpStrategy.On("GetMaxNumCP", mock.Anything).Return(uint64(0), nil).Once()
 
 	// check that latency reported in upstream logic is reported
 	s.Run("wrapped prepare proposal latency is reported", func() {
@@ -979,35 +974,38 @@ func (s *ProposalsTestSuite) TestProposalLatency() {
 				}, nil
 			},
 			nil,
-			func(_ sdk.Context, _ int64, _ cometabci.ExtendedCommitInfo) error {
+			func(_ sdk.Context, _ cometabci.ExtendedCommitInfo) error {
 				time.Sleep(100 * time.Millisecond)
 				return nil
 			},
 			codec.NewDefaultVoteExtensionCodec(),
 			codec.NewDefaultExtendedCommitCodec(),
-			currencypairmocks.NewCurrencyPairStrategy(s.T()),
-			metricsmocks,
+			cpStrategy,
+			metricsMocks,
 		)
+
+		vote, err := testutils.CreateExtendedVoteInfo(val1, map[uint64][]byte{}, codec.NewDefaultVoteExtensionCodec())
+		s.Require().NoError(err)
 
 		req := s.createRequestPrepareProposal( // the votes here are invalid, but that's fine
 			cometabci.ExtendedCommitInfo{
 				Round: 1,
-				Votes: nil,
+				Votes: []cometabci.ExtendedVoteInfo{vote},
 			},
 			nil,
 			4, // vote extensions will be enabled
 		)
 
 		s.ctx = s.ctx.WithBlockHeight(4)
-		metricsmocks.On("ObserveABCIMethodLatency", servicemetrics.PrepareProposal, mock.Anything).Return().Run(func(args mock.Arguments) {
-			// the second arg shld be a duration
+		metricsMocks.On("ObserveABCIMethodLatency", servicemetrics.PrepareProposal, mock.Anything).Return().Run(func(args mock.Arguments) {
+			// the second arg should be a duration
 			latency := args.Get(1).(time.Duration)
-			s.Require().True(latency >= 100*time.Millisecond) // shld have included latency from validate vote extensions
-			s.Require().True(latency < 300*time.Millisecond)  // shld have ignored wrapped prepare-proposal latency
+			s.Require().True(latency >= 100*time.Millisecond) // should have included latency from validate vote extensions
+			s.Require().True(latency < 300*time.Millisecond)  // should have ignored wrapped prepare-proposal latency
 		}).Once()
-		metricsmocks.On("AddABCIRequest", servicemetrics.PrepareProposal, servicemetrics.Success{}).Once()
+		metricsMocks.On("AddABCIRequest", servicemetrics.PrepareProposal, servicemetrics.Success{}).Once()
 
-		_, err := propHandler.PrepareProposalHandler()(s.ctx, req)
+		_, err = propHandler.PrepareProposalHandler()(s.ctx, req)
 		s.Require().NoError(err)
 	})
 
@@ -1016,14 +1014,14 @@ func (s *ProposalsTestSuite) TestProposalLatency() {
 			log.NewTestLogger(s.T()),
 			nil,
 			nil,
-			func(_ sdk.Context, _ int64, _ cometabci.ExtendedCommitInfo) error {
+			func(_ sdk.Context, _ cometabci.ExtendedCommitInfo) error {
 				time.Sleep(100 * time.Millisecond)
 				return fmt.Errorf("error in validate vote extensions")
 			},
 			codec.NewDefaultVoteExtensionCodec(),
 			codec.NewDefaultExtendedCommitCodec(),
 			currencypairmocks.NewCurrencyPairStrategy(s.T()),
-			metricsmocks,
+			metricsMocks,
 		)
 
 		req := s.createRequestPrepareProposal( // the votes here are invalid, but that's fine
@@ -1035,18 +1033,18 @@ func (s *ProposalsTestSuite) TestProposalLatency() {
 			4, // vote extensions will be enabled
 		)
 
-		metricsmocks.On("ObserveABCIMethodLatency", servicemetrics.PrepareProposal, mock.Anything).Return().Run(func(args mock.Arguments) {
-			// the second arg shld be a duration
+		metricsMocks.On("ObserveABCIMethodLatency", servicemetrics.PrepareProposal, mock.Anything).Return().Run(func(args mock.Arguments) {
+			// the second arg should be a duration
 			latency := args.Get(1).(time.Duration)
-			s.Require().True(latency >= 100*time.Millisecond) // shld have included latency from validate vote extensions
+			s.Require().True(latency >= 100*time.Millisecond) // should have included latency from validate vote extensions
 		}).Once()
 
-		experr := proposals.InvalidExtendedCommitInfoError{
+		expErr := proposals.InvalidExtendedCommitInfoError{
 			Err: fmt.Errorf("error in validate vote extensions"),
 		}
-		metricsmocks.On("AddABCIRequest", servicemetrics.PrepareProposal, experr).Once()
+		metricsMocks.On("AddABCIRequest", servicemetrics.PrepareProposal, expErr).Once()
 		_, err := propHandler.PrepareProposalHandler()(s.ctx, req)
-		s.Require().Error(err, experr)
+		s.Require().Error(err, expErr)
 	})
 
 	s.Run("wrapped process proposal latency is reported", func() {
@@ -1058,7 +1056,7 @@ func (s *ProposalsTestSuite) TestProposalLatency() {
 				time.Sleep(200 * time.Millisecond)
 				return &cometabci.ResponseProcessProposal{}, nil
 			},
-			func(_ sdk.Context, _ int64, _ cometabci.ExtendedCommitInfo) error {
+			func(_ sdk.Context, _ cometabci.ExtendedCommitInfo) error {
 				// simulate a long-running validate vote extensions
 				time.Sleep(100 * time.Millisecond)
 				return nil
@@ -1066,24 +1064,29 @@ func (s *ProposalsTestSuite) TestProposalLatency() {
 			codec.NewDefaultVoteExtensionCodec(),
 			codec.NewDefaultExtendedCommitCodec(),
 			currencypairmocks.NewCurrencyPairStrategy(s.T()),
-			metricsmocks,
+			metricsMocks,
 		)
 
-		_, extInfoBz, err := testutils.CreateExtendedCommitInfo(
+		ext, extInfoBz, err := testutils.CreateExtendedCommitInfo(
 			[]cometabci.ExtendedVoteInfo{},
 			codec.NewDefaultExtendedCommitCodec(),
 		)
 		s.Require().NoError(err)
 
-		req := s.createRequestProcessProposal([][]byte{extInfoBz}, 4)
-		metricsmocks.On("ObserveABCIMethodLatency", servicemetrics.ProcessProposal, mock.Anything).Return().Run(func(args mock.Arguments) {
-			// the second arg shld be a duration
+		lastCommit := cometabci.CommitInfo{
+			Round: ext.Round,
+			Votes: []cometabci.VoteInfo{},
+		}
+
+		req := s.createRequestProcessProposal([][]byte{extInfoBz}, lastCommit, 4)
+		metricsMocks.On("ObserveABCIMethodLatency", servicemetrics.ProcessProposal, mock.Anything).Return().Run(func(args mock.Arguments) {
+			// the second arg should be a duration
 			latency := args.Get(1).(time.Duration)
-			s.Require().True(latency >= 100*time.Millisecond) // shld have included validate vote extensions latency
-			s.Require().True(latency < 300*time.Millisecond)  // shld have ignored the wrapped processProposal latency
+			s.Require().True(latency >= 100*time.Millisecond) // should have included validate vote extensions latency
+			s.Require().True(latency < 300*time.Millisecond)  // should have ignored the wrapped processProposal latency
 		}).Once()
-		metricsmocks.On("AddABCIRequest", servicemetrics.ProcessProposal, servicemetrics.Success{}).Once()
-		metricsmocks.On("ObserveMessageSize", servicemetrics.ExtendedCommit, mock.Anything)
+		metricsMocks.On("AddABCIRequest", servicemetrics.ProcessProposal, servicemetrics.Success{}).Once()
+		metricsMocks.On("ObserveMessageSize", servicemetrics.ExtendedCommit, mock.Anything)
 
 		_, err = propHandler.ProcessProposalHandler()(s.ctx, req)
 		s.Require().NoError(err)
@@ -1094,37 +1097,42 @@ func (s *ProposalsTestSuite) TestProposalLatency() {
 			log.NewTestLogger(s.T()),
 			nil,
 			nil,
-			func(_ sdk.Context, _ int64, _ cometabci.ExtendedCommitInfo) error {
+			func(_ sdk.Context, _ cometabci.ExtendedCommitInfo) error {
 				time.Sleep(100 * time.Millisecond)
 				return fmt.Errorf("error in validate vote extensions")
 			},
 			codec.NewDefaultVoteExtensionCodec(),
 			codec.NewDefaultExtendedCommitCodec(),
 			currencypairmocks.NewCurrencyPairStrategy(s.T()),
-			metricsmocks,
+			metricsMocks,
 		)
 
-		_, extInfoBz, err := testutils.CreateExtendedCommitInfo(
+		ext, extInfoBz, err := testutils.CreateExtendedCommitInfo(
 			[]cometabci.ExtendedVoteInfo{},
 			codec.NewDefaultExtendedCommitCodec(),
 		)
 		s.Require().NoError(err)
 
-		experr := proposals.InvalidExtendedCommitInfoError{
+		expErr := proposals.InvalidExtendedCommitInfoError{
 			Err: fmt.Errorf("error in validate vote extensions"),
 		}
 
-		req := s.createRequestProcessProposal([][]byte{extInfoBz}, 4)
-		metricsmocks.On("ObserveABCIMethodLatency", servicemetrics.ProcessProposal, mock.Anything).Return().Run(func(args mock.Arguments) {
-			// the second arg shld be a duration
+		lastCommit := cometabci.CommitInfo{
+			Round: ext.Round,
+			Votes: []cometabci.VoteInfo{},
+		}
+
+		req := s.createRequestProcessProposal([][]byte{extInfoBz}, lastCommit, 4)
+		metricsMocks.On("ObserveABCIMethodLatency", servicemetrics.ProcessProposal, mock.Anything).Return().Run(func(args mock.Arguments) {
+			// the second arg should be a duration
 			latency := args.Get(1).(time.Duration)
 			s.Require().True(latency >= 100*time.Millisecond) // should have included validate vote extensions latency
 		}).Once()
-		metricsmocks.On("AddABCIRequest", servicemetrics.ProcessProposal, experr).Once()
-		metricsmocks.On("ObserveMessageSize", servicemetrics.ExtendedCommit, mock.Anything)
+		metricsMocks.On("AddABCIRequest", servicemetrics.ProcessProposal, expErr).Once()
+		metricsMocks.On("ObserveMessageSize", servicemetrics.ExtendedCommit, mock.Anything)
 
 		_, err = propHandler.ProcessProposalHandler()(s.ctx, req)
-		s.Require().Error(err, experr)
+		s.Require().Error(err, expErr)
 	})
 }
 
@@ -1138,7 +1146,7 @@ func (s *ProposalsTestSuite) TestPrepareProposalStatus() {
 				return nil, nil
 			},
 			nil,
-			func(_ sdk.Context, _ int64, _ cometabci.ExtendedCommitInfo) error {
+			func(_ sdk.Context, _ cometabci.ExtendedCommitInfo) error {
 				return nil
 			},
 			codec.NewDefaultVoteExtensionCodec(),
@@ -1168,7 +1176,7 @@ func (s *ProposalsTestSuite) TestPrepareProposalStatus() {
 				return nil, prepareErr
 			},
 			nil,
-			func(_ sdk.Context, _ int64, _ cometabci.ExtendedCommitInfo) error {
+			func(_ sdk.Context, _ cometabci.ExtendedCommitInfo) error {
 				return nil
 			},
 			codec.NewDefaultVoteExtensionCodec(),
@@ -1191,7 +1199,7 @@ func (s *ProposalsTestSuite) TestPrepareProposalStatus() {
 		s.Require().Error(err, expErr)
 	})
 
-	// test invalid extendedcommit
+	// test invalid extended commit
 	s.Run("test invalid extended commit", func() {
 		metricsMocks := servicemetricsmocks.NewMetrics(s.T())
 
@@ -1202,7 +1210,7 @@ func (s *ProposalsTestSuite) TestPrepareProposalStatus() {
 				return nil, nil
 			},
 			nil,
-			func(_ sdk.Context, _ int64, _ cometabci.ExtendedCommitInfo) error {
+			func(_ sdk.Context, _ cometabci.ExtendedCommitInfo) error {
 				return extCommitError
 			},
 			codec.NewDefaultVoteExtensionCodec(),
@@ -1235,7 +1243,7 @@ func (s *ProposalsTestSuite) TestPrepareProposalStatus() {
 				return nil, nil
 			},
 			nil,
-			func(_ sdk.Context, _ int64, _ cometabci.ExtendedCommitInfo) error {
+			func(_ sdk.Context, _ cometabci.ExtendedCommitInfo) error {
 				return nil
 			},
 			codec.NewDefaultVoteExtensionCodec(),
@@ -1374,7 +1382,7 @@ func (s *ProposalsTestSuite) TestProcessProposalStatus() {
 		_, err := propHandler.ProcessProposalHandler()(s.ctx, &cometabci.RequestProcessProposal{})
 		s.Require().NoError(err)
 	})
-	// test failing w/ missing c6ommit info
+	// test failing w/ missing commit info
 	s.Run("test failing w/ missing commit info", func() {
 		metricsMocks := servicemetricsmocks.NewMetrics(s.T())
 
@@ -1446,7 +1454,7 @@ func (s *ProposalsTestSuite) TestProcessProposalStatus() {
 			func(_ sdk.Context, _ *cometabci.RequestProcessProposal) (*cometabci.ResponseProcessProposal, error) {
 				return nil, nil
 			},
-			func(_ sdk.Context, _ int64, _ cometabci.ExtendedCommitInfo) error {
+			func(_ sdk.Context, _ cometabci.ExtendedCommitInfo) error {
 				return validateErr
 			},
 			nil,
@@ -1474,7 +1482,7 @@ func (s *ProposalsTestSuite) TestProcessProposalStatus() {
 
 func (s *ProposalsTestSuite) TestExtendedCommitSize() {
 	metricsMocks := servicemetricsmocks.NewMetrics(s.T())
-	codec := codecmocks.NewExtendedCommitCodec(s.T())
+	cdc := codecmocks.NewExtendedCommitCodec(s.T())
 
 	propHandler := proposals.NewProposalHandler(
 		log.NewTestLogger(s.T()),
@@ -1482,11 +1490,11 @@ func (s *ProposalsTestSuite) TestExtendedCommitSize() {
 		func(_ sdk.Context, _ *cometabci.RequestProcessProposal) (*cometabci.ResponseProcessProposal, error) {
 			return nil, nil
 		},
-		func(_ sdk.Context, _ int64, _ cometabci.ExtendedCommitInfo) error {
+		func(_ sdk.Context, _ cometabci.ExtendedCommitInfo) error {
 			return nil
 		},
 		nil,
-		codec,
+		cdc,
 		nil,
 		metricsMocks,
 	)
@@ -1498,7 +1506,7 @@ func (s *ProposalsTestSuite) TestExtendedCommitSize() {
 	metricsMocks.On("ObserveMessageSize", servicemetrics.ExtendedCommit, 100)
 
 	// mock codec
-	codec.On("Decode", extendedCommit).Return(cometabci.ExtendedCommitInfo{
+	cdc.On("Decode", extendedCommit).Return(cometabci.ExtendedCommitInfo{
 		Votes: []cometabci.ExtendedVoteInfo{},
 	}, nil)
 
@@ -1512,11 +1520,245 @@ func (s *ProposalsTestSuite) TestExtendedCommitSize() {
 	s.Require().NoError(err)
 }
 
+func (s *ProposalsTestSuite) TestValidateExtendedCommitInfoProcess() {
+	s.Run("should fail for nil request", func() {
+	})
+}
+
+func (s *ProposalsTestSuite) TestPruning() {
+	cpStrategy := currencypairmocks.NewCurrencyPairStrategy(s.T())
+
+	ph := proposals.NewProposalHandler(
+		log.NewNopLogger(),
+		func(sdk.Context, *cometabci.RequestPrepareProposal) (*cometabci.ResponsePrepareProposal, error) {
+			return &cometabci.ResponsePrepareProposal{
+				Txs: [][]byte{{1, 2, 3}},
+			}, nil
+		},
+		func(sdk.Context, *cometabci.RequestProcessProposal) (*cometabci.ResponseProcessProposal, error) {
+			return nil, nil
+		},
+		ve.NoOpValidateVoteExtensions,
+		codec.NewDefaultVoteExtensionCodec(),
+		codec.NewDefaultExtendedCommitCodec(),
+		cpStrategy,
+		servicemetrics.NewNopMetrics(),
+	)
+
+	s.Run("no invalid votes to be pruned", func() {
+		ve1, err := testutils.CreateExtendedVoteInfoWithPower(
+			val1,
+			33,
+			map[uint64][]byte{
+				1: twoHundred.Bytes(),
+			},
+			codec.NewDefaultVoteExtensionCodec(),
+		)
+		s.Require().NoError(err)
+
+		ve2, err := testutils.CreateExtendedVoteInfoWithPower(
+			val2,
+			33,
+			map[uint64][]byte{
+				1: twoHundred.Bytes(),
+			},
+			codec.NewDefaultVoteExtensionCodec(),
+		)
+		s.Require().NoError(err)
+
+		ve3 := cometabci.ExtendedVoteInfo{
+			BlockIdFlag: cometproto.BlockIDFlagNil,
+			Validator: cometabci.Validator{
+				Address: val3,
+				Power:   30,
+			},
+		}
+
+		// mocks
+		ctx := testutils.UpdateContextWithVEHeight(s.ctx, 2)
+		ctx = ctx.WithBlockHeight(3)
+
+		cpStrategy.On("GetMaxNumCP", mock.Anything).Return(uint64(1), nil).Twice()
+
+		extInfo, err := ph.PruneAndValidateExtendedCommitInfo(ctx, cometabci.ExtendedCommitInfo{
+			Votes: []cometabci.ExtendedVoteInfo{ve1, ve2, ve3},
+		})
+		s.Require().NoError(err)
+		s.Require().Len(extInfo.Votes, 3)
+
+		// check that the votes are in the same order
+		s.Require().Equal(ve1, extInfo.Votes[0])
+		s.Require().Equal(ve2, extInfo.Votes[1])
+		s.Require().Equal(ve3, extInfo.Votes[2])
+	})
+
+	s.Run("invalid votes to be pruned", func() {
+		ve1, err := testutils.CreateExtendedVoteInfoWithPower(
+			val1,
+			33,
+			map[uint64][]byte{
+				1: twoHundred.Bytes(),
+			},
+			codec.NewDefaultVoteExtensionCodec(),
+		)
+		s.Require().NoError(err)
+
+		ve2, err := testutils.CreateExtendedVoteInfoWithPower(
+			val2,
+			1,
+			map[uint64][]byte{
+				1: twoHundred.Bytes(),
+				2: twoHundred.Bytes(),
+			},
+			codec.NewDefaultVoteExtensionCodec(),
+		)
+		s.Require().NoError(err)
+
+		ve3, err := testutils.CreateExtendedVoteInfoWithPower(
+			val3,
+			33,
+			map[uint64][]byte{
+				1: twoHundred.Bytes(),
+			},
+			codec.NewDefaultVoteExtensionCodec(),
+		)
+		s.Require().NoError(err)
+
+		// mocks
+		ctx := testutils.UpdateContextWithVEHeight(s.ctx, 2)
+		ctx = ctx.WithBlockHeight(3)
+
+		cpStrategy.On("GetMaxNumCP", mock.Anything).Return(uint64(1), nil).Times(3)
+
+		extInfo, err := ph.PruneAndValidateExtendedCommitInfo(ctx, cometabci.ExtendedCommitInfo{
+			Votes: []cometabci.ExtendedVoteInfo{ve1, ve2, ve3},
+		})
+		s.Require().NoError(err)
+		s.Require().Len(extInfo.Votes, 3)
+
+		// check that the votes are in the same order
+		s.Require().Equal(ve1, extInfo.Votes[0])
+		updatedVe := extInfo.Votes[1]
+		s.Require().Equal(0, len(updatedVe.ExtensionSignature))
+		s.Require().Equal(0, len(updatedVe.VoteExtension))
+		s.Require().Equal(cometproto.BlockIDFlagAbsent, updatedVe.BlockIdFlag)
+		s.Require().Equal(ve3, extInfo.Votes[2])
+	})
+
+	s.Run("pruning votes results in lack of super-majority", func() {
+		ve1, err := testutils.CreateExtendedVoteInfoWithPower(
+			val1,
+			33,
+			map[uint64][]byte{
+				1: twoHundred.Bytes(),
+			},
+			codec.NewDefaultVoteExtensionCodec(),
+		)
+		s.Require().NoError(err)
+
+		ve2, err := testutils.CreateExtendedVoteInfoWithPower(
+			val2,
+			33,
+			map[uint64][]byte{
+				1: twoHundred.Bytes(),
+				2: twoHundred.Bytes(),
+			},
+			codec.NewDefaultVoteExtensionCodec(),
+		)
+		s.Require().NoError(err)
+
+		ve3, err := testutils.CreateExtendedVoteInfoWithPower(
+			val3,
+			1,
+			map[uint64][]byte{
+				1: twoHundred.Bytes(),
+			},
+			codec.NewDefaultVoteExtensionCodec(),
+		)
+		s.Require().NoError(err)
+
+		// mocks
+		ctx := testutils.UpdateContextWithVEHeight(s.ctx, 2)
+		ctx = ctx.WithBlockHeight(3)
+
+		cpStrategy.On("GetMaxNumCP", mock.Anything).Return(uint64(1), nil).Times(3)
+
+		extInfo, err := ph.PruneAndValidateExtendedCommitInfo(ctx, cometabci.ExtendedCommitInfo{
+			Votes: []cometabci.ExtendedVoteInfo{ve1, ve2, ve3},
+		})
+		s.Require().NoError(err)
+		s.Require().Len(extInfo.Votes, 3)
+
+		// ensure that voting power is now invalid
+		s.Require().Error(s.checkVotingPowerValid(extInfo))
+	})
+
+	s.Run("prepare-proposal w/ invalid ves in LastCommit", func() {
+		ve1, err := testutils.CreateExtendedVoteInfoWithPower(
+			val1,
+			33,
+			map[uint64][]byte{
+				1: twoHundred.Bytes(),
+			},
+			codec.NewDefaultVoteExtensionCodec(),
+		)
+		s.Require().NoError(err)
+
+		ve2, err := testutils.CreateExtendedVoteInfoWithPower(
+			val2,
+			1,
+			map[uint64][]byte{
+				1: twoHundred.Bytes(),
+				2: twoHundred.Bytes(),
+			},
+			codec.NewDefaultVoteExtensionCodec(),
+		)
+		s.Require().NoError(err)
+
+		ve3, err := testutils.CreateExtendedVoteInfoWithPower(
+			val3,
+			33,
+			map[uint64][]byte{
+				1: twoHundred.Bytes(),
+			},
+			codec.NewDefaultVoteExtensionCodec(),
+		)
+		s.Require().NoError(err)
+
+		// mocks
+		ctx := testutils.UpdateContextWithVEHeight(s.ctx, 2)
+		ctx = ctx.WithBlockHeight(3)
+
+		cpStrategy.On("GetMaxNumCP", mock.Anything).Return(uint64(1), nil).Times(3)
+
+		res, err := ph.PrepareProposalHandler()(ctx, s.createRequestPrepareProposal(cometabci.ExtendedCommitInfo{
+			Votes: []cometabci.ExtendedVoteInfo{ve1, ve2, ve3},
+		}, [][]byte{}, 3))
+		s.Require().NoError(err)
+
+		// check that the first tx is an extended, commit constructed as expected
+		extInfo, err := codec.NewDefaultExtendedCommitCodec().Decode(res.Txs[0])
+		s.Require().NoError(err)
+
+		s.Require().Len(extInfo.Votes, 3)
+
+		// check that the votes are in the same order
+		s.Require().Equal(ve1, extInfo.Votes[0])
+		updatedVe := extInfo.Votes[1]
+		s.Require().Equal(0, len(updatedVe.ExtensionSignature))
+		s.Require().Equal(0, len(updatedVe.VoteExtension))
+		s.Require().Equal(cometproto.BlockIDFlagAbsent, updatedVe.BlockIdFlag)
+		s.Require().Equal(ve3, extInfo.Votes[2])
+	})
+}
+
 func (s *ProposalsTestSuite) createRequestPrepareProposal(
 	extendedCommitInfo cometabci.ExtendedCommitInfo,
 	txs [][]byte,
 	height int64,
 ) *cometabci.RequestPrepareProposal {
+	s.T().Helper()
+
 	return &cometabci.RequestPrepareProposal{
 		Txs:             txs,
 		LocalLastCommit: extendedCommitInfo,
@@ -1528,10 +1770,54 @@ func (s *ProposalsTestSuite) createRequestPrepareProposal(
 
 func (s *ProposalsTestSuite) createRequestProcessProposal(
 	proposal [][]byte,
+	lastCommit cometabci.CommitInfo,
 	height int64,
 ) *cometabci.RequestProcessProposal {
+	s.T().Helper()
+
 	return &cometabci.RequestProcessProposal{
-		Txs:    proposal,
-		Height: height,
+		Txs:                proposal,
+		ProposedLastCommit: lastCommit,
+		Height:             height,
 	}
+}
+
+func (s *ProposalsTestSuite) checkVotingPowerValid(
+	extCommit cometabci.ExtendedCommitInfo,
+) error {
+	s.T().Helper()
+
+	var (
+		// Total voting power of all vote extensions.
+		totalVP int64
+		// Total voting power of all validators that submitted valid vote extensions.
+		sumVP int64
+	)
+
+	for _, vote := range extCommit.Votes {
+		totalVP += vote.Validator.Power
+
+		// Only check + include power if the vote is a commit vote. There must be super-majority, otherwise the
+		// previous block (the block vote is for) could not have been committed.
+		if vote.BlockIdFlag != cometproto.BlockIDFlagCommit {
+			continue
+		}
+
+		sumVP += vote.Validator.Power
+	}
+
+	// This check is probably unnecessary, but better safe than sorry.
+	if totalVP <= 0 {
+		return fmt.Errorf("total voting power must be positive, got: %d", totalVP)
+	}
+
+	// If the sum of the voting power has not reached (2/3 + 1) we need to error.
+	if requiredVP := ((totalVP * 2) / 3) + 1; sumVP < requiredVP {
+		return fmt.Errorf(
+			"insufficient cumulative voting power received to verify vote extensions; got: %d, expected: >=%d",
+			sumVP, requiredVP,
+		)
+	}
+
+	return nil
 }

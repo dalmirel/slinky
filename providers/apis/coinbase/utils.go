@@ -4,7 +4,8 @@ import (
 	"time"
 
 	"github.com/skip-mev/slinky/oracle/config"
-	oracletypes "github.com/skip-mev/slinky/x/oracle/types"
+	"github.com/skip-mev/slinky/oracle/constants"
+	"github.com/skip-mev/slinky/oracle/types"
 )
 
 // NOTE: All documentation for this file can be located on the Coinbase
@@ -13,7 +14,7 @@ import (
 
 const (
 	// Name is the name of the Coinbase provider.
-	Name = "coinbase"
+	Name = "coinbase_api"
 
 	// URL is the base URL of the Coinbase API. This includes the base and quote
 	// currency pairs that need to be inserted into the URL.
@@ -23,131 +24,241 @@ const (
 var (
 	// DefaultAPIConfig is the default configuration for the Coinbase API.
 	DefaultAPIConfig = config.APIConfig{
-		Name:       Name,
-		Atomic:     false,
-		Enabled:    true,
-		Timeout:    500 * time.Millisecond,
-		Interval:   1 * time.Second,
-		MaxQueries: 5,
-		URL:        URL,
+		Name:             Name,
+		Atomic:           false,
+		Enabled:          true,
+		Timeout:          500 * time.Millisecond,
+		Interval:         100 * time.Millisecond,
+		ReconnectTimeout: 2000 * time.Millisecond,
+		MaxQueries:       5,
+		URL:              URL,
 	}
 
 	// DefaultMarketConfig is the default market configuration for Coinbase.
-	DefaultMarketConfig = config.MarketConfig{
-		Name: Name,
-		CurrencyPairToMarketConfigs: map[string]config.CurrencyPairMarketConfig{
-			"ATOM/USD": {
-				Ticker:       "ATOM-USD",
-				CurrencyPair: oracletypes.NewCurrencyPair("ATOM", "USD"),
-			},
-			"ATOM/USDC": {
-				Ticker:       "ATOM-USDC",
-				CurrencyPair: oracletypes.NewCurrencyPair("ATOM", "USDC"),
-			},
-			"ATOM/USDT": {
-				Ticker:       "ATOM-USDT",
-				CurrencyPair: oracletypes.NewCurrencyPair("ATOM", "USDT"),
-			},
-			"AVAX/USD": {
-				Ticker:       "AVAX-USD",
-				CurrencyPair: oracletypes.NewCurrencyPair("AVAX", "USD"),
-			},
-			"AVAX/USDC": {
-				Ticker:       "AVAX-USDC",
-				CurrencyPair: oracletypes.NewCurrencyPair("AVAX", "USDC"),
-			},
-			"AVAX/USDT": {
-				Ticker:       "AVAX-USDT",
-				CurrencyPair: oracletypes.NewCurrencyPair("AVAX", "USDT"),
-			},
-			"BITCOIN/USD": {
-				Ticker:       "BTC-USD",
-				CurrencyPair: oracletypes.NewCurrencyPair("BITCOIN", "USD"),
-			},
-			"BITCOIN/USDC": {
-				Ticker:       "BTC-USDC",
-				CurrencyPair: oracletypes.NewCurrencyPair("BITCOIN", "USDC"),
-			},
-			"BITCOIN/USDT": {
-				Ticker:       "BTC-USDT",
-				CurrencyPair: oracletypes.NewCurrencyPair("BITCOIN", "USDT"),
-			},
-			"CELESTIA/USD": {
-				Ticker:       "TIA-USD",
-				CurrencyPair: oracletypes.NewCurrencyPair("CELESTIA", "USD"),
-			},
-			"CELESTIA/USDC": {
-				Ticker:       "TIA-USDC",
-				CurrencyPair: oracletypes.NewCurrencyPair("CELESTIA", "USDC"),
-			},
-			"CELESTIA/USDT": {
-				Ticker:       "TIA-USDT",
-				CurrencyPair: oracletypes.NewCurrencyPair("CELESTIA", "USDT"),
-			},
-			"DYDX/USD": {
-				Ticker:       "DYDX-USD",
-				CurrencyPair: oracletypes.NewCurrencyPair("DYDX", "USD"),
-			},
-			"DYDX/USDC": {
-				Ticker:       "DYDX-USDC",
-				CurrencyPair: oracletypes.NewCurrencyPair("DYDX", "USDC"),
-			},
-			"DYDX/USDT": {
-				Ticker:       "DYDX-USDT",
-				CurrencyPair: oracletypes.NewCurrencyPair("DYDX", "USDT"),
-			},
-			"ETHEREUM/BITCOIN": {
-				Ticker:       "ETH-BTC",
-				CurrencyPair: oracletypes.NewCurrencyPair("ETHEREUM", "BITCOIN"),
-			},
-			"ETHEREUM/USD": {
-				Ticker:       "ETH-USD",
-				CurrencyPair: oracletypes.NewCurrencyPair("ETHEREUM", "USD"),
-			},
-			"ETHEREUM/USDC": {
-				Ticker:       "ETH-USDC",
-				CurrencyPair: oracletypes.NewCurrencyPair("ETHEREUM", "USDC"),
-			},
-			"ETHEREUM/USDT": {
-				Ticker:       "ETH-USDT",
-				CurrencyPair: oracletypes.NewCurrencyPair("ETHEREUM", "USDT"),
-			},
-			"OSMOSIS/USD": {
-				Ticker:       "OSMO-USD",
-				CurrencyPair: oracletypes.NewCurrencyPair("OSMOSIS", "USD"),
-			},
-			"OSMOSIS/USDC": {
-				Ticker:       "OSMO-USDC",
-				CurrencyPair: oracletypes.NewCurrencyPair("OSMOSIS", "USDC"),
-			},
-			"OSMOSIS/USDT": {
-				Ticker:       "OSMO-USDT",
-				CurrencyPair: oracletypes.NewCurrencyPair("OSMOSIS", "USDT"),
-			},
-			"SOLANA/USD": {
-				Ticker:       "SOL-USD",
-				CurrencyPair: oracletypes.NewCurrencyPair("SOLANA", "USD"),
-			},
-			"SOLANA/USDC": {
-				Ticker:       "SOL-USDC",
-				CurrencyPair: oracletypes.NewCurrencyPair("SOLANA", "USDC"),
-			},
-			"SOLANA/USDT": {
-				Ticker:       "SOL-USDT",
-				CurrencyPair: oracletypes.NewCurrencyPair("SOLANA", "USDT"),
-			},
-			"USDC/USD": {
-				Ticker:       "USDC-USD",
-				CurrencyPair: oracletypes.NewCurrencyPair("USDC", "USD"),
-			},
-			"USDC/USDT": {
-				Ticker:       "USDC-USDT",
-				CurrencyPair: oracletypes.NewCurrencyPair("USDC", "USDT"),
-			},
-			"USDT/USD": {
-				Ticker:       "USDT-USD",
-				CurrencyPair: oracletypes.NewCurrencyPair("USDT", "USD"),
-			},
+	DefaultMarketConfig = types.TickerToProviderConfig{
+		constants.APE_USD: {
+			Name:           Name,
+			OffChainTicker: "APE-USD",
+		},
+		constants.APE_USDC: {
+			Name:           Name,
+			OffChainTicker: "APE-USDC",
+		},
+		constants.APE_USDT: {
+			Name:           Name,
+			OffChainTicker: "APE-USDT",
+		},
+		constants.APTOS_USD: {
+			Name:           Name,
+			OffChainTicker: "APT-USD",
+		},
+		constants.ARBITRUM_USD: {
+			Name:           Name,
+			OffChainTicker: "ARB-USD",
+		},
+		constants.ATOM_USD: {
+			Name:           Name,
+			OffChainTicker: "ATOM-USD",
+		},
+		constants.ATOM_USDC: {
+			Name:           Name,
+			OffChainTicker: "ATOM-USDC",
+		},
+		constants.ATOM_USDT: {
+			Name:           Name,
+			OffChainTicker: "ATOM-USDT",
+		},
+		constants.AVAX_USD: {
+			Name:           Name,
+			OffChainTicker: "AVAX-USD",
+		},
+		constants.AVAX_USDC: {
+			Name:           Name,
+			OffChainTicker: "AVAX-USDC",
+		},
+		constants.AVAX_USDT: {
+			Name:           Name,
+			OffChainTicker: "AVAX-USDT",
+		},
+		constants.BCH_USD: {
+			Name:           Name,
+			OffChainTicker: "BCH-USD",
+		},
+		constants.BITCOIN_USD: {
+			Name:           Name,
+			OffChainTicker: "BTC-USD",
+		},
+		constants.BITCOIN_USDT: {
+			Name:           Name,
+			OffChainTicker: "BTC-USDT",
+		},
+		constants.BITCOIN_USDC: {
+			Name:           Name,
+			OffChainTicker: "BTC-USDC",
+		},
+		constants.BITCOIN_USDT: {
+			Name:           Name,
+			OffChainTicker: "BTC-USDT",
+		},
+		constants.BLUR_USD: {
+			Name:           Name,
+			OffChainTicker: "BLUR-USD",
+		},
+		constants.CARDANO_USD: {
+			Name:           Name,
+			OffChainTicker: "ADA-USD",
+		},
+		constants.CELESTIA_USD: {
+			Name:           Name,
+			OffChainTicker: "TIA-USD",
+		},
+		constants.CELESTIA_USDC: {
+			Name:           Name,
+			OffChainTicker: "TIA-USDC",
+		},
+		constants.CELESTIA_USDT: {
+			Name:           Name,
+			OffChainTicker: "TIA-USDT",
+		},
+		constants.CHAINLINK_USD: {
+			Name:           Name,
+			OffChainTicker: "LINK-USD",
+		},
+		constants.COMPOUND_USD: {
+			Name:           Name,
+			OffChainTicker: "COMP-USD",
+		},
+		constants.CURVE_USD: {
+			Name:           Name,
+			OffChainTicker: "CRV-USD",
+		},
+		constants.DOGE_USD: {
+			Name:           Name,
+			OffChainTicker: "DOGE-USD",
+		},
+		constants.DYDX_USD: {
+			Name:           Name,
+			OffChainTicker: "DYDX-USD",
+		},
+		constants.DYDX_USDC: {
+			Name:           Name,
+			OffChainTicker: "DYDX-USDC",
+		},
+		constants.DYDX_USDT: {
+			Name:           Name,
+			OffChainTicker: "DYDX-USDT",
+		},
+		constants.ETC_USD: {
+			Name:           Name,
+			OffChainTicker: "ETC-USD",
+		},
+		constants.ETHEREUM_BITCOIN: {
+			Name:           Name,
+			OffChainTicker: "ETH-BTC",
+		},
+		constants.ETHEREUM_USD: {
+			Name:           Name,
+			OffChainTicker: "ETH-USD",
+		},
+		constants.ETHEREUM_USDC: {
+			Name:           Name,
+			OffChainTicker: "ETH-USDC",
+		},
+		constants.ETHEREUM_USDT: {
+			Name:           Name,
+			OffChainTicker: "ETH-USDT",
+		},
+		constants.FILECOIN_USD: {
+			Name:           Name,
+			OffChainTicker: "FIL-USD",
+		},
+		constants.LIDO_USD: {
+			Name:           Name,
+			OffChainTicker: "LDO-USD",
+		},
+		constants.LITECOIN_USD: {
+			Name:           Name,
+			OffChainTicker: "LTC-USD",
+		},
+		constants.MAKER_USD: {
+			Name:           Name,
+			OffChainTicker: "MKR-USD",
+		},
+		constants.NEAR_USD: {
+			Name:           Name,
+			OffChainTicker: "NEAR-USD",
+		},
+		constants.OPTIMISM_USD: {
+			Name:           Name,
+			OffChainTicker: "OP-USD",
+		},
+		constants.OSMOSIS_USD: {
+			Name:           Name,
+			OffChainTicker: "OSMO-USD",
+		},
+		constants.OSMOSIS_USDC: {
+			Name:           Name,
+			OffChainTicker: "OSMO-USDC",
+		},
+		constants.OSMOSIS_USDT: {
+			Name:           Name,
+			OffChainTicker: "OSMO-USDT",
+		},
+		constants.POLKADOT_USD: {
+			Name:           Name,
+			OffChainTicker: "DOT-USD",
+		},
+		constants.POLYGON_USD: {
+			Name:           Name,
+			OffChainTicker: "MATIC-USD",
+		},
+		constants.RIPPLE_USD: {
+			Name:           Name,
+			OffChainTicker: "XRP-USD",
+		},
+		constants.SEI_USD: {
+			Name:           Name,
+			OffChainTicker: "SEI-USD",
+		},
+		constants.SHIBA_USD: {
+			Name:           Name,
+			OffChainTicker: "SHIB-USD",
+		},
+		constants.SOLANA_USD: {
+			Name:           Name,
+			OffChainTicker: "SOL-USD",
+		},
+		constants.SOLANA_USDC: {
+			Name:           Name,
+			OffChainTicker: "SOL-USDC",
+		},
+		constants.SOLANA_USDT: {
+			Name:           Name,
+			OffChainTicker: "SOL-USDT",
+		},
+		constants.STELLAR_USD: {
+			Name:           Name,
+			OffChainTicker: "XLM-USD",
+		},
+		constants.SUI_USD: {
+			Name:           Name,
+			OffChainTicker: "SUI-USD",
+		},
+		constants.UNISWAP_USD: {
+			Name:           Name,
+			OffChainTicker: "UNI-USD",
+		},
+		constants.USDC_USD: {
+			Name:           Name,
+			OffChainTicker: "USDC-USD",
+		},
+		constants.USDC_USDT: {
+			Name:           Name,
+			OffChainTicker: "USDC-USDT",
+		},
+		constants.USDT_USD: {
+			Name:           Name,
+			OffChainTicker: "USDT-USD",
 		},
 	}
 )

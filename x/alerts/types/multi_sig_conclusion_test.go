@@ -6,15 +6,15 @@ import (
 
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	ed25519 "github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
-	secp256k1 "github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
-	secp256r1 "github.com/cosmos/cosmos-sdk/crypto/keys/secp256r1"
+	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
+	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
+	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256r1"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
 
+	slinkytypes "github.com/skip-mev/slinky/pkg/types"
 	"github.com/skip-mev/slinky/x/alerts/types"
-	oracletypes "github.com/skip-mev/slinky/x/oracle/types"
 )
 
 type MultiSigConclusionTestSuite struct {
@@ -141,7 +141,7 @@ func (s *MultiSigConclusionTestSuite) TestConclusion() {
 		High: high.String(),
 	}
 	s.Run("test ValidateBasic()", func() {
-		alert := types.NewAlert(1, sdk.AccAddress("abc"), oracletypes.NewCurrencyPair("A", "B"))
+		alert := types.NewAlert(1, sdk.AccAddress("abc"), slinkytypes.NewCurrencyPair("A", "B"))
 
 		cases := []struct {
 			name       string
@@ -223,7 +223,7 @@ func (s *MultiSigConclusionTestSuite) TestConclusion() {
 	s.Run("test Verify()", func() {
 		params, err := types.NewMultiSigVerificationParams(s.pks)
 		s.Require().NoError(err)
-		alert := types.NewAlert(1, sdk.AccAddress("abc"), oracletypes.NewCurrencyPair("A", "B"))
+		alert := types.NewAlert(1, sdk.AccAddress("abc"), slinkytypes.NewCurrencyPair("A", "B"))
 
 		s.Run("invalid params - fail", func() {
 			msc := types.MultiSigConclusion{}

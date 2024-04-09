@@ -3,34 +3,33 @@ package keeper_test
 import (
 	"time"
 
-	"github.com/stretchr/testify/mock"
-
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/stretchr/testify/mock"
 
+	slinkytypes "github.com/skip-mev/slinky/pkg/types"
 	"github.com/skip-mev/slinky/x/alerts/types"
-	oracletypes "github.com/skip-mev/slinky/x/oracle/types"
 )
 
 func (s *KeeperTestSuite) TestEndBlocker() {
 	// set context
 	s.ctx = s.ctx.WithBlockHeight(10)
 
-	// set three alerts (this shld be purged first)
+	// set three alerts (this should be purged first)
 	alert1 := types.NewAlertWithStatus(
-		types.NewAlert(1, sdk.AccAddress("abc1"), oracletypes.NewCurrencyPair("BTC", "USD")),
+		types.NewAlert(1, sdk.AccAddress("abc1"), slinkytypes.NewCurrencyPair("BTC", "USD")),
 		types.NewAlertStatus(10, 10, time.Time{}, types.Concluded),
 	)
 
 	// this will be purged next
 	alert2 := types.NewAlertWithStatus(
-		types.NewAlert(2, sdk.AccAddress("abc2"), oracletypes.NewCurrencyPair("BTC", "USD")),
+		types.NewAlert(2, sdk.AccAddress("abc2"), slinkytypes.NewCurrencyPair("BTC", "USD")),
 		types.NewAlertStatus(10, 11, time.Time{}, types.Concluded),
 	)
 
 	// this will be purged last
 	alert3 := types.NewAlertWithStatus(
-		types.NewAlert(3, sdk.AccAddress("abc3"), oracletypes.NewCurrencyPair("BTC", "USD")),
+		types.NewAlert(3, sdk.AccAddress("abc3"), slinkytypes.NewCurrencyPair("BTC", "USD")),
 		types.NewAlertStatus(10, 12, time.Time{}, types.Unconcluded),
 	)
 
@@ -53,9 +52,7 @@ func (s *KeeperTestSuite) TestEndBlocker() {
 		s.Require().NoError(err)
 
 		// run endblocker
-		updates, err := s.alertKeeper.EndBlocker(s.ctx)
-		s.Require().NoError(err)
-		s.Require().Nil(updates)
+		s.Require().NoError(s.alertKeeper.EndBlocker(s.ctx))
 
 		// assert that all alerts are still in the store
 		alerts, err := s.alertKeeper.GetAllAlerts(s.ctx)
@@ -81,9 +78,7 @@ func (s *KeeperTestSuite) TestEndBlocker() {
 	s.Require().NoError(err)
 
 	s.Run("expect first alert is pruned at the end of endblock", func() {
-		updates, err := s.alertKeeper.EndBlocker(s.ctx)
-		s.Require().NoError(err)
-		s.Require().Nil(updates)
+		s.Require().NoError(s.alertKeeper.EndBlocker(s.ctx))
 
 		// assert that the first alert is pruned
 		alerts, err := s.alertKeeper.GetAllAlerts(s.ctx)
@@ -107,9 +102,7 @@ func (s *KeeperTestSuite) TestEndBlocker() {
 	// increment block height
 	s.ctx = s.ctx.WithBlockHeight(11)
 	s.Run("expect second alert is pruned at the end of endblock", func() {
-		updates, err := s.alertKeeper.EndBlocker(s.ctx)
-		s.Require().NoError(err)
-		s.Require().Nil(updates)
+		s.Require().NoError(s.alertKeeper.EndBlocker(s.ctx))
 
 		// assert that the second alert is pruned
 		_, ok := s.alertKeeper.GetAlert(s.ctx, alert2.Alert)
@@ -130,9 +123,7 @@ func (s *KeeperTestSuite) TestEndBlocker() {
 			sdk.NewCoins(s.alertKeeper.GetParams(s.ctx).AlertParams.BondAmount),
 		).Return(nil)
 
-		updates, err := s.alertKeeper.EndBlocker(s.ctx)
-		s.Require().NoError(err)
-		s.Require().Nil(updates)
+		s.Require().NoError(s.alertKeeper.EndBlocker(s.ctx))
 
 		// assert that the third alert is pruned
 		_, ok := s.alertKeeper.GetAlert(s.ctx, alert3.Alert)

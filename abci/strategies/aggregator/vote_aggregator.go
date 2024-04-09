@@ -7,12 +7,12 @@ import (
 	"cosmossdk.io/log"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	codec "github.com/skip-mev/slinky/abci/strategies/codec"
+	"github.com/skip-mev/slinky/abci/strategies/codec"
 	"github.com/skip-mev/slinky/abci/strategies/currencypair"
 	slinkyabci "github.com/skip-mev/slinky/abci/types"
 	vetypes "github.com/skip-mev/slinky/abci/ve/types"
 	"github.com/skip-mev/slinky/aggregator"
-	oracletypes "github.com/skip-mev/slinky/x/oracle/types"
+	slinkytypes "github.com/skip-mev/slinky/pkg/types"
 )
 
 // Vote encapsulates the validator and oracle data contained within a vote extension.
@@ -23,8 +23,8 @@ type Vote struct {
 	OracleVoteExtension vetypes.OracleVoteExtension
 }
 
-// GetOracleVotes returns all of the oracle vote extensions that were injected into
-// the block. Note that all of the vote extensions included are necessarily valid at this point
+// GetOracleVotes returns all oracle vote extensions that were injected into
+// the block. Note that all vote extensions included are necessarily valid at this point
 // because the vote extensions were validated by the vote extension and proposal handlers.
 func GetOracleVotes(
 	proposal [][]byte,
@@ -51,15 +51,8 @@ func GetOracleVotes(
 			}
 		}
 
-		address := sdk.ConsAddress{}
-		if err := address.Unmarshal(voteInfo.Validator.Address); err != nil {
-			return nil, slinkyabci.CodecError{
-				Err: fmt.Errorf("error decoding validator address: %w", err),
-			}
-		}
-
 		votes[i] = Vote{
-			ConsAddress:         address,
+			ConsAddress:         voteInfo.Validator.Address,
 			OracleVoteExtension: voteExtension,
 		}
 	}
@@ -68,12 +61,12 @@ func GetOracleVotes(
 }
 
 // VoteAggregator is an interface that defines the methods for aggregating oracle votes into a set of prices.
-// This object holds both the aggregated price resulting from a given set of votes, as well as the prices
+// This object holds both the aggregated price resulting from a given set of votes, and the prices
 // reported by each validator.
 //
 //go:generate mockery --name VoteAggregator --filename mock_vote_aggregator.go
 type VoteAggregator interface {
-	// AggregateOracleVotes ingresses vote information which contains all of the
+	// AggregateOracleVotes ingresses vote information which contains all
 	// vote extensions each validator extended in the previous block. it is important
 	// to note that
 	//  1. The vote extension may be nil, in which case the validator is not providing
@@ -85,20 +78,20 @@ type VoteAggregator interface {
 	//     currency pair.
 	//
 	// In order for a currency pair to be included in the final oracle price, the currency
-	// pair must be provided by a supermajority (2/3+) of validators. This is enforced by the
+	// pair must be provided by a super-majority (2/3+) of validators. This is enforced by the
 	// price aggregator but can be replaced by the application.
 	//
 	// Notice: This method overwrites the VoteAggregator's local view of prices.
-	AggregateOracleVotes(ctx sdk.Context, votes []Vote) (map[oracletypes.CurrencyPair]*big.Int, error)
+	AggregateOracleVotes(ctx sdk.Context, votes []Vote) (map[slinkytypes.CurrencyPair]*big.Int, error)
 
 	// GetPriceForValidator gets the prices reported by a given validator. This method depends
 	// on the prices from the latest set of aggregated votes.
-	GetPriceForValidator(validator sdk.ConsAddress) map[oracletypes.CurrencyPair]*big.Int
+	GetPriceForValidator(validator sdk.ConsAddress) map[slinkytypes.CurrencyPair]*big.Int
 }
 
 func NewDefaultVoteAggregator(
 	logger log.Logger,
-	aggregateFn aggregator.AggregateFnFromContext[string, map[oracletypes.CurrencyPair]*big.Int],
+	aggregateFn aggregator.AggregateFnFromContext[string, map[slinkytypes.CurrencyPair]*big.Int],
 	strategy currencypair.CurrencyPairStrategy,
 ) VoteAggregator {
 	return &DefaultVoteAggregator{
@@ -112,7 +105,7 @@ func NewDefaultVoteAggregator(
 
 type DefaultVoteAggregator struct {
 	// validator address -> currency-pair -> price
-	priceAggregator *aggregator.DataAggregator[string, map[oracletypes.CurrencyPair]*big.Int]
+	priceAggregator *aggregator.DataAggregator[string, map[slinkytypes.CurrencyPair]*big.Int]
 
 	// decoding prices / currency-pair ids
 	currencyPairStrategy currencypair.CurrencyPairStrategy
@@ -120,7 +113,7 @@ type DefaultVoteAggregator struct {
 	logger log.Logger
 }
 
-func (dva *DefaultVoteAggregator) AggregateOracleVotes(ctx sdk.Context, votes []Vote) (map[oracletypes.CurrencyPair]*big.Int, error) {
+func (dva *DefaultVoteAggregator) AggregateOracleVotes(ctx sdk.Context, votes []Vote) (map[slinkytypes.CurrencyPair]*big.Int, error) {
 	// Reset the price aggregator and set the aggregationFn to use the latest application-state.
 	dva.priceAggregator.ResetProviderData()
 
@@ -161,8 +154,8 @@ func (dva *DefaultVoteAggregator) addVoteToAggregator(ctx sdk.Context, address s
 		return nil
 	}
 
-	// Format all of the prices into a map of currency pair -> price.
-	prices := make(map[oracletypes.CurrencyPair]*big.Int, len(oracleData.Prices))
+	// Format all prices into a map of currency pair -> price.
+	prices := make(map[slinkytypes.CurrencyPair]*big.Int, len(oracleData.Prices))
 	for cpID, priceBz := range oracleData.Prices {
 		if len(priceBz) > slinkyabci.MaximumPriceSize {
 			return fmt.Errorf("price bytes are too long: %d", len(priceBz))
@@ -211,7 +204,7 @@ func (dva *DefaultVoteAggregator) addVoteToAggregator(ctx sdk.Context, address s
 	return nil
 }
 
-func (dva *DefaultVoteAggregator) GetPriceForValidator(validator sdk.ConsAddress) map[oracletypes.CurrencyPair]*big.Int {
+func (dva *DefaultVoteAggregator) GetPriceForValidator(validator sdk.ConsAddress) map[slinkytypes.CurrencyPair]*big.Int {
 	consAddrStr := validator.String()
 	return dva.priceAggregator.GetDataByProvider(consAddrStr)
 }

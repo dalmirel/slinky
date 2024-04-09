@@ -5,214 +5,151 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"go.uber.org/zap"
 
-	"github.com/skip-mev/slinky/oracle/config"
+	"github.com/skip-mev/slinky/oracle/metrics"
+	"github.com/skip-mev/slinky/oracle/types"
 	"github.com/skip-mev/slinky/pkg/math/oracle"
-	oracletypes "github.com/skip-mev/slinky/x/oracle/types"
+	"github.com/skip-mev/slinky/providers/apis/binance"
+	"github.com/skip-mev/slinky/providers/apis/coinbase"
+	"github.com/skip-mev/slinky/providers/websockets/kucoin"
+	mmtypes "github.com/skip-mev/slinky/x/marketmap/types"
 )
 
-var (
-	// acceptableDelta is the acceptable difference between the expected and actual price.
-	// In this case, we use a delta of 1e-10. This means we will accept any price that is
-	// within 1e-10 of the expected price.
-	acceptableDelta = 1e-10
-
-	logger, _ = zap.NewDevelopment()
-	cfg       = config.AggregateMarketConfig{
-		Feeds: map[string]config.FeedConfig{
-			"BITCOIN/USD": {
-				CurrencyPair: oracletypes.NewCurrencyPair("BITCOIN", "USD"),
-			},
-			"BITCOIN/USDT": {
-				CurrencyPair: oracletypes.NewCurrencyPair("BITCOIN", "USDT"),
-			},
-			"USDT/USD": {
-				CurrencyPair: oracletypes.NewCurrencyPair("USDT", "USD"),
-			},
-			"ETHEREUM/USDT": {
-				CurrencyPair: oracletypes.NewCurrencyPair("ETHEREUM", "USDT"),
-			},
-			"BITCOIN/ETHEREUM": {
-				CurrencyPair: oracletypes.NewCurrencyPair("BITCOIN", "ETHEREUM"),
-			},
-			"USDT/ETHEREUM": {
-				CurrencyPair: oracletypes.NewCurrencyPair("USDT", "ETHEREUM"),
-			},
-			"ETHEREUM/USD": {
-				CurrencyPair: oracletypes.NewCurrencyPair("ETHEREUM", "USD"),
-			},
-		},
-		AggregatedFeeds: map[string]config.AggregateFeedConfig{
-			"BITCOIN/USD": {
-				CurrencyPair: oracletypes.NewCurrencyPair("BITCOIN", "USD"),
-				Conversions: []config.Conversions{
-					{
-						{
-							CurrencyPair: oracletypes.NewCurrencyPair("BITCOIN", "USD"),
-						},
-					},
-					{
-						{
-							CurrencyPair: oracletypes.NewCurrencyPair("BITCOIN", "USDT"),
-						},
-						{
-							CurrencyPair: oracletypes.NewCurrencyPair("USDT", "USD"),
-						},
-					},
-					{
-						{
-							CurrencyPair: oracletypes.NewCurrencyPair("BITCOIN", "ETHEREUM"),
-						},
-						{
-							CurrencyPair: oracletypes.NewCurrencyPair("ETHEREUM", "USDT"),
-						},
-						{
-							CurrencyPair: oracletypes.NewCurrencyPair("USDT", "USD"),
-						},
-					},
-					{
-						{
-							CurrencyPair: oracletypes.NewCurrencyPair("BITCOIN", "USDT"),
-						},
-						{
-							CurrencyPair: oracletypes.NewCurrencyPair("USDT", "ETHEREUM"),
-						},
-						{
-							CurrencyPair: oracletypes.NewCurrencyPair("ETHEREUM", "USD"),
-						},
-					},
-				},
-			},
-			"ETHEREUM/USD": {
-				CurrencyPair: oracletypes.NewCurrencyPair("ETHEREUM", "USD"),
-				Conversions: []config.Conversions{
-					{
-						{
-							CurrencyPair: oracletypes.NewCurrencyPair("ETHEREUM", "USDT"),
-						},
-						{
-							CurrencyPair: oracletypes.NewCurrencyPair("USDT", "USD"),
-						},
-					},
-					{
-						{
-							CurrencyPair: oracletypes.NewCurrencyPair("USDT", "ETHEREUM"),
-							Invert:       true,
-						},
-						{
-							CurrencyPair: oracletypes.NewCurrencyPair("USDT", "USD"),
-						},
-					},
-				},
-			},
-		},
-	}
-)
-
-func TestMedian(t *testing.T) {
+func TestAggregateData(t *testing.T) {
 	testCases := []struct {
-		name              string
-		pricesPerProvider map[string]map[oracletypes.CurrencyPair]*big.Int
-		expected          map[oracletypes.CurrencyPair]*big.Int
+		name           string
+		malleate       func(aggregator types.PriceAggregator)
+		expectedPrices types.TickerPrices
 	}{
 		{
-			name: "no prices",
-			pricesPerProvider: map[string]map[oracletypes.CurrencyPair]*big.Int{
-				"coinbase": {},
-			},
-			expected: map[oracletypes.CurrencyPair]*big.Int{},
+			name:           "no data",
+			malleate:       func(types.PriceAggregator) {},
+			expectedPrices: types.TickerPrices{},
 		},
 		{
-			name: "single resolved price",
-			pricesPerProvider: map[string]map[oracletypes.CurrencyPair]*big.Int{
-				"coinbase": {
-					oracletypes.NewCurrencyPair("BITCOIN", "USD"): createPrice(40_000, 8),
-				},
+			name: "coinbase direct feed for BTC/USD - fail since it does not have enough providers",
+			malleate: func(aggregator types.PriceAggregator) {
+				prices := types.TickerPrices{
+					BTC_USD: createPrice(70_000, BTC_USD.Decimals),
+				}
+				aggregator.SetProviderData(coinbase.Name, prices)
 			},
-			expected: map[oracletypes.CurrencyPair]*big.Int{
-				oracletypes.NewCurrencyPair("BITCOIN", "USD"): createPrice(40_000, 8),
-			},
+			expectedPrices: types.TickerPrices{},
 		},
 		{
-			name: "must convert to get a single final price",
-			pricesPerProvider: map[string]map[oracletypes.CurrencyPair]*big.Int{
-				"coinbase": {
-					oracletypes.NewCurrencyPair("BITCOIN", "USDT"): createPrice(40_000, 8),
-					oracletypes.NewCurrencyPair("USDT", "USD"):     createPrice(1.1, 8),
-				},
+			name: "coinbase direct feed, coinbase adjusted feed, binance adjusted feed for BTC/USD - fail since index price does not exist",
+			malleate: func(aggregator types.PriceAggregator) {
+				prices := types.TickerPrices{
+					BTC_USD:  createPrice(70_000, BTC_USD.Decimals),
+					BTC_USDT: createPrice(70_000, BTC_USDT.Decimals),
+				}
+				aggregator.SetProviderData(coinbase.Name, prices)
+
+				prices = types.TickerPrices{
+					BTC_USDT: createPrice(69_000, BTC_USDT.Decimals),
+				}
+				aggregator.SetProviderData(binance.Name, prices)
 			},
-			expected: map[oracletypes.CurrencyPair]*big.Int{
-				oracletypes.NewCurrencyPair("BITCOIN", "USD"): createPrice(44_000, 8),
-			},
+			expectedPrices: types.TickerPrices{},
 		},
 		{
-			name: "calculates median price between two separate conversions",
-			pricesPerProvider: map[string]map[oracletypes.CurrencyPair]*big.Int{
-				"coinbase": {
-					oracletypes.NewCurrencyPair("BITCOIN", "USD"):  createPrice(40_000, 8),
-					oracletypes.NewCurrencyPair("BITCOIN", "USDT"): createPrice(40_000, 8),
-					oracletypes.NewCurrencyPair("USDT", "USD"):     createPrice(1.1, 8),
-				},
+			name: "coinbase direct feed, coinbase adjusted feed, binance adjusted feed for BTC/USD with index prices - success",
+			malleate: func(aggregator types.PriceAggregator) {
+				prices := types.TickerPrices{
+					BTC_USD:  createPrice(70_000, BTC_USD.Decimals),
+					BTC_USDT: createPrice(70_000, BTC_USDT.Decimals),
+				}
+				aggregator.SetProviderData(coinbase.Name, prices)
+
+				prices = types.TickerPrices{
+					BTC_USDT: createPrice(69_000, BTC_USDT.Decimals),
+				}
+				aggregator.SetProviderData(binance.Name, prices)
+
+				indexPrices := types.TickerPrices{
+					USDT_USD: createPrice(1.1, USDT_USD.Decimals),
+				}
+				aggregator.SetAggregatedData(indexPrices)
 			},
-			expected: map[oracletypes.CurrencyPair]*big.Int{
-				oracletypes.NewCurrencyPair("BITCOIN", "USD"): createPrice(42_000, 8), // median average of 40_000 and 44_000
-			},
-		},
-		{
-			name: "calculates median price between three separate conversions",
-			pricesPerProvider: map[string]map[oracletypes.CurrencyPair]*big.Int{
-				"coinbase": {
-					oracletypes.NewCurrencyPair("BITCOIN", "USD"):      createPrice(40_000, 8),
-					oracletypes.NewCurrencyPair("BITCOIN", "USDT"):     createPrice(40_000, 8),
-					oracletypes.NewCurrencyPair("USDT", "USD"):         createPrice(1.1, 8),
-					oracletypes.NewCurrencyPair("BITCOIN", "ETHEREUM"): createPrice(22, 18),
-					oracletypes.NewCurrencyPair("ETHEREUM", "USDT"):    createPrice(2000, 8),
-				},
-			},
-			expected: map[oracletypes.CurrencyPair]*big.Int{
-				oracletypes.NewCurrencyPair("BITCOIN", "USD"):  createPrice(44_000, 8), // median average of 40_000, 44_000, and 48_400
-				oracletypes.NewCurrencyPair("ETHEREUM", "USD"): createPrice(2_200, 8),
+			expectedPrices: types.TickerPrices{
+				BTC_USD: createPrice(75_900, BTC_USD.Decimals), // median of 70_000, 75_900, 77_000
 			},
 		},
 		{
-			name: "calculates median price with an inverted price",
-			pricesPerProvider: map[string]map[oracletypes.CurrencyPair]*big.Int{
-				"coinbase": {
-					oracletypes.NewCurrencyPair("USDT", "ETHEREUM"): createPrice(0.0005, 18),
-					oracletypes.NewCurrencyPair("USDT", "USD"): createPrice(1.1,
-						8),
-				},
+			name: "coinbase USDT direct, coinbase USDC/USDT inverted, binance direct feeds for USDT/USD - success",
+			malleate: func(aggregator types.PriceAggregator) {
+				prices := types.TickerPrices{
+					USDT_USD:  createPrice(1.1, USDT_USD.Decimals),
+					USDC_USDT: createPrice(1.1, USDC_USDT.Decimals),
+				}
+				aggregator.SetProviderData(coinbase.Name, prices)
+
+				prices = types.TickerPrices{
+					USDT_USD: createPrice(1.2, USDT_USD.Decimals),
+				}
+				aggregator.SetProviderData(binance.Name, prices)
 			},
-			expected: map[oracletypes.CurrencyPair]*big.Int{
-				oracletypes.NewCurrencyPair("ETHEREUM", "USD"): createPrice(2_200, 8),
+			expectedPrices: types.TickerPrices{
+				USDT_USD: createPrice(1.1, USDT_USD.Decimals), // median of 0.90909, 1, 1.2
 			},
 		},
 		{
-			name: "calculates median price with a price of 0",
-			pricesPerProvider: map[string]map[oracletypes.CurrencyPair]*big.Int{
-				"coinbase": {
-					oracletypes.NewCurrencyPair("BITCOIN", "USD"): createPrice(0, 8),
-				},
+			name: "coinbase USDT direct, binance USDT/USD direct feeds for USDT/USD - success (average of two prices)",
+			malleate: func(aggregator types.PriceAggregator) {
+				prices := types.TickerPrices{
+					USDT_USD: createPrice(1.1, USDT_USD.Decimals),
+				}
+				aggregator.SetProviderData(coinbase.Name, prices)
+
+				prices = types.TickerPrices{
+					USDT_USD: createPrice(1.2, USDT_USD.Decimals),
+				}
+				aggregator.SetProviderData(binance.Name, prices)
 			},
-			expected: map[oracletypes.CurrencyPair]*big.Int{
-				oracletypes.NewCurrencyPair("BITCOIN", "USD"): createPrice(0, 8),
+			expectedPrices: types.TickerPrices{
+				USDT_USD: createPrice(1.15, USDT_USD.Decimals), // average of 1.1, 1.2
+			},
+		},
+		{
+			name: "coinbase USDT direct, kucoin BTC/USDT inverted, index BTC/USD direct feeds for USDT/USD - success",
+			malleate: func(aggregator types.PriceAggregator) {
+				prices := types.TickerPrices{
+					USDT_USD: createPrice(1.0, USDT_USD.Decimals),
+				}
+				aggregator.SetProviderData(coinbase.Name, prices)
+
+				prices = types.TickerPrices{
+					BTC_USDT: createPrice(70_000, BTC_USDT.Decimals),
+				}
+				aggregator.SetProviderData(kucoin.Name, prices)
+
+				indexPrices := types.TickerPrices{
+					BTC_USD: createPrice(77_000, BTC_USD.Decimals),
+				}
+				aggregator.SetAggregatedData(indexPrices)
+			},
+			expectedPrices: types.TickerPrices{
+				USDT_USD: createPrice(1.05, USDT_USD.Decimals), // average of 1.1, 1.0
 			},
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			median, err := oracle.NewMedianAggregator(logger, cfg)
+			m, err := oracle.NewMedianAggregator(logger, marketmap, metrics.NewNopMetrics())
 			require.NoError(t, err)
 
-			aggFn := median.AggregateFn()
-			prices := aggFn(tc.pricesPerProvider)
-			require.Equal(t, len(tc.expected), len(prices))
-			for cp, expectedPrice := range tc.expected {
-				actualPrice, ok := prices[cp]
-				require.True(t, ok)
-				verifyPrice(t, expectedPrice, actualPrice)
+			// Update the price aggregator with relevant data.
+			tc.malleate(m.DataAggregator)
+
+			// Aggregate the data.
+			m.AggregateData()
+
+			// Ensure that the aggregated data is as expected.
+			result := m.DataAggregator.GetAggregatedData()
+			require.Equal(t, len(tc.expectedPrices), len(result))
+			for ticker, price := range result {
+				verifyPrice(t, tc.expectedPrices[ticker], price)
 			}
 		})
 	}
@@ -220,275 +157,772 @@ func TestMedian(t *testing.T) {
 
 func TestCalculateConvertedPrices(t *testing.T) {
 	testCases := []struct {
-		name          string
-		outcome       oracletypes.CurrencyPair
-		operations    []config.Conversion
-		medians       map[oracletypes.CurrencyPair]*big.Int
-		expected      *big.Int
-		expectedError bool
+		name           string
+		target         mmtypes.Ticker
+		paths          mmtypes.Paths
+		malleate       func(aggregator types.PriceAggregator)
+		expectedPrices []*big.Int
 	}{
 		{
-			name:       "no operations",
-			outcome:    oracletypes.NewCurrencyPair("BITCOIN", "USD"),
-			operations: []config.Conversion{},
-			medians: map[oracletypes.CurrencyPair]*big.Int{
-				oracletypes.NewCurrencyPair("BITCOIN", "USD"): createPrice(40_000, 8),
+			name:   "too many conversion operations",
+			target: BTC_USD,
+			paths: mmtypes.Paths{
+				Paths: []mmtypes.Path{
+					{
+						Operations: []mmtypes.Operation{
+							{
+								CurrencyPair: BTC_USDT.CurrencyPair,
+								Provider:     coinbase.Name,
+								Invert:       false,
+							},
+							{
+								CurrencyPair: USDT_USD.CurrencyPair,
+								Provider:     mmtypes.IndexPrice,
+								Invert:       false,
+							},
+							{
+								CurrencyPair: USDT_USD.CurrencyPair,
+								Provider:     mmtypes.IndexPrice,
+								Invert:       false,
+							},
+						},
+					},
+				},
 			},
-			expected:      nil,
-			expectedError: true,
+			malleate:       func(types.PriceAggregator) {},
+			expectedPrices: make([]*big.Int, 0),
 		},
 		{
-			name:    "not enough median prices",
-			outcome: oracletypes.NewCurrencyPair("BITCOIN", "USD"),
-			operations: []config.Conversion{
-				{
-					CurrencyPair: oracletypes.NewCurrencyPair("BITCOIN", "USDT"),
-				},
-				{
-					CurrencyPair: oracletypes.NewCurrencyPair("USDT", "USD"),
-				},
-			},
-			medians: map[oracletypes.CurrencyPair]*big.Int{
-				oracletypes.NewCurrencyPair("BITCOIN", "USDT"): createPrice(40_000, 8),
-			},
-			expected:      nil,
-			expectedError: true,
+			name:           "no conversion paths",
+			target:         BTC_USD,
+			paths:          mmtypes.Paths{},
+			malleate:       func(types.PriceAggregator) {},
+			expectedPrices: make([]*big.Int, 0),
 		},
 		{
-			name:    "successful conversion directly from a median price",
-			outcome: oracletypes.NewCurrencyPair("BITCOIN", "USD"),
-			operations: []config.Conversion{
-				{
-					CurrencyPair: oracletypes.NewCurrencyPair("BITCOIN", "USD"),
+			name:   "no conversion operations in a path",
+			target: BTC_USD,
+			paths: mmtypes.Paths{
+				Paths: []mmtypes.Path{
+					{
+						Operations: []mmtypes.Operation{},
+					},
 				},
 			},
-			medians: map[oracletypes.CurrencyPair]*big.Int{
-				oracletypes.NewCurrencyPair("BITCOIN", "USD"): createPrice(40_000, oracle.ScaledDecimals),
-			},
-			expected:      createPrice(40_000, oracle.ScaledDecimals),
-			expectedError: false,
+			malleate:       func(types.PriceAggregator) {},
+			expectedPrices: make([]*big.Int, 0),
 		},
 		{
-			name:    "successful conversion from converted prices",
-			outcome: oracletypes.NewCurrencyPair("BITCOIN", "USD"),
-			operations: []config.Conversion{
-				{
-					CurrencyPair: oracletypes.NewCurrencyPair("BITCOIN", "USDT"),
-				},
-				{
-					CurrencyPair: oracletypes.NewCurrencyPair("USDT", "USD"),
+			name:   "single conversion path with a single direct conversion (BTC/USD)",
+			target: BTC_USD,
+			paths: mmtypes.Paths{
+				Paths: []mmtypes.Path{
+					{
+						Operations: []mmtypes.Operation{
+							{
+								CurrencyPair: BTC_USD.CurrencyPair,
+								Provider:     coinbase.Name,
+								Invert:       false,
+							},
+						},
+					},
 				},
 			},
-			medians: map[oracletypes.CurrencyPair]*big.Int{
-				oracletypes.NewCurrencyPair("BITCOIN", "USDT"): createPrice(40_000, oracle.ScaledDecimals),
-				oracletypes.NewCurrencyPair("USDT", "USD"):     createPrice(1.2, oracle.ScaledDecimals),
+			malleate: func(aggregator types.PriceAggregator) {
+				prices := types.TickerPrices{
+					BTC_USD: createPrice(70_000, BTC_USD.Decimals),
+				}
+				aggregator.SetProviderData(coinbase.Name, prices)
 			},
-			expected:      createPrice(48_000, oracle.ScaledDecimals),
-			expectedError: false,
+			expectedPrices: []*big.Int{createPrice(70_000, BTC_USD.Decimals)},
 		},
 		{
-			name:    "successful conversion from converted prices with an inverted price",
-			outcome: oracletypes.NewCurrencyPair("BITCOIN", "USD"),
-			operations: []config.Conversion{
+			name:   "single conversion path with a single adjusted conversion (BTC/USDT * USDT/USD = BTC/USD)",
+			target: BTC_USD,
+			paths: mmtypes.Paths{
+				Paths: []mmtypes.Path{
+					{
+						Operations: []mmtypes.Operation{
+							{
+								CurrencyPair: BTC_USDT.CurrencyPair,
+								Provider:     coinbase.Name,
+								Invert:       false,
+							},
+							{
+								CurrencyPair: USDT_USD.CurrencyPair,
+								Provider:     mmtypes.IndexPrice,
+								Invert:       false,
+							},
+						},
+					},
+				},
+			},
+			malleate: func(aggregator types.PriceAggregator) {
+				prices := types.TickerPrices{
+					BTC_USDT: createPrice(70_000, BTC_USDT.Decimals),
+				}
+				aggregator.SetProviderData(coinbase.Name, prices)
+
+				indexPrices := types.TickerPrices{
+					USDT_USD: createPrice(1.1, USDT_USD.Decimals),
+				}
+				aggregator.SetAggregatedData(indexPrices)
+			},
+			expectedPrices: []*big.Int{createPrice(77_000, BTC_USD.Decimals)},
+		},
+		{
+			name:   "single conversion path with a single adjusted conversion (USDT/BTC * BTC/USD = USDT/USD)",
+			target: USDT_USD,
+			paths: mmtypes.Paths{
+				Paths: []mmtypes.Path{
+					{
+						Operations: []mmtypes.Operation{
+							{
+								CurrencyPair: BTC_USDT.CurrencyPair,
+								Provider:     coinbase.Name,
+								Invert:       true,
+							},
+							{
+								CurrencyPair: BTC_USD.CurrencyPair,
+								Provider:     mmtypes.IndexPrice,
+								Invert:       false,
+							},
+						},
+					},
+				},
+			},
+			malleate: func(aggregator types.PriceAggregator) {
+				prices := types.TickerPrices{
+					BTC_USDT: createPrice(70_000, BTC_USDT.Decimals),
+				}
+				aggregator.SetProviderData(coinbase.Name, prices)
+
+				indexPrices := types.TickerPrices{
+					BTC_USD: createPrice(77_000, BTC_USD.Decimals),
+				}
+				aggregator.SetAggregatedData(indexPrices)
+			},
+			expectedPrices: []*big.Int{createPrice(1.1, USDT_USD.Decimals)},
+		},
+		{
+			name:   "single conversion path with a single adjusted conversion (USDC/USDT ^ -1 = USDT/USDC)",
+			target: USDT_USD,
+			paths: mmtypes.Paths{
+				Paths: []mmtypes.Path{
+					{
+						Operations: []mmtypes.Operation{
+							{
+								CurrencyPair: USDC_USDT.CurrencyPair,
+								Provider:     coinbase.Name,
+								Invert:       true,
+							},
+						},
+					},
+				},
+			},
+			malleate: func(aggregator types.PriceAggregator) {
+				prices := types.TickerPrices{
+					USDC_USDT: createPrice(1.1, USDC_USDT.Decimals),
+				}
+				aggregator.SetProviderData(coinbase.Name, prices)
+			},
+			expectedPrices: []*big.Int{createPrice(0.9090909090909090909090909091, USDT_USD.Decimals)},
+		},
+		{
+			name:   "two conversion paths both with a single direct conversion (BTC/USD)",
+			target: BTC_USD,
+			paths: mmtypes.Paths{
+				Paths: []mmtypes.Path{
+					{
+						Operations: []mmtypes.Operation{
+							{
+								CurrencyPair: BTC_USD.CurrencyPair,
+								Provider:     coinbase.Name,
+								Invert:       false,
+							},
+						},
+					},
+					{
+						Operations: []mmtypes.Operation{
+							{
+								CurrencyPair: BTC_USD.CurrencyPair,
+								Provider:     binance.Name,
+								Invert:       false,
+							},
+						},
+					},
+				},
+			},
+			malleate: func(aggregator types.PriceAggregator) {
+				prices := types.TickerPrices{
+					BTC_USD: createPrice(70_000, BTC_USD.Decimals),
+				}
+				aggregator.SetProviderData(coinbase.Name, prices)
+
+				prices = types.TickerPrices{
+					BTC_USD: createPrice(69_000, BTC_USD.Decimals),
+				}
+				aggregator.SetProviderData(binance.Name, prices)
+			},
+			expectedPrices: []*big.Int{
+				createPrice(70_000, BTC_USD.Decimals),
+				createPrice(69_000, BTC_USD.Decimals),
+			},
+		},
+		{
+			name:   "two conversion paths both with a single adjusted conversion (BTC/USDT * USDT/USD = BTC/USD)",
+			target: BTC_USD,
+			paths: mmtypes.Paths{
+				Paths: []mmtypes.Path{
+					{
+						Operations: []mmtypes.Operation{
+							{
+								CurrencyPair: BTC_USDT.CurrencyPair,
+								Provider:     coinbase.Name,
+								Invert:       false,
+							},
+							{
+								CurrencyPair: USDT_USD.CurrencyPair,
+								Provider:     mmtypes.IndexPrice,
+								Invert:       false,
+							},
+						},
+					},
+					{
+						Operations: []mmtypes.Operation{
+							{
+								CurrencyPair: BTC_USDT.CurrencyPair,
+								Provider:     binance.Name,
+								Invert:       false,
+							},
+							{
+								CurrencyPair: USDT_USD.CurrencyPair,
+								Provider:     mmtypes.IndexPrice,
+								Invert:       false,
+							},
+						},
+					},
+				},
+			},
+			malleate: func(aggregator types.PriceAggregator) {
+				prices := types.TickerPrices{
+					BTC_USDT: createPrice(70_000, BTC_USDT.Decimals),
+				}
+				aggregator.SetProviderData(coinbase.Name, prices)
+
+				prices = types.TickerPrices{
+					BTC_USDT: createPrice(69_000, BTC_USDT.Decimals),
+				}
+				aggregator.SetProviderData(binance.Name, prices)
+
+				indexPrices := types.TickerPrices{
+					USDT_USD: createPrice(1.1, USDT_USD.Decimals),
+				}
+				aggregator.SetAggregatedData(indexPrices)
+			},
+			expectedPrices: []*big.Int{
+				createPrice(77_000, BTC_USD.Decimals),
+				createPrice(75_900, BTC_USD.Decimals),
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			m, err := oracle.NewMedianAggregator(logger, marketmap, metrics.NewNopMetrics())
+			require.NoError(t, err)
+
+			// Update the price aggregator with relevant data.
+			tc.malleate(m.DataAggregator)
+
+			// Calculate the converted prices.
+			prices := m.CalculateConvertedPrices(tc.target, tc.paths)
+			require.Len(t, prices, len(tc.expectedPrices))
+			if len(tc.expectedPrices) == 0 {
+				require.Empty(t, prices)
+				return
+			}
+
+			// Ensure that the prices are as expected.
+			for i, price := range prices {
+				verifyPrice(t, tc.expectedPrices[i], price)
+			}
+		})
+	}
+}
+
+func TestCalculateAdjustedPrice(t *testing.T) {
+	testCases := []struct {
+		name          string
+		target        mmtypes.Ticker
+		operations    []mmtypes.Operation
+		malleate      func(aggregator types.PriceAggregator)
+		expectedPrice *big.Int
+		expectedErr   bool
+	}{
+		{
+			name:          "nil operations",
+			target:        BTC_USD,
+			operations:    nil,
+			malleate:      func(types.PriceAggregator) {},
+			expectedPrice: nil,
+			expectedErr:   true,
+		},
+		{
+			name:          "empty operations",
+			target:        BTC_USD,
+			operations:    []mmtypes.Operation{},
+			malleate:      func(types.PriceAggregator) {},
+			expectedPrice: nil,
+			expectedErr:   true,
+		},
+		{
+			name:   "too many operations",
+			target: BTC_USD,
+			operations: []mmtypes.Operation{
 				{
-					CurrencyPair: oracletypes.NewCurrencyPair("USDT", "BITCOIN"),
+					CurrencyPair: BTC_USDT.CurrencyPair,
+					Provider:     coinbase.Name,
+					Invert:       false,
+				},
+				{
+					CurrencyPair: USDT_USD.CurrencyPair,
+					Provider:     mmtypes.IndexPrice,
+					Invert:       false,
+				},
+				{
+					CurrencyPair: USDT_USD.CurrencyPair,
+					Provider:     mmtypes.IndexPrice,
+					Invert:       false,
+				},
+			},
+			malleate:      func(types.PriceAggregator) {},
+			expectedPrice: nil,
+			expectedErr:   true,
+		},
+		{
+			name:   "price does not exist for the provider with an operation that is exactly the target (BTC/USD)",
+			target: BTC_USD,
+			operations: []mmtypes.Operation{
+				{
+					CurrencyPair: BTC_USD.CurrencyPair,
+					Provider:     coinbase.Name,
+					Invert:       false,
+				},
+			},
+			malleate:      func(types.PriceAggregator) {},
+			expectedPrice: nil,
+			expectedErr:   true,
+		},
+		{
+			name:   "price exists for the provider with an operation that is exactly the target (BTC/USD)",
+			target: BTC_USD,
+			operations: []mmtypes.Operation{
+				{
+					CurrencyPair: BTC_USD.CurrencyPair,
+					Provider:     coinbase.Name,
+					Invert:       false,
+				},
+			},
+			malleate: func(aggregator types.PriceAggregator) {
+				prices := types.TickerPrices{
+					BTC_USD: createPrice(70_000, BTC_USD.Decimals),
+				}
+				aggregator.SetProviderData(coinbase.Name, prices)
+			},
+			expectedPrice: createPrice(70_000, BTC_USD.Decimals),
+			expectedErr:   false,
+		},
+		{
+			name:   "price needs to be adjusted but the index price does not exist (BTC/USDT * USDT/USD = BTC/USD)",
+			target: BTC_USD,
+			operations: []mmtypes.Operation{
+				{
+					CurrencyPair: BTC_USDT.CurrencyPair,
+					Provider:     coinbase.Name,
+					Invert:       false,
+				},
+				{
+					CurrencyPair: USDT_USD.CurrencyPair,
+					Provider:     mmtypes.IndexPrice,
+					Invert:       false,
+				},
+			},
+			malleate: func(aggregator types.PriceAggregator) {
+				prices := types.TickerPrices{
+					BTC_USDT: createPrice(70_000, BTC_USDT.Decimals),
+				}
+				aggregator.SetProviderData(coinbase.Name, prices)
+			},
+			expectedPrice: nil,
+			expectedErr:   true,
+		},
+		{
+			name:   "price needs to be adjusted and the index price exists (BTC/USDT * USDT/USD = BTC/USD)",
+			target: BTC_USD,
+			operations: []mmtypes.Operation{
+				{
+					CurrencyPair: BTC_USDT.CurrencyPair,
+					Provider:     coinbase.Name,
+					Invert:       false,
+				},
+				{
+					CurrencyPair: USDT_USD.CurrencyPair,
+					Provider:     mmtypes.IndexPrice,
+					Invert:       false,
+				},
+			},
+			malleate: func(aggregator types.PriceAggregator) {
+				prices := types.TickerPrices{
+					BTC_USDT: createPrice(70_000, BTC_USDT.Decimals),
+				}
+				aggregator.SetProviderData(coinbase.Name, prices)
+
+				indexPrices := types.TickerPrices{
+					USDT_USD: createPrice(1, USDT_USD.Decimals),
+				}
+				aggregator.SetAggregatedData(indexPrices)
+			},
+			expectedPrice: createPrice(70_000, BTC_USD.Decimals),
+			expectedErr:   false,
+		},
+		{
+			name:   "price needs to be inverted to determine the adjusted price (USDT/BTC * BTC/USD = USDT/USD)",
+			target: USDT_USD,
+			operations: []mmtypes.Operation{
+				{
+					CurrencyPair: BTC_USDT.CurrencyPair,
+					Provider:     coinbase.Name,
 					Invert:       true,
 				},
 				{
-					CurrencyPair: oracletypes.NewCurrencyPair("USDT", "USD"),
+					CurrencyPair: BTC_USD.CurrencyPair,
+					Provider:     mmtypes.IndexPrice,
+					Invert:       false,
 				},
 			},
-			medians: map[oracletypes.CurrencyPair]*big.Int{
-				oracletypes.NewCurrencyPair("USDT", "BITCOIN"): createPrice(0.000025, oracle.ScaledDecimals),
-				oracletypes.NewCurrencyPair("USDT", "USD"):     createPrice(1.2, oracle.ScaledDecimals),
+			malleate: func(aggregator types.PriceAggregator) {
+				prices := types.TickerPrices{
+					BTC_USDT: createPrice(70_000, BTC_USDT.Decimals),
+				}
+				aggregator.SetProviderData(coinbase.Name, prices)
+
+				indexPrices := types.TickerPrices{
+					BTC_USD: createPrice(70_000, BTC_USD.Decimals),
+				}
+				aggregator.SetAggregatedData(indexPrices)
 			},
-			expected:      createPrice(48_000, oracle.ScaledDecimals),
-			expectedError: false,
+			expectedPrice: createPrice(1, USDT_USD.Decimals),
+			expectedErr:   false,
 		},
 		{
-			name:    "successful conversion from with reasonably small numbers",
-			outcome: oracletypes.NewCurrencyPair("BITCOIN", "USD"),
-			operations: []config.Conversion{
+			name:   "price is adjusted using USDT/USDC pairings (USDC/USDT ^ -1 = USDT/USDC)",
+			target: USDT_USD,
+			operations: []mmtypes.Operation{
 				{
-					CurrencyPair: oracletypes.NewCurrencyPair("BITCOIN", "USDT"),
-				},
-				{
-					CurrencyPair: oracletypes.NewCurrencyPair("USDT", "USD"),
+					CurrencyPair: USDC_USDT.CurrencyPair,
+					Provider:     coinbase.Name,
+					Invert:       true,
 				},
 			},
-			medians: map[oracletypes.CurrencyPair]*big.Int{
-				oracletypes.NewCurrencyPair("BITCOIN", "USDT"): createPrice(0.0000000000004, oracle.ScaledDecimals), // 4e-13
-				oracletypes.NewCurrencyPair("USDT", "USD"):     createPrice(0.0000000000012, oracle.ScaledDecimals), // 1.2e-12
+			malleate: func(aggregator types.PriceAggregator) {
+				prices := types.TickerPrices{
+					USDC_USDT: createPrice(1.1, USDC_USDT.Decimals),
+				}
+				aggregator.SetProviderData(coinbase.Name, prices)
 			},
-			expected:      createPrice(0.00000000000000000000000048, oracle.ScaledDecimals),
-			expectedError: false,
+			expectedPrice: createPrice(0.9090909090909090909090909091, USDT_USD.Decimals),
+			expectedErr:   false,
 		},
 		{
-			name:    "successful conversion from with reasonably large numbers",
-			outcome: oracletypes.NewCurrencyPair("BITCOIN", "USD"),
-			operations: []config.Conversion{
+			name:   "price is adjust using eth pairings (ETH/USDT * USDT/USD = ETH/USD)",
+			target: ETH_USD,
+			operations: []mmtypes.Operation{
 				{
-					CurrencyPair: oracletypes.NewCurrencyPair("BITCOIN", "USDT"),
+					CurrencyPair: ETH_USDT.CurrencyPair,
+					Provider:     coinbase.Name,
+					Invert:       false,
 				},
 				{
-					CurrencyPair: oracletypes.NewCurrencyPair("USDT", "USD"),
+					CurrencyPair: USDT_USD.CurrencyPair,
+					Provider:     mmtypes.IndexPrice,
+					Invert:       false,
 				},
 			},
-			medians: map[oracletypes.CurrencyPair]*big.Int{
-				oracletypes.NewCurrencyPair("BITCOIN", "USDT"): createPrice(40_000_000_000_000_000, oracle.ScaledDecimals), // 4e16 + scaled to 40 decimals
-				oracletypes.NewCurrencyPair("USDT", "USD"):     createPrice(1_200_000, oracle.ScaledDecimals),
+			malleate: func(aggregator types.PriceAggregator) {
+				prices := types.TickerPrices{
+					ETH_USDT: createPrice(4_000, ETH_USDT.Decimals),
+				}
+				aggregator.SetProviderData(coinbase.Name, prices)
+
+				indexPrices := types.TickerPrices{
+					USDT_USD: createPrice(1.1, USDT_USD.Decimals),
+				}
+				aggregator.SetAggregatedData(indexPrices)
 			},
-			expected:      createPrice(48_000_000_000_000_000_000_000, oracle.ScaledDecimals),
-			expectedError: false,
+			expectedPrice: createPrice(4_400, ETH_USD.Decimals),
+			expectedErr:   false,
 		},
 		{
-			name:    "successful conversion with 3 conversion operations",
-			outcome: oracletypes.NewCurrencyPair("BITCOIN", "USD"),
-			operations: []config.Conversion{
+			name:   "price for USDT/USD needs to be adjust by eth prices (USDT/ETH * ETH/USD = USDT/USD)",
+			target: USDT_USD,
+			operations: []mmtypes.Operation{
 				{
-					CurrencyPair: oracletypes.NewCurrencyPair("BITCOIN", "ETHEREUM"),
+					CurrencyPair: ETH_USDT.CurrencyPair,
+					Provider:     coinbase.Name,
+					Invert:       true,
 				},
 				{
-					CurrencyPair: oracletypes.NewCurrencyPair("ETHEREUM", "USDT"),
-				},
-				{
-					CurrencyPair: oracletypes.NewCurrencyPair("USDT", "USD"),
+					CurrencyPair: ETH_USD.CurrencyPair,
+					Provider:     mmtypes.IndexPrice,
+					Invert:       false,
 				},
 			},
-			medians: map[oracletypes.CurrencyPair]*big.Int{
-				oracletypes.NewCurrencyPair("BITCOIN", "ETHEREUM"): createPrice(20, oracle.ScaledDecimals),
-				oracletypes.NewCurrencyPair("ETHEREUM", "USDT"):    createPrice(2000, oracle.ScaledDecimals),
-				oracletypes.NewCurrencyPair("USDT", "USD"):         createPrice(1.2, oracle.ScaledDecimals),
+			malleate: func(aggregator types.PriceAggregator) {
+				prices := types.TickerPrices{
+					ETH_USDT: createPrice(4_100, ETH_USDT.Decimals),
+				}
+				aggregator.SetProviderData(coinbase.Name, prices)
+
+				indexPrices := types.TickerPrices{
+					ETH_USD: createPrice(4_000, ETH_USD.Decimals),
+				}
+				aggregator.SetAggregatedData(indexPrices)
 			},
-			expected:      createPrice(48_000, oracle.ScaledDecimals),
-			expectedError: false,
+			expectedPrice: createPrice(0.97560975, USDT_USD.Decimals),
+			expectedErr:   false,
 		},
 		{
-			name:    "path contains a price of 0 at the start",
-			outcome: oracletypes.NewCurrencyPair("BITCOIN", "USD"),
-			operations: []config.Conversion{
+			name:   "price for PEPE/USDT needs to be adjusted by USDT/USD (different decimals) (PEPE/USDT * USDT/USD = PEPE/USD)",
+			target: PEPE_USD,
+			operations: []mmtypes.Operation{
 				{
-					CurrencyPair: oracletypes.NewCurrencyPair("BITCOIN", "ETHEREUM"),
+					CurrencyPair: PEPE_USDT.CurrencyPair,
+					Provider:     coinbase.Name,
+					Invert:       false,
 				},
 				{
-					CurrencyPair: oracletypes.NewCurrencyPair("ETHEREUM", "USDT"),
-				},
-				{
-					CurrencyPair: oracletypes.NewCurrencyPair("USDT", "USD"),
+					CurrencyPair: USDT_USD.CurrencyPair,
+					Provider:     mmtypes.IndexPrice,
+					Invert:       false,
 				},
 			},
-			medians: map[oracletypes.CurrencyPair]*big.Int{
-				oracletypes.NewCurrencyPair("BITCOIN", "ETHEREUM"): createPrice(0, oracle.ScaledDecimals),
-				oracletypes.NewCurrencyPair("ETHEREUM", "USDT"):    createPrice(2000, oracle.ScaledDecimals),
-				oracletypes.NewCurrencyPair("USDT", "USD"):         createPrice(1.2, oracle.ScaledDecimals),
+			malleate: func(aggregator types.PriceAggregator) {
+				prices := types.TickerPrices{
+					PEPE_USDT: createPrice(0.00000831846, PEPE_USDT.Decimals),
+				}
+				aggregator.SetProviderData(coinbase.Name, prices)
+
+				indexPrices := types.TickerPrices{
+					USDT_USD: createPrice(1.1, USDT_USD.Decimals),
+				}
+				aggregator.SetAggregatedData(indexPrices)
 			},
-			expected:      big.NewInt(0),
-			expectedError: false,
+			expectedPrice: createPrice(0.000009150306, PEPE_USDT.Decimals),
+			expectedErr:   false,
 		},
 		{
-			name:    "path contains a price of 0 in the middle",
-			outcome: oracletypes.NewCurrencyPair("BITCOIN", "USD"),
-			operations: []config.Conversion{
+			name:   "can make a direct conversion with a sufficiently small number (BTC/USD = BTC/USD)",
+			target: BTC_USD,
+			operations: []mmtypes.Operation{
 				{
-					CurrencyPair: oracletypes.NewCurrencyPair("BITCOIN", "ETHEREUM"),
-				},
-				{
-					CurrencyPair: oracletypes.NewCurrencyPair("ETHEREUM", "USDT"),
-				},
-				{
-					CurrencyPair: oracletypes.NewCurrencyPair("USDT", "USD"),
+					CurrencyPair: BTC_USD.CurrencyPair,
+					Provider:     coinbase.Name,
+					Invert:       false,
 				},
 			},
-			medians: map[oracletypes.CurrencyPair]*big.Int{
-				oracletypes.NewCurrencyPair("BITCOIN", "ETHEREUM"): createPrice(20, oracle.ScaledDecimals),
-				oracletypes.NewCurrencyPair("ETHEREUM", "USDT"):    createPrice(0, oracle.ScaledDecimals),
-				oracletypes.NewCurrencyPair("USDT", "USD"):         createPrice(1.2, oracle.ScaledDecimals),
+			malleate: func(aggregator types.PriceAggregator) {
+				prices := types.TickerPrices{
+					BTC_USD: createPrice(0.0000001, BTC_USD.Decimals), // 0.0000001 BTC
+				}
+				aggregator.SetProviderData(coinbase.Name, prices)
 			},
-			expected:      big.NewInt(0),
-			expectedError: false,
+			expectedPrice: createPrice(0.0000001, BTC_USD.Decimals),
+			expectedErr:   false,
 		},
 		{
-			name:    "conversion path is invalid",
-			outcome: oracletypes.NewCurrencyPair("BITCOIN", "USD"),
-			operations: []config.Conversion{
+			name:   "can make a adjusted conversion with a sufficiently small number (BTC/USDT * USDT/USD = BTC/USD)",
+			target: BTC_USD,
+			operations: []mmtypes.Operation{
 				{
-					CurrencyPair: oracletypes.NewCurrencyPair("BITCOIN", "ETHEREUM"),
+					CurrencyPair: BTC_USDT.CurrencyPair,
+					Provider:     coinbase.Name,
+					Invert:       false,
 				},
 				{
-					CurrencyPair: oracletypes.NewCurrencyPair("ETHEREUM", "USDT"),
+					CurrencyPair: USDT_USD.CurrencyPair,
+					Provider:     mmtypes.IndexPrice,
+					Invert:       false,
 				},
 			},
-			medians: map[oracletypes.CurrencyPair]*big.Int{
-				oracletypes.NewCurrencyPair("BITCOIN", "ETHEREUM"): createPrice(20, oracle.ScaledDecimals),
-				oracletypes.NewCurrencyPair("ETHEREUM", "USDT"):    createPrice(2000, oracle.ScaledDecimals),
+			malleate: func(aggregator types.PriceAggregator) {
+				prices := types.TickerPrices{
+					BTC_USDT: createPrice(0.0000001, BTC_USDT.Decimals), // 0.0000001 BTC
+				}
+				aggregator.SetProviderData(coinbase.Name, prices)
+
+				indexPrices := types.TickerPrices{
+					USDT_USD: createPrice(1, USDT_USD.Decimals),
+				}
+				aggregator.SetAggregatedData(indexPrices)
 			},
-			expected:      nil,
-			expectedError: true,
+			expectedPrice: createPrice(0.0000001, BTC_USD.Decimals),
+			expectedErr:   false,
+		},
+		{
+			name:   "can make a adjusted conversion with inverting with a sufficiently small number (USDT/BTC * BTC/USD = USDT/USD)",
+			target: USDT_USD,
+			operations: []mmtypes.Operation{
+				{
+					CurrencyPair: BTC_USDT.CurrencyPair,
+					Provider:     coinbase.Name,
+					Invert:       true,
+				},
+				{
+					CurrencyPair: BTC_USD.CurrencyPair,
+					Provider:     mmtypes.IndexPrice,
+					Invert:       false,
+				},
+			},
+			malleate: func(aggregator types.PriceAggregator) {
+				prices := types.TickerPrices{
+					BTC_USDT: createPrice(0.00001, BTC_USDT.Decimals), // 0.00001 BTC
+				}
+				aggregator.SetProviderData(coinbase.Name, prices)
+
+				indexPrices := types.TickerPrices{
+					BTC_USD: createPrice(0.00002, BTC_USD.Decimals),
+				}
+				aggregator.SetAggregatedData(indexPrices)
+			},
+			expectedPrice: createPrice(2, USDT_USD.Decimals),
+			expectedErr:   false,
+		},
+		{
+			name:   "can make a direct conversion with a sufficiently large number (BTC/USD = BTC/USD)",
+			target: BTC_USD,
+			operations: []mmtypes.Operation{
+				{
+					CurrencyPair: BTC_USD.CurrencyPair,
+					Provider:     coinbase.Name,
+					Invert:       false,
+				},
+			},
+			malleate: func(aggregator types.PriceAggregator) {
+				prices := types.TickerPrices{
+					BTC_USD: createPrice(1_000_000_000, BTC_USD.Decimals), // 1,000,000,000 BTC
+				}
+				aggregator.SetProviderData(coinbase.Name, prices)
+			},
+			expectedPrice: createPrice(1_000_000_000, BTC_USD.Decimals),
+			expectedErr:   false,
+		},
+		{
+			name:   "can make a adjusted conversion with a sufficiently large number (BTC/USDT * USDT/USD = BTC/USD)",
+			target: BTC_USD,
+			operations: []mmtypes.Operation{
+				{
+					CurrencyPair: BTC_USDT.CurrencyPair,
+					Provider:     coinbase.Name,
+					Invert:       false,
+				},
+				{
+					CurrencyPair: USDT_USD.CurrencyPair,
+					Provider:     mmtypes.IndexPrice,
+					Invert:       false,
+				},
+			},
+			malleate: func(aggregator types.PriceAggregator) {
+				prices := types.TickerPrices{
+					BTC_USDT: createPrice(1_000_000_000, BTC_USDT.Decimals), // 1,000,000,000 BTC
+				}
+				aggregator.SetProviderData(coinbase.Name, prices)
+
+				indexPrices := types.TickerPrices{
+					USDT_USD: createPrice(1.1, USDT_USD.Decimals),
+				}
+				aggregator.SetAggregatedData(indexPrices)
+			},
+			expectedPrice: createPrice(1_100_000_000, BTC_USD.Decimals),
+			expectedErr:   false,
+		},
+		{
+			name:   "can make a adjusted conversion with inverting with a sufficiently large number (USDT/BTC * BTC/USD = USDT/USD)",
+			target: USDT_USD,
+			operations: []mmtypes.Operation{
+				{
+					CurrencyPair: BTC_USDT.CurrencyPair,
+					Provider:     coinbase.Name,
+					Invert:       true,
+				},
+				{
+					CurrencyPair: BTC_USD.CurrencyPair,
+					Provider:     mmtypes.IndexPrice,
+					Invert:       false,
+				},
+			},
+			malleate: func(aggregator types.PriceAggregator) {
+				prices := types.TickerPrices{
+					BTC_USDT: createPrice(1_000_000_000, BTC_USDT.Decimals), // 1,000,000,000 BTC
+				}
+				aggregator.SetProviderData(coinbase.Name, prices)
+
+				indexPrices := types.TickerPrices{
+					BTC_USD: createPrice(1_100_000_000, BTC_USD.Decimals),
+				}
+				aggregator.SetAggregatedData(indexPrices)
+			},
+			expectedPrice: createPrice(1.1, USDT_USD.Decimals),
+			expectedErr:   false,
+		},
+		{
+			name:   "second provider is not the index price",
+			target: BTC_USD,
+			operations: []mmtypes.Operation{
+				{
+					CurrencyPair: BTC_USDT.CurrencyPair,
+					Provider:     coinbase.Name,
+					Invert:       false,
+				},
+				{
+					CurrencyPair: USDT_USD.CurrencyPair,
+					Provider:     binance.Name,
+					Invert:       false,
+				},
+			},
+			malleate: func(aggregator types.PriceAggregator) {
+				prices := types.TickerPrices{
+					BTC_USDT: createPrice(70_000, BTC_USDT.Decimals),
+				}
+				aggregator.SetProviderData(coinbase.Name, prices)
+
+				prices = types.TickerPrices{
+					USDT_USD: createPrice(1.1, USDT_USD.Decimals),
+				}
+				aggregator.SetProviderData(binance.Name, prices)
+			},
+			expectedPrice: nil,
+			expectedErr:   true,
 		},
 	}
+
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			aggregator, err := oracle.NewMedianAggregator(logger, cfg)
+			m, err := oracle.NewMedianAggregator(logger, marketmap, metrics.NewNopMetrics())
 			require.NoError(t, err)
 
-			price, err := aggregator.CalculateConvertedPrice(tc.outcome, tc.operations, tc.medians)
-			if tc.expectedError {
+			// Update the price aggregator with relevant data.
+			tc.malleate(m.DataAggregator)
+
+			// Calculate the adjusted price.
+			price, err := m.CalculateAdjustedPrice(tc.target, tc.operations)
+			if tc.expectedErr {
 				require.Error(t, err)
 				return
 			}
 
 			require.NoError(t, err)
-			verifyPrice(t, tc.expected, price)
+			verifyPrice(t, tc.expectedPrice, price)
 		})
 	}
-}
-
-// verifyPrice verifies that the expected price matches the actual price within an acceptable delta.
-func verifyPrice(t *testing.T, expected, actual *big.Int) {
-	t.Helper()
-
-	zero := big.NewInt(0)
-	if expected.Cmp(zero) == 0 {
-		require.Equal(t, zero, actual)
-		return
-	}
-
-	var diff *big.Float
-	if expected.Cmp(actual) > 0 {
-		diff = new(big.Float).Sub(new(big.Float).SetInt(expected), new(big.Float).SetInt(actual))
-	} else {
-		diff = new(big.Float).Sub(new(big.Float).SetInt(actual), new(big.Float).SetInt(expected))
-	}
-
-	scaledDiff := new(big.Float).Quo(diff, new(big.Float).SetInt(expected))
-	delta, _ := scaledDiff.Float64()
-	t.Logf("expected price: %s; actual price: %s; diff %s", expected.String(), actual.String(), diff.String())
-	t.Logf("acceptable delta: %.25f; actual delta: %.25f", acceptableDelta, delta)
-
-	switch {
-	case delta == 0:
-		// If the difference between the expected and actual price is 0, the prices match.
-		// No need for a delta comparison.
-		return
-	case delta <= acceptableDelta:
-		// If the difference between the expected and actual price is within the acceptable delta,
-		// the prices match.
-		return
-	default:
-		// If the difference between the expected and actual price is greater than the acceptable delta,
-		// the prices do not match.
-		require.Fail(t, "expected price does not match the actual price; delta is too large")
-	}
-}
-
-// createPrice creates a price with the given number of decimals.
-func createPrice(price float64, decimals int64) *big.Int {
-	// Convert the price to a big float so we can perform the multiplication.
-	floatPrice := big.NewFloat(price)
-
-	// Scale the price and convert it to a big.Int.
-	one := oracle.ScaledOne(decimals)
-	scaledPrice := new(big.Float).Mul(floatPrice, new(big.Float).SetInt(one))
-	intPrice, _ := scaledPrice.Int(nil)
-	return intPrice
 }

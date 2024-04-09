@@ -1,6 +1,7 @@
 package oracle
 
 import (
+	"fmt"
 	"math/big"
 	"time"
 
@@ -14,8 +15,8 @@ import (
 	"github.com/skip-mev/slinky/abci/types"
 	"github.com/skip-mev/slinky/abci/ve"
 	"github.com/skip-mev/slinky/aggregator"
+	slinkytypes "github.com/skip-mev/slinky/pkg/types"
 	servicemetrics "github.com/skip-mev/slinky/service/metrics"
-	oracletypes "github.com/skip-mev/slinky/x/oracle/types"
 )
 
 // PreBlockHandler is responsible for aggregating oracle data from each
@@ -49,7 +50,7 @@ type PreBlockHandler struct { //golint:ignore
 // is responsible for writing oracle data included in vote extensions to state.
 func NewOraclePreBlockHandler(
 	logger log.Logger,
-	aggregateFn aggregator.AggregateFnFromContext[string, map[oracletypes.CurrencyPair]*big.Int],
+	aggregateFn aggregator.AggregateFnFromContext[string, map[slinkytypes.CurrencyPair]*big.Int],
 	oracleKeeper Keeper,
 	metrics servicemetrics.Metrics,
 	strategy currencypair.CurrencyPairStrategy,
@@ -77,8 +78,17 @@ func NewOraclePreBlockHandler(
 // the oracle data to the store.
 func (h *PreBlockHandler) PreBlocker() sdk.PreBlocker {
 	return func(ctx sdk.Context, req *cometabci.RequestFinalizeBlock) (_ *sdk.ResponsePreBlock, err error) {
+		if req == nil {
+			ctx.Logger().Error(
+				"received nil RequestFinalizeBlock in oracle preblocker",
+				"height", ctx.BlockHeight(),
+			)
+
+			return &sdk.ResponsePreBlock{}, fmt.Errorf("received nil RequestFinalizeBlock in oracle preblocker: height %d", ctx.BlockHeight())
+		}
+
 		start := time.Now()
-		var prices map[oracletypes.CurrencyPair]*big.Int
+		var prices map[slinkytypes.CurrencyPair]*big.Int
 		defer func() {
 			// only measure latency in Finalize
 			if ctx.ExecMode() == sdk.ExecModeFinalize {
@@ -102,7 +112,7 @@ func (h *PreBlockHandler) PreBlocker() sdk.PreBlocker {
 		}()
 
 		// If vote extensions are not enabled, then we don't need to do anything.
-		if !ve.VoteExtensionsEnabled(ctx) || req == nil {
+		if !ve.VoteExtensionsEnabled(ctx) {
 			h.logger.Info(
 				"vote extensions are not enabled",
 				"height", ctx.BlockHeight(),
@@ -130,7 +140,7 @@ func (h *PreBlockHandler) PreBlocker() sdk.PreBlocker {
 			return &sdk.ResponsePreBlock{}, err
 		}
 
-		// Aggregate all of the oracle vote extensions into a single set of prices.
+		// Aggregate all oracle vote extensions into a single set of prices.
 		prices, err = h.voteAggregator.AggregateOracleVotes(ctx, votes)
 		if err != nil {
 			h.logger.Error(

@@ -1,16 +1,14 @@
 package oracle
 
 import (
-	"math/big"
 	"time"
 
 	"go.uber.org/zap"
 
 	"github.com/skip-mev/slinky/aggregator"
 	"github.com/skip-mev/slinky/oracle/config"
-	"github.com/skip-mev/slinky/oracle/metrics"
-	providertypes "github.com/skip-mev/slinky/providers/types"
-	oracletypes "github.com/skip-mev/slinky/x/oracle/types"
+	oraclemetrics "github.com/skip-mev/slinky/oracle/metrics"
+	"github.com/skip-mev/slinky/oracle/types"
 )
 
 // Option is a function that can be used to configure an Oracle.
@@ -27,6 +25,17 @@ func WithUpdateInterval(updateInterval time.Duration) Option {
 	}
 }
 
+// WithMaxCacheAge sets the max cache age on the Oracle.
+func WithMaxCacheAge(maxCacheAge time.Duration) Option {
+	return func(o *OracleImpl) {
+		if maxCacheAge <= 0 {
+			panic("max cache age must be positive")
+		}
+
+		o.maxCacheAge = maxCacheAge
+	}
+}
+
 // WithLogger sets the logger on the Oracle.
 func WithLogger(logger *zap.Logger) Option {
 	return func(o *OracleImpl) {
@@ -39,7 +48,7 @@ func WithLogger(logger *zap.Logger) Option {
 }
 
 // WithMetrics sets the metrics on the Oracle.
-func WithMetrics(metrics metrics.Metrics) Option {
+func WithMetrics(metrics oraclemetrics.Metrics) Option {
 	return func(o *OracleImpl) {
 		if metrics == nil {
 			panic("cannot set nil metrics")
@@ -52,25 +61,25 @@ func WithMetrics(metrics metrics.Metrics) Option {
 // WithMetricsConfig sets the metrics on the oracle from the given config.
 func WithMetricsConfig(config config.MetricsConfig) Option {
 	return func(o *OracleImpl) {
-		o.metrics = metrics.NewMetricsFromConfig(config)
+		o.metrics = oraclemetrics.NewMetricsFromConfig(config)
 	}
 }
 
 // WithAggregateFunction sets the aggregate function on the Oracle.
-func WithAggregateFunction(fn aggregator.AggregateFn[string, map[oracletypes.CurrencyPair]*big.Int]) Option {
+func WithAggregateFunction(fn types.PriceAggregationFn) Option {
 	return func(o *OracleImpl) {
 		if fn == nil {
 			panic("cannot set aggregate function on nil aggregator")
 		}
 
-		o.priceAggregator = aggregator.NewDataAggregator[string, map[oracletypes.CurrencyPair]*big.Int](
+		o.priceAggregator = aggregator.NewDataAggregator(
 			aggregator.WithAggregateFn(fn),
 		)
 	}
 }
 
 // WithDataAggregator sets the data aggregator on the Oracle.
-func WithDataAggregator(agg *aggregator.DataAggregator[string, map[oracletypes.CurrencyPair]*big.Int]) Option {
+func WithDataAggregator(agg types.PriceAggregator) Option {
 	return func(o *OracleImpl) {
 		if agg == nil {
 			panic("cannot set nil aggregator")
@@ -81,7 +90,7 @@ func WithDataAggregator(agg *aggregator.DataAggregator[string, map[oracletypes.C
 }
 
 // WithProviders sets the providers on the Oracle.
-func WithProviders(providers []providertypes.Provider[oracletypes.CurrencyPair, *big.Int]) Option {
+func WithProviders(providers []types.PriceProviderI) Option {
 	return func(o *OracleImpl) {
 		o.providers = providers
 	}
