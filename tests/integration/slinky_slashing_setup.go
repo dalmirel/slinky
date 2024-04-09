@@ -2,8 +2,11 @@ package integration
 
 import (
 	"context"
-	"math/big"
+	"fmt"
+	"testing"
 	"time"
+
+	"github.com/stretchr/testify/require"
 
 	"cosmossdk.io/math"
 	cmtabci "github.com/cometbft/cometbft/abci/types"
@@ -21,10 +24,11 @@ import (
 
 	"github.com/skip-mev/slinky/abci/strategies/codec"
 	slinkyabci "github.com/skip-mev/slinky/abci/ve/types"
-
 	oracleconfig "github.com/skip-mev/slinky/oracle/config"
+	"github.com/skip-mev/slinky/oracle/types"
+	"github.com/skip-mev/slinky/providers/static"
 	alerttypes "github.com/skip-mev/slinky/x/alerts/types"
-	oracletypes "github.com/skip-mev/slinky/x/oracle/types"
+	mmtypes "github.com/skip-mev/slinky/x/marketmap/types"
 )
 
 const gasPrice = 100
@@ -45,7 +49,7 @@ func UpdateAlertParams(chain *cosmos.CosmosChain, authority, denom string, depos
 
 // SubmitAlert submits an alert to the chain, submitted by the given address
 func (s *SlinkySlashingIntegrationSuite) SubmitAlert(user cosmos.User, alert alerttypes.Alert) (*coretypes.ResultBroadcastTxCommit, error) {
-	tx := s.CreateTx(user, gasPrice, alerttypes.NewMsgAlert(
+	tx := CreateTx(s.T(), s.chain, user, gasPrice, alerttypes.NewMsgAlert(
 		alert,
 	))
 
@@ -61,7 +65,7 @@ func (s *SlinkySlashingIntegrationSuite) SubmitConclusion(user cosmos.User, conc
 	addr, err := sdk.AccAddressFromBech32(user.FormattedAddress())
 	s.Require().NoError(err)
 
-	tx := s.CreateTx(user, gasPrice, alerttypes.NewMsgConclusion(
+	tx := CreateTx(s.T(), s.chain, user, gasPrice, alerttypes.NewMsgConclusion(
 		conclusion,
 		addr,
 	))
@@ -75,7 +79,7 @@ func (s *SlinkySlashingIntegrationSuite) SubmitConclusion(user cosmos.User, conc
 func (s *SlinkySlashingIntegrationSuite) Delegate(user cosmos.User, validatorOperator string, tokens sdk.Coin) (*coretypes.ResultBroadcastTxCommit, error) {
 	msg := stakingtypes.NewMsgDelegate(user.FormattedAddress(), validatorOperator, tokens)
 
-	tx := s.CreateTx(user, gasPrice, msg)
+	tx := CreateTx(s.T(), s.chain, user, gasPrice, msg)
 
 	// get an rpc endpoint for the chain
 	client := s.chain.Nodes()[0].Client
@@ -83,38 +87,38 @@ func (s *SlinkySlashingIntegrationSuite) Delegate(user cosmos.User, validatorOpe
 }
 
 // CreateTx creates a new transaction to be signed by the given user, including a provided set of messages
-func (s *SlinkySlashingIntegrationSuite) CreateTx(user cosmos.User, GasPrice int64, msgs ...sdk.Msg) []byte {
-	bc := cosmos.NewBroadcaster(s.T(), s.chain)
+func CreateTx(t *testing.T, chain *cosmos.CosmosChain, user cosmos.User, GasPrice int64, msgs ...sdk.Msg) []byte {
+	bc := cosmos.NewBroadcaster(t, chain)
 
 	ctx := context.Background()
 	// create tx factory + Client Context
 	txf, err := bc.GetFactory(ctx, user)
-	s.Require().NoError(err)
+	require.NoError(t, err)
 
 	cc, err := bc.GetClientContext(ctx, user)
-	s.Require().NoError(err)
+	require.NoError(t, err)
 
 	txf = txf.WithSimulateAndExecute(true)
 
 	txf, err = txf.Prepare(cc)
-	s.Require().NoError(err)
+	require.NoError(t, err)
 
 	// get gas for tx
 	txf.WithGas(25000000)
 
 	// update sequence number
 	txf = txf.WithSequence(txf.Sequence())
-	txf = txf.WithGasPrices(sdk.NewDecCoins(sdk.NewDecCoin(s.chain.Config().Denom, math.NewInt(GasPrice))).String())
+	txf = txf.WithGasPrices(sdk.NewDecCoins(sdk.NewDecCoin(chain.Config().Denom, math.NewInt(GasPrice))).String())
 
 	// sign the tx
 	txBuilder, err := txf.BuildUnsignedTx(msgs...)
-	s.Require().NoError(err)
+	require.NoError(t, err)
 
-	s.Require().NoError(tx.Sign(cc.CmdContext, txf, cc.GetFromName(), txBuilder, true))
+	require.NoError(t, tx.Sign(cc.CmdContext, txf, cc.GetFromName(), txBuilder, true))
 
 	// encode and return
 	bz, err := cc.TxConfig.TxEncoder()(txBuilder.GetTx())
-	s.Require().NoError(err)
+	require.NoError(t, err)
 	return bz
 }
 
@@ -137,7 +141,7 @@ func CreateKey(typ PrivKeyType) cryptotypes.PrivKey {
 	}
 }
 
-// QueryValidators queries for all of the network's validators
+// QueryValidators queries for all network's validators
 func QueryValidators(chain *cosmos.CosmosChain) ([]stakingtypes.Validator, error) {
 	// get grpc client of the node
 	grpcAddr := chain.GetHostGRPCAddress()
@@ -158,57 +162,55 @@ func QueryValidators(chain *cosmos.CosmosChain) ([]stakingtypes.Validator, error
 }
 
 // UpdateNodePrices updates the price reported for a given ticker, from a specified node
-func UpdateNodePrices(node *cosmos.ChainNode, ticker oracletypes.CurrencyPair, price int64) error {
+func UpdateNodePrices(node *cosmos.ChainNode, ticker mmtypes.Ticker, price int64) error {
 	if err := StopOracle(node); err != nil {
 		return err
 	}
 
-	oracle := GetOracleSideCar(node)
-	oracleConfig := DefaultOracleConfig(node)
+	oracleConfig := DefaultOracleConfig()
 	oracleConfig.Providers = append(oracleConfig.Providers, oracleconfig.ProviderConfig{
-		Name: "static-mock-provider",
+		Name: static.Name,
 		API: oracleconfig.APIConfig{
-			Enabled:    true,
-			Timeout:    250 * time.Millisecond,
-			Interval:   250 * time.Millisecond,
-			MaxQueries: 1,
-			URL:        "http://un-used-url.com",
-			Atomic:     true,
-			Name:       "static-mock-provider",
+			Enabled:          true,
+			Timeout:          250 * time.Millisecond,
+			Interval:         250 * time.Millisecond,
+			ReconnectTimeout: 250 * time.Millisecond,
+			MaxQueries:       1,
+			URL:              "http://un-used-url.com",
+			Atomic:           true,
+			Name:             static.Name,
 		},
-		Market: oracleconfig.MarketConfig{
-			Name: "static-mock-provider",
-			CurrencyPairToMarketConfigs: map[string]oracleconfig.CurrencyPairMarketConfig{
-				ticker.String(): {
-					Ticker:       big.NewInt(price).String(),
-					CurrencyPair: ticker,
-				},
-			},
-		},
+		Type: types.ConfigType,
 	})
 
-	oracleConfig.Market = oracleconfig.AggregateMarketConfig{
-		Feeds: map[string]oracleconfig.FeedConfig{
-			ticker.String(): {
-				CurrencyPair: ticker,
-			},
+	marketConfig := mmtypes.MarketMap{
+		Tickers: map[string]mmtypes.Ticker{
+			ticker.String(): ticker,
 		},
-		AggregatedFeeds: map[string]oracleconfig.AggregateFeedConfig{
+		Providers: map[string]mmtypes.Providers{
 			ticker.String(): {
-				CurrencyPair: ticker,
-				Conversions: []oracleconfig.Conversions{
+				Providers: []mmtypes.ProviderConfig{
 					{
-						{
-							CurrencyPair: ticker,
-							Invert:       false,
-						},
+						Name:           static.Name,
+						OffChainTicker: fmt.Sprintf("%d", price),
 					},
 				},
 			},
 		},
+		Paths: map[string]mmtypes.Paths{
+			ticker.String(): {Paths: []mmtypes.Path{
+				{Operations: []mmtypes.Operation{
+					{
+						CurrencyPair: ticker.CurrencyPair,
+						Invert:       false,
+						Provider:     static.Name,
+					},
+				}}},
+			}},
 	}
-	SetOracleConfigsOnOracle(oracle, oracleConfig)
 
+	oracle := GetOracleSideCar(node)
+	SetOracleConfigsOnOracle(oracle, oracleConfig, marketConfig)
 	return RestartOracle(node)
 }
 

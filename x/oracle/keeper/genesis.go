@@ -5,12 +5,13 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	slinkytypes "github.com/skip-mev/slinky/pkg/types"
 	"github.com/skip-mev/slinky/x/oracle/types"
 )
 
 // InitGenesis initializes the set of CurrencyPairs + their genesis prices (if any) for the x/oracle module.
-// this function panics on any errors, i.e if the genesis state is invalid, or any state-modifications fail.
-func (k Keeper) InitGenesis(ctx sdk.Context, gs types.GenesisState) {
+// this function panics on any errors, i.e. if the genesis state is invalid, or any state-modifications fail.
+func (k *Keeper) InitGenesis(ctx sdk.Context, gs types.GenesisState) {
 	// validate the genesis
 	if err := gs.Validate(); err != nil {
 		panic(err)
@@ -26,12 +27,22 @@ func (k Keeper) InitGenesis(ctx sdk.Context, gs types.GenesisState) {
 	}
 
 	// set the next ID to state
-	k.nextCurrencyPairID.Set(ctx, gs.NextId)
+	if err := k.nextCurrencyPairID.Set(ctx, gs.NextId); err != nil {
+		panic(fmt.Errorf("error in genesis: %w", err))
+	}
+
+	if err := k.numCPs.Set(ctx, uint64(len(gs.CurrencyPairGenesis))); err != nil {
+		panic(fmt.Errorf("error in genesis: %w", err))
+	}
+
+	if err := k.numRemoves.Set(ctx, 0); err != nil {
+		panic(fmt.Errorf("error in genesis: %w", err))
+	}
 }
 
 // ExportGenesis retrieve all CurrencyPairs + QuotePrices set for the module, and return them as a genesis state.
 // This module panics on any errors encountered in execution.
-func (k Keeper) ExportGenesis(ctx sdk.Context) *types.GenesisState {
+func (k *Keeper) ExportGenesis(ctx sdk.Context) *types.GenesisState {
 	// get the current next ID
 	id, err := k.nextCurrencyPairID.Peek(ctx)
 	if err != nil {
@@ -45,7 +56,7 @@ func (k Keeper) ExportGenesis(ctx sdk.Context) *types.GenesisState {
 	}
 
 	// next, iterate over NonceKey to retrieve any CurrencyPairs that have not yet been traversed (CurrencyPairs w/ no Price info)
-	k.IterateCurrencyPairs(ctx, func(cp types.CurrencyPair, cps types.CurrencyPairState) {
+	err = k.IterateCurrencyPairs(ctx, func(cp slinkytypes.CurrencyPair, cps types.CurrencyPairState) {
 		// append the currency pair + state to the genesis state
 		gs.CurrencyPairGenesis = append(gs.CurrencyPairGenesis, types.CurrencyPairGenesis{
 			CurrencyPair:      cp,
@@ -54,6 +65,9 @@ func (k Keeper) ExportGenesis(ctx sdk.Context) *types.GenesisState {
 			CurrencyPairPrice: cps.Price,
 		})
 	})
+	if err != nil {
+		panic(err)
+	}
 
 	return gs
 }

@@ -5,6 +5,7 @@ import (
 	fmt "fmt"
 	runtime "github.com/cosmos/cosmos-proto/runtime"
 	_ "github.com/cosmos/gogoproto/gogoproto"
+	v1 "github.com/skip-mev/slinky/api/slinky/types/v1"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoiface "google.golang.org/protobuf/runtime/protoiface"
@@ -373,7 +374,7 @@ func (x *fastReflection_GetAllCurrencyPairsRequest) ProtoMethods() *protoiface.M
 var _ protoreflect.List = (*_GetAllCurrencyPairsResponse_1_list)(nil)
 
 type _GetAllCurrencyPairsResponse_1_list struct {
-	list *[]*CurrencyPair
+	list *[]*v1.CurrencyPair
 }
 
 func (x *_GetAllCurrencyPairsResponse_1_list) Len() int {
@@ -389,18 +390,18 @@ func (x *_GetAllCurrencyPairsResponse_1_list) Get(i int) protoreflect.Value {
 
 func (x *_GetAllCurrencyPairsResponse_1_list) Set(i int, value protoreflect.Value) {
 	valueUnwrapped := value.Message()
-	concreteValue := valueUnwrapped.Interface().(*CurrencyPair)
+	concreteValue := valueUnwrapped.Interface().(*v1.CurrencyPair)
 	(*x.list)[i] = concreteValue
 }
 
 func (x *_GetAllCurrencyPairsResponse_1_list) Append(value protoreflect.Value) {
 	valueUnwrapped := value.Message()
-	concreteValue := valueUnwrapped.Interface().(*CurrencyPair)
+	concreteValue := valueUnwrapped.Interface().(*v1.CurrencyPair)
 	*x.list = append(*x.list, concreteValue)
 }
 
 func (x *_GetAllCurrencyPairsResponse_1_list) AppendMutable() protoreflect.Value {
-	v := new(CurrencyPair)
+	v := new(v1.CurrencyPair)
 	*x.list = append(*x.list, v)
 	return protoreflect.ValueOfMessage(v.ProtoReflect())
 }
@@ -413,7 +414,7 @@ func (x *_GetAllCurrencyPairsResponse_1_list) Truncate(n int) {
 }
 
 func (x *_GetAllCurrencyPairsResponse_1_list) NewElement() protoreflect.Value {
-	v := new(CurrencyPair)
+	v := new(v1.CurrencyPair)
 	return protoreflect.ValueOfMessage(v.ProtoReflect())
 }
 
@@ -606,7 +607,7 @@ func (x *fastReflection_GetAllCurrencyPairsResponse) Mutable(fd protoreflect.Fie
 	switch fd.FullName() {
 	case "slinky.oracle.v1.GetAllCurrencyPairsResponse.currency_pairs":
 		if x.CurrencyPairs == nil {
-			x.CurrencyPairs = []*CurrencyPair{}
+			x.CurrencyPairs = []*v1.CurrencyPair{}
 		}
 		value := &_GetAllCurrencyPairsResponse_1_list{list: &x.CurrencyPairs}
 		return protoreflect.ValueOfList(value)
@@ -624,7 +625,7 @@ func (x *fastReflection_GetAllCurrencyPairsResponse) Mutable(fd protoreflect.Fie
 func (x *fastReflection_GetAllCurrencyPairsResponse) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
 	case "slinky.oracle.v1.GetAllCurrencyPairsResponse.currency_pairs":
-		list := []*CurrencyPair{}
+		list := []*v1.CurrencyPair{}
 		return protoreflect.ValueOfList(&_GetAllCurrencyPairsResponse_1_list{list: &list})
 	default:
 		if fd.IsExtension() {
@@ -824,7 +825,7 @@ func (x *fastReflection_GetAllCurrencyPairsResponse) ProtoMethods() *protoiface.
 				if postIndex > l {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
-				x.CurrencyPairs = append(x.CurrencyPairs, &CurrencyPair{})
+				x.CurrencyPairs = append(x.CurrencyPairs, &v1.CurrencyPair{})
 				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.CurrencyPairs[len(x.CurrencyPairs)-1]); err != nil {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
 				}
@@ -865,16 +866,14 @@ func (x *fastReflection_GetAllCurrencyPairsResponse) ProtoMethods() *protoiface.
 }
 
 var (
-	md_GetPriceRequest                  protoreflect.MessageDescriptor
-	fd_GetPriceRequest_currency_pair    protoreflect.FieldDescriptor
-	fd_GetPriceRequest_currency_pair_id protoreflect.FieldDescriptor
+	md_GetPriceRequest               protoreflect.MessageDescriptor
+	fd_GetPriceRequest_currency_pair protoreflect.FieldDescriptor
 )
 
 func init() {
 	file_slinky_oracle_v1_query_proto_init()
 	md_GetPriceRequest = File_slinky_oracle_v1_query_proto.Messages().ByName("GetPriceRequest")
 	fd_GetPriceRequest_currency_pair = md_GetPriceRequest.Fields().ByName("currency_pair")
-	fd_GetPriceRequest_currency_pair_id = md_GetPriceRequest.Fields().ByName("currency_pair_id")
 }
 
 var _ protoreflect.Message = (*fastReflection_GetPriceRequest)(nil)
@@ -942,20 +941,10 @@ func (x *fastReflection_GetPriceRequest) Interface() protoreflect.ProtoMessage {
 // While iterating, mutating operations may only be performed
 // on the current field descriptor.
 func (x *fastReflection_GetPriceRequest) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
-	if x.CurrencyPairSelector != nil {
-		switch o := x.CurrencyPairSelector.(type) {
-		case *GetPriceRequest_CurrencyPair:
-			v := o.CurrencyPair
-			value := protoreflect.ValueOfMessage(v.ProtoReflect())
-			if !f(fd_GetPriceRequest_currency_pair, value) {
-				return
-			}
-		case *GetPriceRequest_CurrencyPairId:
-			v := o.CurrencyPairId
-			value := protoreflect.ValueOfString(v)
-			if !f(fd_GetPriceRequest_currency_pair_id, value) {
-				return
-			}
+	if x.CurrencyPair != nil {
+		value := protoreflect.ValueOfMessage(x.CurrencyPair.ProtoReflect())
+		if !f(fd_GetPriceRequest_currency_pair, value) {
+			return
 		}
 	}
 }
@@ -974,21 +963,7 @@ func (x *fastReflection_GetPriceRequest) Range(f func(protoreflect.FieldDescript
 func (x *fastReflection_GetPriceRequest) Has(fd protoreflect.FieldDescriptor) bool {
 	switch fd.FullName() {
 	case "slinky.oracle.v1.GetPriceRequest.currency_pair":
-		if x.CurrencyPairSelector == nil {
-			return false
-		} else if _, ok := x.CurrencyPairSelector.(*GetPriceRequest_CurrencyPair); ok {
-			return true
-		} else {
-			return false
-		}
-	case "slinky.oracle.v1.GetPriceRequest.currency_pair_id":
-		if x.CurrencyPairSelector == nil {
-			return false
-		} else if _, ok := x.CurrencyPairSelector.(*GetPriceRequest_CurrencyPairId); ok {
-			return true
-		} else {
-			return false
-		}
+		return x.CurrencyPair != nil
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: slinky.oracle.v1.GetPriceRequest"))
@@ -1006,9 +981,7 @@ func (x *fastReflection_GetPriceRequest) Has(fd protoreflect.FieldDescriptor) bo
 func (x *fastReflection_GetPriceRequest) Clear(fd protoreflect.FieldDescriptor) {
 	switch fd.FullName() {
 	case "slinky.oracle.v1.GetPriceRequest.currency_pair":
-		x.CurrencyPairSelector = nil
-	case "slinky.oracle.v1.GetPriceRequest.currency_pair_id":
-		x.CurrencyPairSelector = nil
+		x.CurrencyPair = nil
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: slinky.oracle.v1.GetPriceRequest"))
@@ -1026,21 +999,8 @@ func (x *fastReflection_GetPriceRequest) Clear(fd protoreflect.FieldDescriptor) 
 func (x *fastReflection_GetPriceRequest) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
 	switch descriptor.FullName() {
 	case "slinky.oracle.v1.GetPriceRequest.currency_pair":
-		if x.CurrencyPairSelector == nil {
-			return protoreflect.ValueOfMessage((*CurrencyPair)(nil).ProtoReflect())
-		} else if v, ok := x.CurrencyPairSelector.(*GetPriceRequest_CurrencyPair); ok {
-			return protoreflect.ValueOfMessage(v.CurrencyPair.ProtoReflect())
-		} else {
-			return protoreflect.ValueOfMessage((*CurrencyPair)(nil).ProtoReflect())
-		}
-	case "slinky.oracle.v1.GetPriceRequest.currency_pair_id":
-		if x.CurrencyPairSelector == nil {
-			return protoreflect.ValueOfString("")
-		} else if v, ok := x.CurrencyPairSelector.(*GetPriceRequest_CurrencyPairId); ok {
-			return protoreflect.ValueOfString(v.CurrencyPairId)
-		} else {
-			return protoreflect.ValueOfString("")
-		}
+		value := x.CurrencyPair
+		return protoreflect.ValueOfMessage(value.ProtoReflect())
 	default:
 		if descriptor.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: slinky.oracle.v1.GetPriceRequest"))
@@ -1062,11 +1022,7 @@ func (x *fastReflection_GetPriceRequest) Get(descriptor protoreflect.FieldDescri
 func (x *fastReflection_GetPriceRequest) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
 	switch fd.FullName() {
 	case "slinky.oracle.v1.GetPriceRequest.currency_pair":
-		cv := value.Message().Interface().(*CurrencyPair)
-		x.CurrencyPairSelector = &GetPriceRequest_CurrencyPair{CurrencyPair: cv}
-	case "slinky.oracle.v1.GetPriceRequest.currency_pair_id":
-		cv := value.Interface().(string)
-		x.CurrencyPairSelector = &GetPriceRequest_CurrencyPairId{CurrencyPairId: cv}
+		x.CurrencyPair = value.Message().Interface().(*v1.CurrencyPair)
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: slinky.oracle.v1.GetPriceRequest"))
@@ -1088,23 +1044,10 @@ func (x *fastReflection_GetPriceRequest) Set(fd protoreflect.FieldDescriptor, va
 func (x *fastReflection_GetPriceRequest) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
 	case "slinky.oracle.v1.GetPriceRequest.currency_pair":
-		if x.CurrencyPairSelector == nil {
-			value := &CurrencyPair{}
-			oneofValue := &GetPriceRequest_CurrencyPair{CurrencyPair: value}
-			x.CurrencyPairSelector = oneofValue
-			return protoreflect.ValueOfMessage(value.ProtoReflect())
+		if x.CurrencyPair == nil {
+			x.CurrencyPair = new(v1.CurrencyPair)
 		}
-		switch m := x.CurrencyPairSelector.(type) {
-		case *GetPriceRequest_CurrencyPair:
-			return protoreflect.ValueOfMessage(m.CurrencyPair.ProtoReflect())
-		default:
-			value := &CurrencyPair{}
-			oneofValue := &GetPriceRequest_CurrencyPair{CurrencyPair: value}
-			x.CurrencyPairSelector = oneofValue
-			return protoreflect.ValueOfMessage(value.ProtoReflect())
-		}
-	case "slinky.oracle.v1.GetPriceRequest.currency_pair_id":
-		panic(fmt.Errorf("field currency_pair_id of message slinky.oracle.v1.GetPriceRequest is not mutable"))
+		return protoreflect.ValueOfMessage(x.CurrencyPair.ProtoReflect())
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: slinky.oracle.v1.GetPriceRequest"))
@@ -1119,10 +1062,8 @@ func (x *fastReflection_GetPriceRequest) Mutable(fd protoreflect.FieldDescriptor
 func (x *fastReflection_GetPriceRequest) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
 	case "slinky.oracle.v1.GetPriceRequest.currency_pair":
-		value := &CurrencyPair{}
-		return protoreflect.ValueOfMessage(value.ProtoReflect())
-	case "slinky.oracle.v1.GetPriceRequest.currency_pair_id":
-		return protoreflect.ValueOfString("")
+		m := new(v1.CurrencyPair)
+		return protoreflect.ValueOfMessage(m.ProtoReflect())
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: slinky.oracle.v1.GetPriceRequest"))
@@ -1136,16 +1077,6 @@ func (x *fastReflection_GetPriceRequest) NewField(fd protoreflect.FieldDescripto
 // It panics if the oneof descriptor does not belong to this message.
 func (x *fastReflection_GetPriceRequest) WhichOneof(d protoreflect.OneofDescriptor) protoreflect.FieldDescriptor {
 	switch d.FullName() {
-	case "slinky.oracle.v1.GetPriceRequest.currency_pair_selector":
-		if x.CurrencyPairSelector == nil {
-			return nil
-		}
-		switch x.CurrencyPairSelector.(type) {
-		case *GetPriceRequest_CurrencyPair:
-			return x.Descriptor().Fields().ByName("currency_pair")
-		case *GetPriceRequest_CurrencyPairId:
-			return x.Descriptor().Fields().ByName("currency_pair_id")
-		}
 	default:
 		panic(fmt.Errorf("%s is not a oneof field in slinky.oracle.v1.GetPriceRequest", d.FullName()))
 	}
@@ -1202,18 +1133,8 @@ func (x *fastReflection_GetPriceRequest) ProtoMethods() *protoiface.Methods {
 		var n int
 		var l int
 		_ = l
-		switch x := x.CurrencyPairSelector.(type) {
-		case *GetPriceRequest_CurrencyPair:
-			if x == nil {
-				break
-			}
+		if x.CurrencyPair != nil {
 			l = options.Size(x.CurrencyPair)
-			n += 1 + l + runtime.Sov(uint64(l))
-		case *GetPriceRequest_CurrencyPairId:
-			if x == nil {
-				break
-			}
-			l = len(x.CurrencyPairId)
 			n += 1 + l + runtime.Sov(uint64(l))
 		}
 		if x.unknownFields != nil {
@@ -1245,8 +1166,7 @@ func (x *fastReflection_GetPriceRequest) ProtoMethods() *protoiface.Methods {
 			i -= len(x.unknownFields)
 			copy(dAtA[i:], x.unknownFields)
 		}
-		switch x := x.CurrencyPairSelector.(type) {
-		case *GetPriceRequest_CurrencyPair:
+		if x.CurrencyPair != nil {
 			encoded, err := options.Marshal(x.CurrencyPair)
 			if err != nil {
 				return protoiface.MarshalOutput{
@@ -1259,12 +1179,6 @@ func (x *fastReflection_GetPriceRequest) ProtoMethods() *protoiface.Methods {
 			i = runtime.EncodeVarint(dAtA, i, uint64(len(encoded)))
 			i--
 			dAtA[i] = 0xa
-		case *GetPriceRequest_CurrencyPairId:
-			i -= len(x.CurrencyPairId)
-			copy(dAtA[i:], x.CurrencyPairId)
-			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.CurrencyPairId)))
-			i--
-			dAtA[i] = 0x12
 		}
 		if input.Buf != nil {
 			input.Buf = append(input.Buf, dAtA...)
@@ -1344,43 +1258,12 @@ func (x *fastReflection_GetPriceRequest) ProtoMethods() *protoiface.Methods {
 				if postIndex > l {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
-				v := &CurrencyPair{}
-				if err := options.Unmarshal(dAtA[iNdEx:postIndex], v); err != nil {
+				if x.CurrencyPair == nil {
+					x.CurrencyPair = &v1.CurrencyPair{}
+				}
+				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.CurrencyPair); err != nil {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
 				}
-				x.CurrencyPairSelector = &GetPriceRequest_CurrencyPair{v}
-				iNdEx = postIndex
-			case 2:
-				if wireType != 2 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field CurrencyPairId", wireType)
-				}
-				var stringLen uint64
-				for shift := uint(0); ; shift += 7 {
-					if shift >= 64 {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
-					}
-					if iNdEx >= l {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-					}
-					b := dAtA[iNdEx]
-					iNdEx++
-					stringLen |= uint64(b&0x7F) << shift
-					if b < 0x80 {
-						break
-					}
-				}
-				intStringLen := int(stringLen)
-				if intStringLen < 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-				}
-				postIndex := iNdEx + intStringLen
-				if postIndex < 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-				}
-				if postIndex > l {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-				}
-				x.CurrencyPairSelector = &GetPriceRequest_CurrencyPairId{string(dAtA[iNdEx:postIndex])}
 				iNdEx = postIndex
 			default:
 				iNdEx = preIndex
@@ -3010,13 +2893,13 @@ func (*GetAllCurrencyPairsRequest) Descriptor() ([]byte, []int) {
 }
 
 // GetAllCurrencyPairsResponse returns all CurrencyPairs that the module is
-// currently tracking
+// currently tracking.
 type GetAllCurrencyPairsResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	CurrencyPairs []*CurrencyPair `protobuf:"bytes,1,rep,name=currency_pairs,json=currencyPairs,proto3" json:"currency_pairs,omitempty"`
+	CurrencyPairs []*v1.CurrencyPair `protobuf:"bytes,1,rep,name=currency_pairs,json=currencyPairs,proto3" json:"currency_pairs,omitempty"`
 }
 
 func (x *GetAllCurrencyPairsResponse) Reset() {
@@ -3039,7 +2922,7 @@ func (*GetAllCurrencyPairsResponse) Descriptor() ([]byte, []int) {
 	return file_slinky_oracle_v1_query_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *GetAllCurrencyPairsResponse) GetCurrencyPairs() []*CurrencyPair {
+func (x *GetAllCurrencyPairsResponse) GetCurrencyPairs() []*v1.CurrencyPair {
 	if x != nil {
 		return x.CurrencyPairs
 	}
@@ -3047,20 +2930,14 @@ func (x *GetAllCurrencyPairsResponse) GetCurrencyPairs() []*CurrencyPair {
 }
 
 // GetPriceRequest either takes a CurrencyPair, or an identifier for the
-// CurrencyPair in the format base/quote
+// CurrencyPair in the format base/quote.
 type GetPriceRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// CurrencyPairSelector represents the types that the user may provide to the
-	// request to identify a CurrencyPair
-	//
-	// Types that are assignable to CurrencyPairSelector:
-	//
-	//	*GetPriceRequest_CurrencyPair
-	//	*GetPriceRequest_CurrencyPairId
-	CurrencyPairSelector isGetPriceRequest_CurrencyPairSelector `protobuf_oneof:"currency_pair_selector"`
+	// CurrencyPair represents the pair that the user wishes to query.
+	CurrencyPair *v1.CurrencyPair `protobuf:"bytes,1,opt,name=currency_pair,json=currencyPair,proto3" json:"currency_pair,omitempty"`
 }
 
 func (x *GetPriceRequest) Reset() {
@@ -3083,47 +2960,15 @@ func (*GetPriceRequest) Descriptor() ([]byte, []int) {
 	return file_slinky_oracle_v1_query_proto_rawDescGZIP(), []int{2}
 }
 
-func (x *GetPriceRequest) GetCurrencyPairSelector() isGetPriceRequest_CurrencyPairSelector {
+func (x *GetPriceRequest) GetCurrencyPair() *v1.CurrencyPair {
 	if x != nil {
-		return x.CurrencyPairSelector
-	}
-	return nil
-}
-
-func (x *GetPriceRequest) GetCurrencyPair() *CurrencyPair {
-	if x, ok := x.GetCurrencyPairSelector().(*GetPriceRequest_CurrencyPair); ok {
 		return x.CurrencyPair
 	}
 	return nil
 }
 
-func (x *GetPriceRequest) GetCurrencyPairId() string {
-	if x, ok := x.GetCurrencyPairSelector().(*GetPriceRequest_CurrencyPairId); ok {
-		return x.CurrencyPairId
-	}
-	return ""
-}
-
-type isGetPriceRequest_CurrencyPairSelector interface {
-	isGetPriceRequest_CurrencyPairSelector()
-}
-
-type GetPriceRequest_CurrencyPair struct {
-	// CurrencyPair type
-	CurrencyPair *CurrencyPair `protobuf:"bytes,1,opt,name=currency_pair,json=currencyPair,proto3,oneof"`
-}
-
-type GetPriceRequest_CurrencyPairId struct {
-	// string representation of the CurrencyPair
-	CurrencyPairId string `protobuf:"bytes,2,opt,name=currency_pair_id,json=currencyPairId,proto3,oneof"`
-}
-
-func (*GetPriceRequest_CurrencyPair) isGetPriceRequest_CurrencyPairSelector() {}
-
-func (*GetPriceRequest_CurrencyPairId) isGetPriceRequest_CurrencyPairSelector() {}
-
 // GetPriceResponse is the response from the GetPrice grpc method exposed from
-// the x/oracle query service
+// the x/oracle query service.
 type GetPriceResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -3191,7 +3036,7 @@ func (x *GetPriceResponse) GetId() uint64 {
 }
 
 // GetPricesRequest takes an identifier for the CurrencyPair
-// in the format base/quote
+// in the format base/quote.
 type GetPricesRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -3228,7 +3073,7 @@ func (x *GetPricesRequest) GetCurrencyPairIds() []string {
 }
 
 // GetPricesResponse is the response from the GetPrices grpc method exposed from
-// the x/oracle query service
+// the x/oracle query service.
 type GetPricesResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -3275,25 +3120,23 @@ var file_slinky_oracle_v1_query_proto_rawDesc = []byte{
 	0x70, 0x69, 0x2f, 0x61, 0x6e, 0x6e, 0x6f, 0x74, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x2e, 0x70,
 	0x72, 0x6f, 0x74, 0x6f, 0x1a, 0x1e, 0x73, 0x6c, 0x69, 0x6e, 0x6b, 0x79, 0x2f, 0x6f, 0x72, 0x61,
 	0x63, 0x6c, 0x65, 0x2f, 0x76, 0x31, 0x2f, 0x67, 0x65, 0x6e, 0x65, 0x73, 0x69, 0x73, 0x2e, 0x70,
-	0x72, 0x6f, 0x74, 0x6f, 0x22, 0x1c, 0x0a, 0x1a, 0x47, 0x65, 0x74, 0x41, 0x6c, 0x6c, 0x43, 0x75,
-	0x72, 0x72, 0x65, 0x6e, 0x63, 0x79, 0x50, 0x61, 0x69, 0x72, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65,
-	0x73, 0x74, 0x22, 0x6a, 0x0a, 0x1b, 0x47, 0x65, 0x74, 0x41, 0x6c, 0x6c, 0x43, 0x75, 0x72, 0x72,
-	0x65, 0x6e, 0x63, 0x79, 0x50, 0x61, 0x69, 0x72, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
-	0x65, 0x12, 0x4b, 0x0a, 0x0e, 0x63, 0x75, 0x72, 0x72, 0x65, 0x6e, 0x63, 0x79, 0x5f, 0x70, 0x61,
-	0x69, 0x72, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x1e, 0x2e, 0x73, 0x6c, 0x69, 0x6e,
-	0x6b, 0x79, 0x2e, 0x6f, 0x72, 0x61, 0x63, 0x6c, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x43, 0x75, 0x72,
-	0x72, 0x65, 0x6e, 0x63, 0x79, 0x50, 0x61, 0x69, 0x72, 0x42, 0x04, 0xc8, 0xde, 0x1f, 0x00, 0x52,
-	0x0d, 0x63, 0x75, 0x72, 0x72, 0x65, 0x6e, 0x63, 0x79, 0x50, 0x61, 0x69, 0x72, 0x73, 0x22, 0x9e,
-	0x01, 0x0a, 0x0f, 0x47, 0x65, 0x74, 0x50, 0x72, 0x69, 0x63, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65,
-	0x73, 0x74, 0x12, 0x45, 0x0a, 0x0d, 0x63, 0x75, 0x72, 0x72, 0x65, 0x6e, 0x63, 0x79, 0x5f, 0x70,
-	0x61, 0x69, 0x72, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1e, 0x2e, 0x73, 0x6c, 0x69, 0x6e,
-	0x6b, 0x79, 0x2e, 0x6f, 0x72, 0x61, 0x63, 0x6c, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x43, 0x75, 0x72,
-	0x72, 0x65, 0x6e, 0x63, 0x79, 0x50, 0x61, 0x69, 0x72, 0x48, 0x00, 0x52, 0x0c, 0x63, 0x75, 0x72,
-	0x72, 0x65, 0x6e, 0x63, 0x79, 0x50, 0x61, 0x69, 0x72, 0x12, 0x2a, 0x0a, 0x10, 0x63, 0x75, 0x72,
-	0x72, 0x65, 0x6e, 0x63, 0x79, 0x5f, 0x70, 0x61, 0x69, 0x72, 0x5f, 0x69, 0x64, 0x18, 0x02, 0x20,
-	0x01, 0x28, 0x09, 0x48, 0x00, 0x52, 0x0e, 0x63, 0x75, 0x72, 0x72, 0x65, 0x6e, 0x63, 0x79, 0x50,
-	0x61, 0x69, 0x72, 0x49, 0x64, 0x42, 0x18, 0x0a, 0x16, 0x63, 0x75, 0x72, 0x72, 0x65, 0x6e, 0x63,
-	0x79, 0x5f, 0x70, 0x61, 0x69, 0x72, 0x5f, 0x73, 0x65, 0x6c, 0x65, 0x63, 0x74, 0x6f, 0x72, 0x22,
+	0x72, 0x6f, 0x74, 0x6f, 0x1a, 0x23, 0x73, 0x6c, 0x69, 0x6e, 0x6b, 0x79, 0x2f, 0x74, 0x79, 0x70,
+	0x65, 0x73, 0x2f, 0x76, 0x31, 0x2f, 0x63, 0x75, 0x72, 0x72, 0x65, 0x6e, 0x63, 0x79, 0x5f, 0x70,
+	0x61, 0x69, 0x72, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x22, 0x1c, 0x0a, 0x1a, 0x47, 0x65, 0x74,
+	0x41, 0x6c, 0x6c, 0x43, 0x75, 0x72, 0x72, 0x65, 0x6e, 0x63, 0x79, 0x50, 0x61, 0x69, 0x72, 0x73,
+	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x22, 0x69, 0x0a, 0x1b, 0x47, 0x65, 0x74, 0x41, 0x6c,
+	0x6c, 0x43, 0x75, 0x72, 0x72, 0x65, 0x6e, 0x63, 0x79, 0x50, 0x61, 0x69, 0x72, 0x73, 0x52, 0x65,
+	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x4a, 0x0a, 0x0e, 0x63, 0x75, 0x72, 0x72, 0x65, 0x6e,
+	0x63, 0x79, 0x5f, 0x70, 0x61, 0x69, 0x72, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x1d,
+	0x2e, 0x73, 0x6c, 0x69, 0x6e, 0x6b, 0x79, 0x2e, 0x74, 0x79, 0x70, 0x65, 0x73, 0x2e, 0x76, 0x31,
+	0x2e, 0x43, 0x75, 0x72, 0x72, 0x65, 0x6e, 0x63, 0x79, 0x50, 0x61, 0x69, 0x72, 0x42, 0x04, 0xc8,
+	0xde, 0x1f, 0x00, 0x52, 0x0d, 0x63, 0x75, 0x72, 0x72, 0x65, 0x6e, 0x63, 0x79, 0x50, 0x61, 0x69,
+	0x72, 0x73, 0x22, 0x5b, 0x0a, 0x0f, 0x47, 0x65, 0x74, 0x50, 0x72, 0x69, 0x63, 0x65, 0x52, 0x65,
+	0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x48, 0x0a, 0x0d, 0x63, 0x75, 0x72, 0x72, 0x65, 0x6e, 0x63,
+	0x79, 0x5f, 0x70, 0x61, 0x69, 0x72, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1d, 0x2e, 0x73,
+	0x6c, 0x69, 0x6e, 0x6b, 0x79, 0x2e, 0x74, 0x79, 0x70, 0x65, 0x73, 0x2e, 0x76, 0x31, 0x2e, 0x43,
+	0x75, 0x72, 0x72, 0x65, 0x6e, 0x63, 0x79, 0x50, 0x61, 0x69, 0x72, 0x42, 0x04, 0xc8, 0xde, 0x1f,
+	0x00, 0x52, 0x0c, 0x63, 0x75, 0x72, 0x72, 0x65, 0x6e, 0x63, 0x79, 0x50, 0x61, 0x69, 0x72, 0x22,
 	0x8e, 0x01, 0x0a, 0x10, 0x47, 0x65, 0x74, 0x50, 0x72, 0x69, 0x63, 0x65, 0x52, 0x65, 0x73, 0x70,
 	0x6f, 0x6e, 0x73, 0x65, 0x12, 0x38, 0x0a, 0x05, 0x70, 0x72, 0x69, 0x63, 0x65, 0x18, 0x01, 0x20,
 	0x01, 0x28, 0x0b, 0x32, 0x1c, 0x2e, 0x73, 0x6c, 0x69, 0x6e, 0x6b, 0x79, 0x2e, 0x6f, 0x72, 0x61,
@@ -3372,12 +3215,12 @@ var file_slinky_oracle_v1_query_proto_goTypes = []interface{}{
 	(*GetPriceResponse)(nil),            // 3: slinky.oracle.v1.GetPriceResponse
 	(*GetPricesRequest)(nil),            // 4: slinky.oracle.v1.GetPricesRequest
 	(*GetPricesResponse)(nil),           // 5: slinky.oracle.v1.GetPricesResponse
-	(*CurrencyPair)(nil),                // 6: slinky.oracle.v1.CurrencyPair
+	(*v1.CurrencyPair)(nil),             // 6: slinky.types.v1.CurrencyPair
 	(*QuotePrice)(nil),                  // 7: slinky.oracle.v1.QuotePrice
 }
 var file_slinky_oracle_v1_query_proto_depIdxs = []int32{
-	6, // 0: slinky.oracle.v1.GetAllCurrencyPairsResponse.currency_pairs:type_name -> slinky.oracle.v1.CurrencyPair
-	6, // 1: slinky.oracle.v1.GetPriceRequest.currency_pair:type_name -> slinky.oracle.v1.CurrencyPair
+	6, // 0: slinky.oracle.v1.GetAllCurrencyPairsResponse.currency_pairs:type_name -> slinky.types.v1.CurrencyPair
+	6, // 1: slinky.oracle.v1.GetPriceRequest.currency_pair:type_name -> slinky.types.v1.CurrencyPair
 	7, // 2: slinky.oracle.v1.GetPriceResponse.price:type_name -> slinky.oracle.v1.QuotePrice
 	3, // 3: slinky.oracle.v1.GetPricesResponse.prices:type_name -> slinky.oracle.v1.GetPriceResponse
 	0, // 4: slinky.oracle.v1.Query.GetAllCurrencyPairs:input_type -> slinky.oracle.v1.GetAllCurrencyPairsRequest
@@ -3472,10 +3315,6 @@ func file_slinky_oracle_v1_query_proto_init() {
 				return nil
 			}
 		}
-	}
-	file_slinky_oracle_v1_query_proto_msgTypes[2].OneofWrappers = []interface{}{
-		(*GetPriceRequest_CurrencyPair)(nil),
-		(*GetPriceRequest_CurrencyPairId)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{

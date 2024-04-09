@@ -6,6 +6,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	slinkytypes "github.com/skip-mev/slinky/pkg/types"
 	"github.com/skip-mev/slinky/x/oracle/types"
 )
 
@@ -30,6 +31,10 @@ func (m *msgServer) AddCurrencyPairs(goCtx context.Context, req *types.MsgAddCur
 		return nil, fmt.Errorf("message cannot be empty")
 	}
 
+	if m.k.mmKeeper != nil {
+		return nil, fmt.Errorf("x/oracle message server is disabled when using x/marketmap")
+	}
+
 	// check that the authority of the message is the authority of the module
 	if req.Authority != m.k.authority.String() {
 		return nil, fmt.Errorf("message validation failed: authority %s is not module authority %s", req.Authority, m.k.authority)
@@ -41,7 +46,10 @@ func (m *msgServer) AddCurrencyPairs(goCtx context.Context, req *types.MsgAddCur
 		// only set the currency-pair if it does not already exist in state
 		if !m.k.HasCurrencyPair(ctx, cp) {
 			// set to state, initial nonce will be zero (no price updates have been made for this CurrencyPair)
-			m.k.CreateCurrencyPair(ctx, cp)
+			err := m.k.CreateCurrencyPair(ctx, cp)
+			if err != nil {
+				return nil, fmt.Errorf("error creating currency pair state: %w", err)
+			}
 		}
 	}
 
@@ -57,6 +65,10 @@ func (m *msgServer) RemoveCurrencyPairs(goCtx context.Context, req *types.MsgRem
 		return nil, fmt.Errorf("message cannot be empty")
 	}
 
+	if m.k.mmKeeper != nil {
+		return nil, fmt.Errorf("x/oracle message server is disabled when using x/marketmap")
+	}
+
 	// check that the authority of the message is the authority of the module
 	if req.Authority != m.k.authority.String() {
 		return nil, fmt.Errorf("message validation failed: authority %s is not module authority %s", req.Authority, m.k.authority)
@@ -67,13 +79,15 @@ func (m *msgServer) RemoveCurrencyPairs(goCtx context.Context, req *types.MsgRem
 
 	for _, id := range req.CurrencyPairIds {
 		// get cp from identifier string
-		cp, err := types.CurrencyPairFromString(id)
+		cp, err := slinkytypes.CurrencyPairFromString(id)
 		if err != nil {
 			return nil, fmt.Errorf("error retrieving CurrencyPair from request: %w", err)
 		}
 
 		// delete the currency pair from state
-		m.k.RemoveCurrencyPair(ctx, cp)
+		if err := m.k.RemoveCurrencyPair(ctx, cp); err != nil {
+			return nil, fmt.Errorf("error removing currency pair from state: %w", err)
+		}
 	}
 
 	return nil, nil

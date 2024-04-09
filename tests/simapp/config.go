@@ -12,7 +12,6 @@ import (
 	bankmodulev1 "cosmossdk.io/api/cosmos/bank/module/v1"
 	circuitmodulev1 "cosmossdk.io/api/cosmos/circuit/module/v1"
 	consensusmodulev1 "cosmossdk.io/api/cosmos/consensus/module/v1"
-	crisismodulev1 "cosmossdk.io/api/cosmos/crisis/module/v1"
 	distrmodulev1 "cosmossdk.io/api/cosmos/distribution/module/v1"
 	genutilmodulev1 "cosmossdk.io/api/cosmos/genutil/module/v1"
 	govmodulev1 "cosmossdk.io/api/cosmos/gov/module/v1"
@@ -37,7 +36,6 @@ import (
 	_ "github.com/cosmos/cosmos-sdk/x/authz/module"   // import for side-effects
 	_ "github.com/cosmos/cosmos-sdk/x/bank"           // import for side-effects
 	_ "github.com/cosmos/cosmos-sdk/x/consensus"      // import for side-effects
-	_ "github.com/cosmos/cosmos-sdk/x/crisis"         // import for side-effects
 	_ "github.com/cosmos/cosmos-sdk/x/distribution"   // import for side-effects
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	"github.com/cosmos/cosmos-sdk/x/gov"
@@ -47,8 +45,9 @@ import (
 	_ "github.com/cosmos/cosmos-sdk/x/slashing"     // import for side-effects
 	_ "github.com/cosmos/cosmos-sdk/x/staking"      // import for side-effects
 
-	_ "github.com/skip-mev/slinky/x/incentives" // import for side-effects
-	_ "github.com/skip-mev/slinky/x/oracle"     // import for side-effects
+	_ "github.com/skip-mev/slinky/x/incentives"       // import for side-effects
+	_ "github.com/skip-mev/slinky/x/marketmap/module" // import for side-effects
+	_ "github.com/skip-mev/slinky/x/oracle"           // import for side-effects
 
 	"cosmossdk.io/core/appconfig"
 	circuittypes "cosmossdk.io/x/circuit/types"
@@ -60,7 +59,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/authz"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	consensustypes "github.com/cosmos/cosmos-sdk/x/consensus/types"
-	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	govclient "github.com/cosmos/cosmos-sdk/x/gov/client"
@@ -72,9 +70,11 @@ import (
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
+	marketmapmodulev1 "github.com/skip-mev/slinky/api/slinky/marketmap/module/v1"
 	alerttypes "github.com/skip-mev/slinky/x/alerts/types"
 	"github.com/skip-mev/slinky/x/alerts/types/strategies"
 	incentivetypes "github.com/skip-mev/slinky/x/incentives/types"
+	marketmaptypes "github.com/skip-mev/slinky/x/marketmap/types"
 	oracletypes "github.com/skip-mev/slinky/x/oracle/types"
 )
 
@@ -133,17 +133,18 @@ var (
 						oracletypes.ModuleName,
 						incentivetypes.ModuleName,
 						alerttypes.ModuleName,
+						marketmaptypes.ModuleName,
 					},
 					EndBlockers: []string{
-						crisistypes.ModuleName,
 						govtypes.ModuleName,
 						stakingtypes.ModuleName,
 						genutiltypes.ModuleName,
 						group.ModuleName,
 						oracletypes.ModuleName,
-						// alert Endblock must precede incentives types EndBlocker (issued incentives shld be executed same block)
+						// alert Endblock must precede incentives types EndBlocker (issued incentives should be executed same block)
 						alerttypes.ModuleName,
 						incentivetypes.ModuleName,
+						marketmaptypes.ModuleName,
 					},
 					OverrideStoreKeys: []*runtimev1alpha1.StoreKeyConfig{
 						{
@@ -162,7 +163,6 @@ var (
 						slashingtypes.ModuleName,
 						govtypes.ModuleName,
 						minttypes.ModuleName,
-						crisistypes.ModuleName,
 						genutiltypes.ModuleName,
 						authz.ModuleName,
 						group.ModuleName,
@@ -174,6 +174,8 @@ var (
 						oracletypes.ModuleName,
 						incentivetypes.ModuleName,
 						alerttypes.ModuleName,
+						// market map genesis must be called AFTER all consuming modules (i.e. x/oracle, etc.)
+						marketmaptypes.ModuleName,
 					},
 					// When ExportGenesis is not specified, the export genesis module order
 					// is equal to the init genesis order
@@ -257,10 +259,7 @@ var (
 				Name:   govtypes.ModuleName,
 				Config: appconfig.WrapAny(&govmodulev1.Module{}),
 			},
-			{
-				Name:   crisistypes.ModuleName,
-				Config: appconfig.WrapAny(&crisismodulev1.Module{}),
-			},
+
 			{
 				Name:   consensustypes.ModuleName,
 				Config: appconfig.WrapAny(&consensusmodulev1.Module{}),
@@ -272,6 +271,12 @@ var (
 			{
 				Name: alerttypes.ModuleName,
 				Config: appconfig.WrapAny(&alertmodulev1.Module{
+					Authority: authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+				}),
+			},
+			{
+				Name: marketmaptypes.ModuleName,
+				Config: appconfig.WrapAny(&marketmapmodulev1.Module{
 					Authority: authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 				}),
 			},

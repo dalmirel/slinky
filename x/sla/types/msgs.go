@@ -6,6 +6,11 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
+const (
+	MaxSLAIDLength    = 200
+	MaxSLAsPerMessage = 100
+)
+
 var (
 	_ sdk.Msg = &MsgAddSLAs{}
 	_ sdk.Msg = &MsgRemoveSLAs{}
@@ -20,14 +25,6 @@ func NewMsgAddSLAs(authority string, slas []PriceFeedSLA) MsgAddSLAs {
 	}
 }
 
-// GetSigners gets the addresses that must sign this message. In this case, the signer
-// must be the module authority.
-func (m *MsgAddSLAs) GetSigners() []sdk.AccAddress {
-	// convert from string to acc address
-	addr, _ := sdk.AccAddressFromBech32(m.Authority)
-	return []sdk.AccAddress{addr}
-}
-
 // ValidateBasic determines whether the information in the message is formatted correctly, specifically
 // whether the authority is a valid acc-address, and that each SLA in the message is formatted correctly.
 func (m *MsgAddSLAs) ValidateBasic() error {
@@ -35,6 +32,14 @@ func (m *MsgAddSLAs) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(m.Authority)
 	if err != nil {
 		return err
+	}
+
+	if len(m.SLAs) == 0 {
+		return fmt.Errorf("message must contain at least one SLA")
+	}
+
+	if len(m.SLAs) > MaxSLAsPerMessage {
+		return fmt.Errorf("maximum number of SLAs of %d exceeded: got %d", MaxSLAsPerMessage, len(m.SLAs))
 	}
 
 	// validate SLAs
@@ -49,6 +54,10 @@ func (m *MsgAddSLAs) ValidateBasic() error {
 		}
 
 		seen[sla.ID] = struct{}{}
+
+		if len(sla.ID) > MaxSLAIDLength {
+			return fmt.Errorf("maximum length of %d for SLA ID exceeded: got %d", MaxSLAIDLength, len(sla.ID))
+		}
 	}
 
 	return nil
@@ -62,14 +71,6 @@ func NewMsgRemoveSLAs(authority string, slaIDs []string) MsgRemoveSLAs {
 	}
 }
 
-// GetSigners gets the addresses that must sign this message. In this case, the signer
-// must be the module authority.
-func (m *MsgRemoveSLAs) GetSigners() []sdk.AccAddress {
-	// convert from string to acc address
-	addr, _ := sdk.AccAddressFromBech32(m.Authority)
-	return []sdk.AccAddress{addr}
-}
-
 // ValidateBasic determines whether the information in the message is formatted correctly, specifically
 // whether the authority is a valid acc-address, and that each SLA ID in the message is not empty.
 func (m *MsgRemoveSLAs) ValidateBasic() error {
@@ -77,6 +78,14 @@ func (m *MsgRemoveSLAs) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(m.Authority)
 	if err != nil {
 		return err
+	}
+
+	if len(m.IDs) == 0 {
+		return fmt.Errorf("message must contain at least one SLA")
+	}
+
+	if len(m.IDs) > MaxSLAsPerMessage {
+		return fmt.Errorf("maximum number of SLAs of %d exceeded: got %d", MaxSLAsPerMessage, len(m.IDs))
 	}
 
 	// validate SLA IDs
@@ -102,13 +111,6 @@ func NewMsgParams(authority string, params Params) MsgParams {
 		Authority: authority,
 		Params:    params,
 	}
-}
-
-// GetSigners gets the addresses that must sign this message. In this case, the signer
-// must be the module authority.
-func (m *MsgParams) GetSigners() []sdk.AccAddress {
-	addr, _ := sdk.AccAddressFromBech32(m.Authority)
-	return []sdk.AccAddress{addr}
 }
 
 // ValidateBasic determines whether the information in the message is formatted correctly, specifically

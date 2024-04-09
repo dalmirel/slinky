@@ -8,10 +8,10 @@ import (
 	cmtabci "github.com/cometbft/cometbft/abci/types"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
+	slinkytypes "github.com/skip-mev/slinky/pkg/types"
 	"github.com/skip-mev/slinky/x/alerts/types"
-	oracletypes "github.com/skip-mev/slinky/x/oracle/types"
 )
 
 func TestMsgAlertValidateBasic(t *testing.T) {
@@ -27,13 +27,13 @@ func TestMsgAlertValidateBasic(t *testing.T) {
 			*types.NewMsgAlert(types.Alert{
 				Height:       0,
 				Signer:       "",
-				CurrencyPair: oracletypes.NewCurrencyPair("BTC", "USD"),
+				CurrencyPair: slinkytypes.NewCurrencyPair("BTC", "USD"),
 			}),
 			false,
 		},
 		{
 			"if the alert is valid, the message is valid",
-			*types.NewMsgAlert(types.NewAlert(0, sdk.AccAddress("cosmos1"), oracletypes.NewCurrencyPair("BTC", "USD"))),
+			*types.NewMsgAlert(types.NewAlert(0, sdk.AccAddress("cosmos1"), slinkytypes.NewCurrencyPair("BTC", "USD"))),
 			true,
 		},
 	}
@@ -51,25 +51,16 @@ func TestMsgAlertValidateBasic(t *testing.T) {
 	}
 }
 
-func TestMsgAlertGetSigners(t *testing.T) {
-	signer := sdk.AccAddress("cosmos1")
-
-	// create a message with signer
-	msg := types.NewMsgAlert(types.NewAlert(0, signer, oracletypes.NewCurrencyPair("BTC", "USD")))
-	signers := msg.GetSigners()
-	assert.Equal(t, []sdk.AccAddress{signer}, signers)
-}
-
 func TestMsgConclusion(t *testing.T) {
 	invalidConclusionAny, err := codectypes.NewAnyWithValue(&types.MultiSigConclusion{})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	validConclusionAny, err := codectypes.NewAnyWithValue(&types.MultiSigConclusion{
 		ExtendedCommitInfo: cmtabci.ExtendedCommitInfo{},
 		Alert: types.Alert{
 			Height:       1,
 			Signer:       sdk.AccAddress("cosmos1").String(),
-			CurrencyPair: oracletypes.NewCurrencyPair("BTC", "USD"),
+			CurrencyPair: slinkytypes.NewCurrencyPair("BTC", "USD"),
 		},
 		PriceBound: types.PriceBound{
 			High: big.NewInt(1).String(),
@@ -83,7 +74,7 @@ func TestMsgConclusion(t *testing.T) {
 		},
 		Status: false,
 	})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	t.Run("test validate basic", func(t *testing.T) {
 		cases := []struct {
@@ -136,17 +127,6 @@ func TestMsgConclusion(t *testing.T) {
 				}
 			})
 		}
-	})
-
-	t.Run("test get signers", func(t *testing.T) {
-		signer := sdk.AccAddress("cosmos1")
-		msg := types.MsgConclusion{
-			Signer:     signer.String(),
-			Conclusion: validConclusionAny,
-		}
-
-		signers := msg.GetSigners()
-		assert.Equal(t, []sdk.AccAddress{signer}, signers)
 	})
 }
 

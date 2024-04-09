@@ -7,7 +7,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/skip-mev/slinky/oracle/config"
-	oracletypes "github.com/skip-mev/slinky/x/oracle/types"
 )
 
 func TestOracleConfig(t *testing.T) {
@@ -20,18 +19,10 @@ func TestOracleConfig(t *testing.T) {
 			name: "good config",
 			config: config.OracleConfig{
 				UpdateInterval: time.Second,
+				MaxPriceAge:    time.Minute,
 				Providers: []config.ProviderConfig{
 					{
 						Name: "test",
-						Market: config.MarketConfig{
-							Name: "test",
-							CurrencyPairToMarketConfigs: map[string]config.CurrencyPairMarketConfig{
-								"BITCOIN/USD": {
-									Ticker:       "BTC/USD",
-									CurrencyPair: oracletypes.NewCurrencyPair("BITCOIN", "USD"),
-								},
-							},
-						},
 						WebSocket: config.WebSocketConfig{
 							Enabled:             true,
 							MaxBufferSize:       1,
@@ -45,30 +36,41 @@ func TestOracleConfig(t *testing.T) {
 							ReadTimeout:         config.DefaultReadTimeout,
 							WriteTimeout:        config.DefaultWriteTimeout,
 						},
+						Type: "price_provider",
 					},
 				},
-				Market: config.AggregateMarketConfig{
-					Feeds: map[string]config.FeedConfig{
-						"BITCOIN/USD": {
-							CurrencyPair: oracletypes.NewCurrencyPair("BITCOIN", "USD"),
-						},
-					},
-					AggregatedFeeds: map[string]config.AggregateFeedConfig{
-						"BITCOIN/USD": {
-							CurrencyPair: oracletypes.NewCurrencyPair("BITCOIN", "USD"),
-							Conversions: []config.Conversions{
-								{
-									{
-										CurrencyPair: oracletypes.NewCurrencyPair("BITCOIN", "USD"),
-										Invert:       false,
-									},
-								},
-							},
-						},
-					},
-				},
+				Host: "localhost",
+				Port: "8080",
 			},
 			expectedErr: false,
+		},
+		{
+			name: "bad config w/ no max-price-age",
+			config: config.OracleConfig{
+				UpdateInterval: time.Second,
+				Providers: []config.ProviderConfig{
+					{
+						Name: "test",
+						WebSocket: config.WebSocketConfig{
+							Enabled:             true,
+							MaxBufferSize:       1,
+							ReconnectionTimeout: time.Second,
+							WSS:                 "wss://test.com",
+							Name:                "test",
+							ReadBufferSize:      config.DefaultReadBufferSize,
+							WriteBufferSize:     config.DefaultWriteBufferSize,
+							HandshakeTimeout:    config.DefaultHandshakeTimeout,
+							EnableCompression:   config.DefaultEnableCompression,
+							ReadTimeout:         config.DefaultReadTimeout,
+							WriteTimeout:        config.DefaultWriteTimeout,
+						},
+						Type: "price_provider",
+					},
+				},
+				Host: "localhost",
+				Port: "8080",
+			},
+			expectedErr: true,
 		},
 		{
 			name:        "bad config with no update interval",
@@ -76,62 +78,13 @@ func TestOracleConfig(t *testing.T) {
 			expectedErr: true,
 		},
 		{
-			name: "bad config with bad currency pair format",
-			config: config.OracleConfig{
-				UpdateInterval: time.Second,
-				Providers: []config.ProviderConfig{
-					{
-						Name: "test",
-						Market: config.MarketConfig{
-							Name: "test",
-							CurrencyPairToMarketConfigs: map[string]config.CurrencyPairMarketConfig{
-								"BITCOIN/USD": {
-									Ticker:       "BTC/USD",
-									CurrencyPair: oracletypes.NewCurrencyPair("BITCOIN", "USD"),
-								},
-							},
-						},
-						WebSocket: config.WebSocketConfig{
-							Enabled:             true,
-							MaxBufferSize:       1,
-							ReconnectionTimeout: time.Second,
-							WSS:                 "wss://test.com",
-							Name:                "test",
-							ReadBufferSize:      config.DefaultReadBufferSize,
-							WriteBufferSize:     config.DefaultWriteBufferSize,
-							HandshakeTimeout:    config.DefaultHandshakeTimeout,
-							EnableCompression:   config.DefaultEnableCompression,
-							ReadTimeout:         config.DefaultReadTimeout,
-							WriteTimeout:        config.DefaultWriteTimeout,
-						},
-					},
-				},
-				Market: config.AggregateMarketConfig{
-					Feeds: map[string]config.FeedConfig{
-						"BITCOINUSD": {
-							CurrencyPair: oracletypes.NewCurrencyPair("BITCOIN", "USD"),
-						},
-					},
-				},
-			},
-			expectedErr: true,
-		},
-		{
 			name: "bad config with bad metrics",
 			config: config.OracleConfig{
 				UpdateInterval: time.Second,
+				MaxPriceAge:    time.Minute,
 				Providers: []config.ProviderConfig{
 					{
 						Name: "test",
-						Market: config.MarketConfig{
-							Name: "test",
-							CurrencyPairToMarketConfigs: map[string]config.CurrencyPairMarketConfig{
-								"BITCOIN/USD": {
-									Ticker:       "BTC/USD",
-									CurrencyPair: oracletypes.NewCurrencyPair("BITCOIN", "USD"),
-								},
-							},
-						},
 						WebSocket: config.WebSocketConfig{
 							Enabled:             true,
 							MaxBufferSize:       1,
@@ -145,31 +98,70 @@ func TestOracleConfig(t *testing.T) {
 							ReadTimeout:         config.DefaultReadTimeout,
 							WriteTimeout:        config.DefaultWriteTimeout,
 						},
-					},
-				},
-				Market: config.AggregateMarketConfig{
-					Feeds: map[string]config.FeedConfig{
-						"BITCOIN/USD": {
-							CurrencyPair: oracletypes.NewCurrencyPair("BITCOIN", "USD"),
-						},
-					},
-					AggregatedFeeds: map[string]config.AggregateFeedConfig{
-						"BITCOIN/USD": {
-							CurrencyPair: oracletypes.NewCurrencyPair("BITCOIN", "USD"),
-							Conversions: []config.Conversions{
-								{
-									{
-										CurrencyPair: oracletypes.NewCurrencyPair("ETHEREUM", "USD"),
-										Invert:       false,
-									},
-								},
-							},
-						},
+						Type: "price_provider",
 					},
 				},
 				Metrics: config.MetricsConfig{
 					Enabled: true,
 				},
+				Host: "localhost",
+				Port: "8080",
+			},
+			expectedErr: true,
+		},
+		{
+			name: "bad config with missing host",
+			config: config.OracleConfig{
+				UpdateInterval: time.Second,
+				MaxPriceAge:    time.Minute,
+				Providers: []config.ProviderConfig{
+					{
+						Name: "test",
+						WebSocket: config.WebSocketConfig{
+							Enabled:             true,
+							MaxBufferSize:       1,
+							ReconnectionTimeout: time.Second,
+							WSS:                 "wss://test.com",
+							Name:                "test",
+							ReadBufferSize:      config.DefaultReadBufferSize,
+							WriteBufferSize:     config.DefaultWriteBufferSize,
+							HandshakeTimeout:    config.DefaultHandshakeTimeout,
+							EnableCompression:   config.DefaultEnableCompression,
+							ReadTimeout:         config.DefaultReadTimeout,
+							WriteTimeout:        config.DefaultWriteTimeout,
+						},
+						Type: "price_provider",
+					},
+				},
+				Port: "8080",
+			},
+			expectedErr: true,
+		},
+		{
+			name: "bad config with missing port",
+			config: config.OracleConfig{
+				UpdateInterval: time.Second,
+				MaxPriceAge:    time.Minute,
+				Providers: []config.ProviderConfig{
+					{
+						Name: "test",
+						WebSocket: config.WebSocketConfig{
+							Enabled:             true,
+							MaxBufferSize:       1,
+							ReconnectionTimeout: time.Second,
+							WSS:                 "wss://test.com",
+							Name:                "test",
+							ReadBufferSize:      config.DefaultReadBufferSize,
+							WriteBufferSize:     config.DefaultWriteBufferSize,
+							HandshakeTimeout:    config.DefaultHandshakeTimeout,
+							EnableCompression:   config.DefaultEnableCompression,
+							ReadTimeout:         config.DefaultReadTimeout,
+							WriteTimeout:        config.DefaultWriteTimeout,
+						},
+						Type: "price_provider",
+					},
+				},
+				Host: "localhost",
 			},
 			expectedErr: true,
 		},

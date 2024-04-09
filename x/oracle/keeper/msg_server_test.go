@@ -5,13 +5,16 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
+	slinkytypes "github.com/skip-mev/slinky/pkg/types"
 	"github.com/skip-mev/slinky/x/oracle/keeper"
 	"github.com/skip-mev/slinky/x/oracle/types"
 )
 
 func (s *KeeperTestSuite) TestMsgAddCurrencyPairs() {
+	s.SetupWithNoMMKeeper()
+
 	tcs := []struct {
 		name       string
 		req        *types.MsgAddCurrencyPairs
@@ -32,8 +35,8 @@ func (s *KeeperTestSuite) TestMsgAddCurrencyPairs() {
 		{
 			"if the authority is not the authority of the module - fail",
 			&types.MsgAddCurrencyPairs{
-				Authority: sdk.AccAddress([]byte("not-authority")).String(),
-				CurrencyPairs: []types.CurrencyPair{
+				Authority: sdk.AccAddress("not-authority").String(),
+				CurrencyPairs: []slinkytypes.CurrencyPair{
 					{
 						Base:  "A",
 						Quote: "B",
@@ -45,8 +48,8 @@ func (s *KeeperTestSuite) TestMsgAddCurrencyPairs() {
 		{
 			"if the authority is correct + formatted, and the currency pairs are valid - pass",
 			&types.MsgAddCurrencyPairs{
-				Authority: sdk.AccAddress([]byte(moduleAuth)).String(),
-				CurrencyPairs: []types.CurrencyPair{
+				Authority: sdk.AccAddress(moduleAuth).String(),
+				CurrencyPairs: []slinkytypes.CurrencyPair{
 					{
 						Base:  "A",
 						Quote: "B",
@@ -62,8 +65,8 @@ func (s *KeeperTestSuite) TestMsgAddCurrencyPairs() {
 		{
 			"if there is a CurrencyPair that already exists in module, it is not overwritten",
 			&types.MsgAddCurrencyPairs{
-				Authority: sdk.AccAddress([]byte(moduleAuth)).String(),
-				CurrencyPairs: []types.CurrencyPair{
+				Authority: sdk.AccAddress(moduleAuth).String(),
+				CurrencyPairs: []slinkytypes.CurrencyPair{
 					{
 						Base:  "A",
 						Quote: "B",
@@ -82,7 +85,7 @@ func (s *KeeperTestSuite) TestMsgAddCurrencyPairs() {
 		},
 	}
 
-	initCP := types.CurrencyPair{
+	initCP := slinkytypes.CurrencyPair{
 		Base:  "E",
 		Quote: "F",
 	}
@@ -137,12 +140,14 @@ func (s *KeeperTestSuite) TestMsgAddCurrencyPairs() {
 }
 
 func (s *KeeperTestSuite) TestMsgRemoveCurrencyPairs() {
+	s.SetupWithNoMMKeeper()
+
 	// insert CurrencyPairs that will be deleted in the test-cases
-	cp1 := types.CurrencyPair{
+	cp1 := slinkytypes.CurrencyPair{
 		Base:  "AA",
 		Quote: "BB",
 	}
-	cp2 := types.CurrencyPair{
+	cp2 := slinkytypes.CurrencyPair{
 		Base:  "CC",
 		Quote: "DD",
 	}
@@ -173,15 +178,15 @@ func (s *KeeperTestSuite) TestMsgRemoveCurrencyPairs() {
 	// sanity check, assert existence of cps
 	// cp1
 	qpn, err := s.oracleKeeper.GetPriceWithNonceForCurrencyPair(s.ctx, cp1)
-	assert.Nil(s.T(), err)
-	assert.Equal(s.T(), qpn.Nonce(), uint64(100))
-	assert.Equal(s.T(), qpn.Price.Int64(), int64(100))
+	require.Nil(s.T(), err)
+	require.Equal(s.T(), qpn.Nonce(), uint64(100))
+	require.Equal(s.T(), qpn.Price.Int64(), int64(100))
 
 	// cp2
 	qpn, err = s.oracleKeeper.GetPriceWithNonceForCurrencyPair(s.ctx, cp2)
-	assert.Nil(s.T(), err)
-	assert.Equal(s.T(), qpn.Nonce(), uint64(101))
-	assert.Equal(s.T(), qpn.Price.Int64(), int64(100))
+	require.Nil(s.T(), err)
+	require.Equal(s.T(), qpn.Nonce(), uint64(101))
+	require.Equal(s.T(), qpn.Price.Int64(), int64(100))
 
 	// define test-cases
 	tcs := []struct {
@@ -204,7 +209,7 @@ func (s *KeeperTestSuite) TestMsgRemoveCurrencyPairs() {
 		{
 			"if the authority is correct + formatted, and the currency pairs are valid - pass",
 			&types.MsgRemoveCurrencyPairs{
-				Authority: sdk.AccAddress([]byte(moduleAuth)).String(),
+				Authority: sdk.AccAddress(moduleAuth).String(),
 				CurrencyPairIds: []string{
 					"AA/BB", "CC/DD",
 				},
@@ -220,21 +225,21 @@ func (s *KeeperTestSuite) TestMsgRemoveCurrencyPairs() {
 			_, err := ms.RemoveCurrencyPairs(s.ctx, tc.req)
 
 			if !tc.expectPass {
-				assert.NotNil(s.T(), err)
+				require.NotNil(s.T(), err)
 				return
 			}
 
 			// otherwise, assert no error
-			assert.Nil(s.T(), err)
+			require.Nil(s.T(), err)
 
 			// check that all currency-pairs were removed
 			for _, cps := range tc.req.CurrencyPairIds {
 				// get currency pair from request
-				cp, err := types.CurrencyPairFromString(cps)
-				assert.Nil(s.T(), err)
+				cp, err := slinkytypes.CurrencyPairFromString(cps)
+				require.Nil(s.T(), err)
 
 				// assert that currency-pair was removed
-				assert.False(t, s.oracleKeeper.HasCurrencyPair(s.ctx, cp))
+				require.False(t, s.oracleKeeper.HasCurrencyPair(s.ctx, cp))
 			}
 		})
 	}

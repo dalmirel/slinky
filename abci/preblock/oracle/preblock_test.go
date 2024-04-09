@@ -8,16 +8,13 @@ import (
 	"cosmossdk.io/log"
 	"cosmossdk.io/math"
 	storetypes "cosmossdk.io/store/types"
+	cometabci "github.com/cometbft/cometbft/abci/types"
+	cometproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 
-	cmtabci "github.com/cometbft/cometbft/abci/types"
-
-	cometproto "github.com/cometbft/cometbft/proto/tendermint/types"
-
 	preblock "github.com/skip-mev/slinky/abci/preblock/oracle"
-
 	preblockmock "github.com/skip-mev/slinky/abci/preblock/oracle/mocks"
 	compression "github.com/skip-mev/slinky/abci/strategies/codec"
 	codecmock "github.com/skip-mev/slinky/abci/strategies/codec/mocks"
@@ -28,6 +25,7 @@ import (
 	"github.com/skip-mev/slinky/aggregator"
 	"github.com/skip-mev/slinky/pkg/math/voteweighted"
 	"github.com/skip-mev/slinky/pkg/math/voteweighted/mocks"
+	slinkytypes "github.com/skip-mev/slinky/pkg/types"
 	servicemetrics "github.com/skip-mev/slinky/service/metrics"
 	metricmock "github.com/skip-mev/slinky/service/metrics/mocks"
 	"github.com/skip-mev/slinky/x/oracle/keeper"
@@ -41,7 +39,7 @@ type PreBlockTestSuite struct {
 
 	myVal         sdk.ConsAddress
 	ctx           sdk.Context
-	currencyPairs []oracletypes.CurrencyPair
+	currencyPairs []slinkytypes.CurrencyPair
 	genesis       oracletypes.GenesisState
 	key           *storetypes.KVStoreKey
 	transientKey  *storetypes.TransientStoreKey
@@ -58,9 +56,9 @@ func TestPreBlockTestSuite(t *testing.T) {
 }
 
 func (s *PreBlockTestSuite) SetupTest() {
-	s.myVal = sdk.ConsAddress([]byte("myVal"))
+	s.myVal = sdk.ConsAddress("myVal")
 
-	s.currencyPairs = []oracletypes.CurrencyPair{
+	s.currencyPairs = []slinkytypes.CurrencyPair{
 		{
 			Base:  "BTC",
 			Quote: "ETH",
@@ -124,14 +122,14 @@ func (s *PreBlockTestSuite) SetupSubTest() {
 	s.mockMetrics = metricmock.NewMetrics(s.T())
 
 	// Create the oracle keeper
-	s.oracleKeeper = testutils.CreateTestOracleKeeperWithGenesis(s.ctx, s.key, s.genesis)
+	s.oracleKeeper = testutils.CreateTestOracleKeeperWithGenesis(s.T(), s.ctx, s.key, s.genesis)
 
 	s.cpID = currencypairmock.NewCurrencyPairStrategy(s.T())
 
 	s.handler = preblock.NewOraclePreBlockHandler(
 		log.NewTestLogger(s.T()),
 		aggregationFn,
-		s.oracleKeeper,
+		&s.oracleKeeper,
 		s.mockMetrics,
 		s.cpID,
 		s.veCodec,
@@ -148,7 +146,7 @@ func (s *PreBlockTestSuite) TestWritePrices() {
 	})
 
 	s.Run("single price update", func() {
-		prices := map[oracletypes.CurrencyPair]*big.Int{
+		prices := map[slinkytypes.CurrencyPair]*big.Int{
 			s.currencyPairs[0]: big.NewInt(1),
 		}
 
@@ -162,7 +160,7 @@ func (s *PreBlockTestSuite) TestWritePrices() {
 	})
 
 	s.Run("multiple price updates", func() {
-		prices := map[oracletypes.CurrencyPair]*big.Int{
+		prices := map[slinkytypes.CurrencyPair]*big.Int{
 			s.currencyPairs[0]: big.NewInt(1),
 			s.currencyPairs[1]: big.NewInt(2),
 			s.currencyPairs[2]: maxUint256,
@@ -180,7 +178,7 @@ func (s *PreBlockTestSuite) TestWritePrices() {
 	})
 
 	s.Run("single price update with a nil price", func() {
-		prices := map[oracletypes.CurrencyPair]*big.Int{
+		prices := map[slinkytypes.CurrencyPair]*big.Int{
 			s.currencyPairs[0]: nil,
 		}
 
@@ -193,11 +191,11 @@ func (s *PreBlockTestSuite) TestWritePrices() {
 	})
 
 	s.Run("attempting to set price for unsupported currency pair", func() {
-		unsupportedCP := oracletypes.CurrencyPair{
+		unsupportedCP := slinkytypes.CurrencyPair{
 			Base:  "cap",
 			Quote: "on-god",
 		}
-		prices := map[oracletypes.CurrencyPair]*big.Int{
+		prices := map[slinkytypes.CurrencyPair]*big.Int{
 			unsupportedCP: big.NewInt(1),
 		}
 
@@ -224,7 +222,8 @@ func (s *PreBlockTestSuite) TestPreblockLatency() {
 		)
 
 		// run preblocker
-		s.handler.PreBlocker()(s.ctx, &cmtabci.RequestFinalizeBlock{})
+		_, err := s.handler.PreBlocker()(s.ctx, &cometabci.RequestFinalizeBlock{})
+		s.Require().NoError(err)
 	})
 
 	s.Run("expect metric invocation in Finalize Exec mode", func() {
@@ -241,19 +240,41 @@ func (s *PreBlockTestSuite) TestPreblockLatency() {
 		s.mockMetrics.On("ObserveABCIMethodLatency", servicemetrics.PreBlock, mock.Anything).Return()
 		s.mockMetrics.On("AddABCIRequest", servicemetrics.PreBlock, mock.Anything)
 		// run preblocker
-		s.handler.PreBlocker()(s.ctx, &cmtabci.RequestFinalizeBlock{
+		_, err := s.handler.PreBlocker()(s.ctx, &cometabci.RequestFinalizeBlock{
 			Height: 1,
 		})
+		s.Require().NoError(err)
 	})
 }
 
 func (s *PreBlockTestSuite) TestPreBlockStatus() {
+	s.Run("failure - nil request", func() {
+		metrics := metricmock.NewMetrics(s.T())
+		handler := preblock.NewOraclePreBlockHandler(
+			log.NewTestLogger(s.T()),
+			func(_ sdk.Context) aggregator.AggregateFn[string, map[slinkytypes.CurrencyPair]*big.Int] {
+				return func(_ aggregator.AggregatedProviderData[string, map[slinkytypes.CurrencyPair]*big.Int]) map[slinkytypes.CurrencyPair]*big.Int {
+					return nil
+				}
+			},
+			nil,
+			metrics,
+			nil,
+			nil,
+			nil,
+		)
+
+		// run preblocker
+		_, err := handler.PreBlocker()(s.ctx, nil)
+		s.Require().Error(err)
+	})
+
 	s.Run("success", func() {
 		metrics := metricmock.NewMetrics(s.T())
 		handler := preblock.NewOraclePreBlockHandler(
 			log.NewTestLogger(s.T()),
-			func(_ sdk.Context) aggregator.AggregateFn[string, map[oracletypes.CurrencyPair]*big.Int] {
-				return func(_ aggregator.AggregatedProviderData[string, map[oracletypes.CurrencyPair]*big.Int]) map[oracletypes.CurrencyPair]*big.Int {
+			func(_ sdk.Context) aggregator.AggregateFn[string, map[slinkytypes.CurrencyPair]*big.Int] {
+				return func(_ aggregator.AggregatedProviderData[string, map[slinkytypes.CurrencyPair]*big.Int]) map[slinkytypes.CurrencyPair]*big.Int {
 					return nil
 				}
 			},
@@ -267,7 +288,7 @@ func (s *PreBlockTestSuite) TestPreBlockStatus() {
 		metrics.On("ObserveABCIMethodLatency", servicemetrics.PreBlock, mock.Anything).Return()
 		metrics.On("AddABCIRequest", servicemetrics.PreBlock, servicemetrics.Success{}).Return()
 		// run preblocker
-		_, err := handler.PreBlocker()(s.ctx, &cmtabci.RequestFinalizeBlock{})
+		_, err := handler.PreBlocker()(s.ctx, &cometabci.RequestFinalizeBlock{})
 		s.Require().NoError(err)
 	})
 
@@ -275,8 +296,8 @@ func (s *PreBlockTestSuite) TestPreBlockStatus() {
 		metrics := metricmock.NewMetrics(s.T())
 		handler := preblock.NewOraclePreBlockHandler(
 			log.NewTestLogger(s.T()),
-			func(_ sdk.Context) aggregator.AggregateFn[string, map[oracletypes.CurrencyPair]*big.Int] {
-				return func(_ aggregator.AggregatedProviderData[string, map[oracletypes.CurrencyPair]*big.Int]) map[oracletypes.CurrencyPair]*big.Int {
+			func(_ sdk.Context) aggregator.AggregateFn[string, map[slinkytypes.CurrencyPair]*big.Int] {
+				return func(_ aggregator.AggregatedProviderData[string, map[slinkytypes.CurrencyPair]*big.Int]) map[slinkytypes.CurrencyPair]*big.Int {
 					return nil
 				}
 			},
@@ -295,7 +316,7 @@ func (s *PreBlockTestSuite) TestPreBlockStatus() {
 		s.ctx = testutils.UpdateContextWithVEHeight(s.ctx, 2)
 		s.ctx = s.ctx.WithBlockHeight(4)
 		// run preblocker
-		_, err := handler.PreBlocker()(s.ctx, &cmtabci.RequestFinalizeBlock{
+		_, err := handler.PreBlocker()(s.ctx, &cometabci.RequestFinalizeBlock{
 			Txs: [][]byte{},
 		})
 		s.Require().Error(err, expErr)
@@ -307,8 +328,8 @@ func (s *PreBlockTestSuite) TestPreBlockStatus() {
 		veCodec := codecmock.NewVoteExtensionCodec(s.T())
 		handler := preblock.NewOraclePreBlockHandler(
 			log.NewTestLogger(s.T()),
-			func(_ sdk.Context) aggregator.AggregateFn[string, map[oracletypes.CurrencyPair]*big.Int] {
-				return func(_ aggregator.AggregatedProviderData[string, map[oracletypes.CurrencyPair]*big.Int]) map[oracletypes.CurrencyPair]*big.Int {
+			func(_ sdk.Context) aggregator.AggregateFn[string, map[slinkytypes.CurrencyPair]*big.Int] {
+				return func(_ aggregator.AggregatedProviderData[string, map[slinkytypes.CurrencyPair]*big.Int]) map[slinkytypes.CurrencyPair]*big.Int {
 					return nil
 				}
 			},
@@ -319,12 +340,12 @@ func (s *PreBlockTestSuite) TestPreBlockStatus() {
 			extCodec,
 		)
 
-		ca := sdk.ConsAddress([]byte("val"))
-		extCodec.On("Decode", mock.Anything).Return(cmtabci.ExtendedCommitInfo{
-			Votes: []cmtabci.ExtendedVoteInfo{
+		ca := sdk.ConsAddress("val")
+		extCodec.On("Decode", mock.Anything).Return(cometabci.ExtendedCommitInfo{
+			Votes: []cometabci.ExtendedVoteInfo{
 				{
 					VoteExtension: []byte("ve"),
-					Validator: cmtabci.Validator{
+					Validator: cometabci.Validator{
 						Address: ca,
 					},
 				},
@@ -345,7 +366,7 @@ func (s *PreBlockTestSuite) TestPreBlockStatus() {
 		s.ctx = testutils.UpdateContextWithVEHeight(s.ctx, 2)
 		s.ctx = s.ctx.WithBlockHeight(4)
 		// run preblocker
-		_, err := handler.PreBlocker()(s.ctx, &cmtabci.RequestFinalizeBlock{
+		_, err := handler.PreBlocker()(s.ctx, &cometabci.RequestFinalizeBlock{
 			Txs: [][]byte{
 				[]byte("abc"),
 			},
@@ -360,8 +381,8 @@ func (s *PreBlockTestSuite) TestValidatorReports() {
 		metrics := metricmock.NewMetrics(s.T())
 		handler := preblock.NewOraclePreBlockHandler(
 			log.NewTestLogger(s.T()),
-			func(_ sdk.Context) aggregator.AggregateFn[string, map[oracletypes.CurrencyPair]*big.Int] {
-				return func(_ aggregator.AggregatedProviderData[string, map[oracletypes.CurrencyPair]*big.Int]) map[oracletypes.CurrencyPair]*big.Int {
+			func(_ sdk.Context) aggregator.AggregateFn[string, map[slinkytypes.CurrencyPair]*big.Int] {
+				return func(_ aggregator.AggregatedProviderData[string, map[slinkytypes.CurrencyPair]*big.Int]) map[slinkytypes.CurrencyPair]*big.Int {
 					return nil
 				}
 			},
@@ -377,7 +398,8 @@ func (s *PreBlockTestSuite) TestValidatorReports() {
 
 		// enable vote-extensions
 		s.ctx = testutils.UpdateContextWithVEHeight(s.ctx, 2)
-		_, err := handler.PreBlocker()(s.ctx, nil)
+		req := &cometabci.RequestFinalizeBlock{}
+		_, err := handler.PreBlocker()(s.ctx, req)
 		s.Require().NoError(err)
 	})
 
@@ -385,8 +407,8 @@ func (s *PreBlockTestSuite) TestValidatorReports() {
 		metrics := metricmock.NewMetrics(s.T())
 		handler := preblock.NewOraclePreBlockHandler(
 			log.NewTestLogger(s.T()),
-			func(_ sdk.Context) aggregator.AggregateFn[string, map[oracletypes.CurrencyPair]*big.Int] {
-				return func(_ aggregator.AggregatedProviderData[string, map[oracletypes.CurrencyPair]*big.Int]) map[oracletypes.CurrencyPair]*big.Int {
+			func(_ sdk.Context) aggregator.AggregateFn[string, map[slinkytypes.CurrencyPair]*big.Int] {
+				return func(_ aggregator.AggregatedProviderData[string, map[slinkytypes.CurrencyPair]*big.Int]) map[slinkytypes.CurrencyPair]*big.Int {
 					return nil
 				}
 			},
@@ -408,7 +430,7 @@ func (s *PreBlockTestSuite) TestValidatorReports() {
 		s.ctx = s.ctx.WithBlockHeight(4)
 		s.ctx = s.ctx.WithExecMode(sdk.ExecModeFinalize)
 		// run preblocker
-		_, err := handler.PreBlocker()(s.ctx, &cmtabci.RequestFinalizeBlock{})
+		_, err := handler.PreBlocker()(s.ctx, &cometabci.RequestFinalizeBlock{})
 		s.Require().Error(err, types.MissingCommitInfoError{})
 	})
 
@@ -422,14 +444,14 @@ func (s *PreBlockTestSuite) TestValidatorReports() {
 		mockOracleKeeper := preblockmock.NewKeeper(s.T())
 		currencyPairStrategyMock := currencypairmock.NewCurrencyPairStrategy(s.T())
 
-		btcUsd := oracletypes.NewCurrencyPair("BTC", "USD")
-		mogUsd := oracletypes.NewCurrencyPair("MOG", "USD")
+		btcUsd := slinkytypes.NewCurrencyPair("BTC", "USD")
+		mogUsd := slinkytypes.NewCurrencyPair("MOG", "USD")
 
 		handler := preblock.NewOraclePreBlockHandler(
 			log.NewTestLogger(s.T()),
-			func(_ sdk.Context) aggregator.AggregateFn[string, map[oracletypes.CurrencyPair]*big.Int] {
-				return func(_ aggregator.AggregatedProviderData[string, map[oracletypes.CurrencyPair]*big.Int]) map[oracletypes.CurrencyPair]*big.Int {
-					return map[oracletypes.CurrencyPair]*big.Int{
+			func(_ sdk.Context) aggregator.AggregateFn[string, map[slinkytypes.CurrencyPair]*big.Int] {
+				return func(_ aggregator.AggregatedProviderData[string, map[slinkytypes.CurrencyPair]*big.Int]) map[slinkytypes.CurrencyPair]*big.Int {
+					return map[slinkytypes.CurrencyPair]*big.Int{
 						// return default values
 						btcUsd: big.NewInt(1),
 						mogUsd: maxUint256,
@@ -456,7 +478,7 @@ func (s *PreBlockTestSuite) TestValidatorReports() {
 		currencyPairStrategyMock.On("GetDecodedPrice", s.ctx, mogUsd, mock.Anything).Return(maxUint256, nil)
 
 		// mock oracle keeper calls
-		mockOracleKeeper.On("GetAllCurrencyPairs", s.ctx).Return([]oracletypes.CurrencyPair{btcUsd, mogUsd}, nil)
+		mockOracleKeeper.On("GetAllCurrencyPairs", s.ctx).Return([]slinkytypes.CurrencyPair{btcUsd, mogUsd}, nil)
 		mockOracleKeeper.On("SetPriceForCurrencyPair", s.ctx, btcUsd, mock.Anything).Return(nil)
 		mockOracleKeeper.On("SetPriceForCurrencyPair", s.ctx, mogUsd, mock.Anything).Return(nil)
 
@@ -472,7 +494,7 @@ func (s *PreBlockTestSuite) TestValidatorReports() {
 		}, compression.NewDefaultVoteExtensionCodec())
 		s.Require().NoError(err)
 
-		_, extCommitBz, err := testutils.CreateExtendedCommitInfo([]cmtabci.ExtendedVoteInfo{val1Vote, val2Vote}, compression.NewDefaultExtendedCommitCodec())
+		_, extCommitBz, err := testutils.CreateExtendedCommitInfo([]cometabci.ExtendedVoteInfo{val1Vote, val2Vote}, compression.NewDefaultExtendedCommitCodec())
 		s.Require().NoError(err)
 
 		// expect metrics calls
@@ -502,24 +524,24 @@ func (s *PreBlockTestSuite) TestValidatorReports() {
 		metrics.On("AddValidatorReportForTicker", val3.String(), mogUsd, servicemetrics.Absent)
 
 		// run preblocker
-		_, err = handler.PreBlocker()(s.ctx, &cmtabci.RequestFinalizeBlock{
+		_, err = handler.PreBlocker()(s.ctx, &cometabci.RequestFinalizeBlock{
 			Txs: [][]byte{extCommitBz},
-			DecidedLastCommit: cmtabci.CommitInfo{
-				Votes: []cmtabci.VoteInfo{
+			DecidedLastCommit: cometabci.CommitInfo{
+				Votes: []cometabci.VoteInfo{
 					{
-						Validator: cmtabci.Validator{
+						Validator: cometabci.Validator{
 							Address: val1,
 						},
 						BlockIdFlag: cometproto.BlockIDFlagCommit,
 					},
 					{
-						Validator: cmtabci.Validator{
+						Validator: cometabci.Validator{
 							Address: val2,
 						},
 						BlockIdFlag: cometproto.BlockIDFlagCommit,
 					},
 					{
-						Validator: cmtabci.Validator{
+						Validator: cometabci.Validator{
 							Address: val3,
 						},
 						BlockIdFlag: cometproto.BlockIDFlagAbsent,

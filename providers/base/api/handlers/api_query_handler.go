@@ -3,7 +3,6 @@ package handlers
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"strings"
 	"time"
 
@@ -12,7 +11,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/skip-mev/slinky/oracle/config"
-	"github.com/skip-mev/slinky/providers/base/api/errors"
+	"github.com/skip-mev/slinky/pkg/math"
 	"github.com/skip-mev/slinky/providers/base/api/metrics"
 	providertypes "github.com/skip-mev/slinky/providers/types"
 )
@@ -31,6 +30,18 @@ type APIQueryHandler[K providertypes.ResponseKey, V providertypes.ResponseValue]
 	)
 }
 
+// APIFetcher is an interface that encapsulates fetching data from a provider. This interface
+// is meant to abstract over the various processes of interacting w/ GRPC, JSON-RPC, REST, etc. APIs.
+type APIFetcher[K providertypes.ResponseKey, V providertypes.ResponseValue] interface {
+	// Fetch fetches data from the API for the given IDs. The response is returned as a map of IDs to
+	// their respective responses. The request should respect the context timeout and cancel the request
+	// if the context is cancelled.
+	Fetch(
+		ctx context.Context,
+		ids []K,
+	) providertypes.GetResponse[K, V]
+}
+
 // APIQueryHandlerImpl is the default API implementation of the QueryHandler interface.
 // This is used to query using http requests. It manages querying the data provider
 // by using the APIDataHandler and RequestHandler. All responses are sent to the
@@ -42,13 +53,8 @@ type APIQueryHandlerImpl[K providertypes.ResponseKey, V providertypes.ResponseVa
 	metrics metrics.APIMetrics
 	config  config.APIConfig
 
-	// The request handler is responsible for making outgoing HTTP requests with
-	// a given URL. This can be the default client or a custom client.
-	requestHandler RequestHandler
-
-	// The API data handler is responsible for creating the URL to be sent to the
-	// request handler and parsing the response from the request handler.
-	apiHandler APIDataHandler[K, V]
+	// fetcher is responsible for fetching data from the API.
+	fetcher APIFetcher[K, V]
 }
 
 // NewAPIQueryHandler creates a new APIQueryHandler. It manages querying the data
@@ -72,24 +78,20 @@ func NewAPIQueryHandler[K providertypes.ResponseKey, V providertypes.ResponseVal
 		return nil, fmt.Errorf("no logger specified for api query handler")
 	}
 
-	if requestHandler == nil {
-		return nil, fmt.Errorf("no request handler specified for api query handler")
-	}
-
-	if apiHandler == nil {
-		return nil, fmt.Errorf("no api data handler specified for api query handler")
-	}
-
 	if metrics == nil {
 		return nil, fmt.Errorf("no metrics specified for api query handler")
 	}
 
+	fetcher, err := NewRestAPIFetcher(requestHandler, apiHandler, metrics, cfg, logger)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create api fetcher: %w", err)
+	}
+
 	return &APIQueryHandlerImpl[K, V]{
-		logger:         logger.With(zap.String("api_data_handler", cfg.Name)),
-		config:         cfg,
-		requestHandler: requestHandler,
-		apiHandler:     apiHandler,
-		metrics:        metrics,
+		logger:  logger.With(zap.String("api_query_handler", cfg.Name)),
+		config:  cfg,
+		metrics: metrics,
+		fetcher: fetcher,
 	}, nil
 }
 
@@ -108,22 +110,23 @@ func (h *APIQueryHandlerImpl[K, V]) Query(
 
 	// Observe the total amount of time it takes to fulfill the request(s).
 	h.logger.Debug("starting api query handler")
-	start := time.Now().UTC()
 	defer func() {
 		if r := recover(); r != nil {
 			h.logger.Error("panic in api query handler", zap.Any("panic", r))
 		}
 
-		h.metrics.ObserveProviderResponseLatency(h.config.Name, time.Since(start))
 		h.logger.Debug("finished api query handler")
 	}()
 
-	// Set the concurrency limit based on the capacity of the channel. This is done
-	// to ensure the query handler does not exceed the rate limit parameters of the
-	// data provider.
+	// Set the concurrency limit based on the maximum number of queries allowed for a single
+	// interval.
 	wg := errgroup.Group{}
-	wg.SetLimit(cap(responseCh))
-	h.logger.Debug("setting concurrency limit", zap.Int("limit", cap(responseCh)))
+	limit := math.Min(h.config.MaxQueries, len(ids))
+	wg.SetLimit(limit)
+	h.logger.Debug("setting concurrency limit", zap.Int("limit", limit))
+
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
 
 	// If our task is atomic, we can make a single request for all the IDs. Otherwise,
 	// we need to make a request for each ID.
@@ -138,14 +141,30 @@ func (h *APIQueryHandlerImpl[K, V]) Query(
 	}
 
 	// Block each task until the wait group has capacity to accept a new response.
-	for _, task := range tasks {
-		wg.Go(task)
+	index := 0
+MainLoop:
+	for {
+		select {
+		case <-ctx.Done():
+			h.logger.Debug("context cancelled, stopping queries")
+			break MainLoop
+		default:
+			wg.Go(tasks[index])
+			index++
+			index %= len(tasks)
+
+			// Sleep for a bit to prevent the loop from spinning too fast.
+			h.logger.Debug("sleeping", zap.Duration("interval", h.config.Interval), zap.Int("index", index))
+			time.Sleep(h.config.Interval)
+		}
 	}
 
 	// Wait for all tasks to complete.
+	h.logger.Debug("waiting for api sub-tasks to complete")
 	if err := wg.Wait(); err != nil {
 		h.logger.Error("error querying ids", zap.Error(err))
 	}
+	h.logger.Debug("all api sub-tasks completed")
 }
 
 // subTask is the subtask that is used to query the data provider for the given IDs,
@@ -156,56 +175,41 @@ func (h *APIQueryHandlerImpl[K, V]) subTask(
 	responseCh chan<- providertypes.GetResponse[K, V],
 ) func() error {
 	return func() error {
+		start := time.Now().UTC()
+
 		defer func() {
 			// Recover from any panics that occur.
 			if r := recover(); r != nil {
 				h.logger.Error("panic occurred in subtask", zap.Any("panic", r), zap.Any("ids", ids))
 			}
 
+			h.metrics.ObserveProviderResponseLatency(h.config.Name, time.Since(start))
 			h.logger.Debug("finished subtask", zap.Any("ids", ids))
 		}()
 
 		h.logger.Debug("starting subtask", zap.Any("ids", ids))
 
-		// Create the URL for the request.
-		url, err := h.apiHandler.CreateURL(ids)
-		if err != nil {
-			h.writeResponse(responseCh, providertypes.NewGetResponseWithErr[K, V](ids, errors.ErrCreateURLWithErr(err)))
-			return nil
-		}
-
-		h.logger.Debug("created url", zap.String("url", url))
-
-		// Make the request.
-		resp, err := h.requestHandler.Do(ctx, url)
-		if err != nil {
-			h.writeResponse(responseCh, providertypes.NewGetResponseWithErr[K, V](ids, errors.ErrDoRequestWithErr(err)))
-			return nil
-		}
-
-		// TODO: add more error handling here.
-		var response providertypes.GetResponse[K, V]
-		switch {
-		case resp.StatusCode == http.StatusTooManyRequests:
-			response = providertypes.NewGetResponseWithErr[K, V](ids, errors.ErrRateLimit)
-		case resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices:
-			response = providertypes.NewGetResponseWithErr[K, V](ids, errors.ErrUnexpectedStatusCodeWithCode(resp.StatusCode))
-		default:
-			response = h.apiHandler.ParseResponse(ids, resp)
-		}
-
-		h.writeResponse(responseCh, response)
+		h.writeResponse(ctx, responseCh, h.fetcher.Fetch(ctx, ids))
 		return nil
 	}
 }
 
 // writeResponse is used to write the response to the response channel.
 func (h *APIQueryHandlerImpl[K, V]) writeResponse(
+	ctx context.Context,
 	responseCh chan<- providertypes.GetResponse[K, V],
 	response providertypes.GetResponse[K, V],
 ) {
-	responseCh <- response
-	h.logger.Debug("wrote response", zap.String("response", response.String()))
+	// Write the response to the response channel. We only do so if the
+	// context has not been cancelled. Otherwise, we risk writing to a
+	// channel that is not being read from.
+	select {
+	case <-ctx.Done():
+		h.logger.Debug("context cancelled, stopping write response")
+		return
+	case responseCh <- response:
+		h.logger.Debug("wrote response", zap.String("response", response.String()))
+	}
 
 	// Update the metrics.
 	for id := range response.Resolved {

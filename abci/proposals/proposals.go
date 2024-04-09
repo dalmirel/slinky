@@ -2,6 +2,7 @@ package proposals
 
 import (
 	"bytes"
+	"fmt"
 	"time"
 
 	servicemetrics "github.com/skip-mev/slinky/service/metrics"
@@ -17,7 +18,7 @@ import (
 	"github.com/skip-mev/slinky/abci/ve"
 )
 
-// The proposalhandler is responsible primarily for:
+// ProposalHandler is responsible primarily for:
 //  1. Filling a proposal with transactions.
 //  2. Injecting vote extensions into the proposal (if vote extensions are enabled).
 //  3. Verifying that the vote extensions injected are valid.
@@ -25,7 +26,7 @@ import (
 // To verify the validity of the vote extensions, the proposal handler will
 // call the validateVoteExtensionsFn. This function is responsible for verifying
 // that the vote extensions included in the proposal are valid and compose a
-// supermajority of signatures and vote extensions for the current block.
+// super-majority of signatures and vote extensions for the current block.
 // The given VoteExtensionCodec must be the same used by the VoteExtensionHandler,
 // the extended commit is decoded in accordance with the given ExtendedCommitCodec.
 type ProposalHandler struct {
@@ -95,6 +96,8 @@ func NewProposalHandler(
 // by base app when a new block proposal is requested. The PrepareProposalHandler
 // will first fill the proposal with transactions. Then, if vote extensions are
 // enabled, the handler will inject the extended commit info into the proposal.
+// If the size of the vote extensions exceed the requests MaxTxBytes size, this
+// handler will fail.
 func (h *ProposalHandler) PrepareProposalHandler() sdk.PrepareProposalHandler {
 	return func(ctx sdk.Context, req *cometabci.RequestPrepareProposal) (resp *cometabci.ResponsePrepareProposal, err error) {
 		var (
@@ -135,14 +138,16 @@ func (h *ProposalHandler) PrepareProposalHandler() sdk.PrepareProposalHandler {
 				"vote_extensions_enabled", voteExtensionsEnabled,
 			)
 
-			extInfo := req.LocalLastCommit
-			if err = h.ValidateExtendedCommitInfo(ctx, req.Height, extInfo); err != nil {
+			// get pruned ExtendedCommitInfo from LocalLastCommit
+			extInfo, err := h.PruneAndValidateExtendedCommitInfo(ctx, req.LocalLastCommit)
+			if err != nil {
 				h.logger.Error(
-					"failed to validate vote extensions",
+					"failed to prune extended commit info",
 					"height", req.Height,
-					"commit_info", extInfo,
+					"local_last_commit", req.LocalLastCommit,
 					"err", err,
 				)
+
 				err = InvalidExtendedCommitInfoError{
 					Err: err,
 				}
@@ -171,10 +176,11 @@ func (h *ProposalHandler) PrepareProposalHandler() sdk.PrepareProposalHandler {
 				// Reserve bytes for our VE Tx
 				req.MaxTxBytes -= extInfoBzSize
 			} else {
-				h.logger.Error("omitting VE because size consumes entire block",
+				h.logger.Error("VE size consumes entire block",
 					"extInfoBzSize", extInfoBzSize,
 					"MaxTxBytes", req.MaxTxBytes)
-				extInfoBz = []byte{}
+				err := fmt.Errorf("VE size consumes entire block: extInfoBzSize = %d: MaxTxBytes = %d", extInfoBzSize, req.MaxTxBytes)
+				return &cometabci.ResponsePrepareProposal{Txs: make([][]byte, 0)}, err
 			}
 
 			// determine whether the wrapped prepare proposal handler should retain the extended commit info
@@ -247,7 +253,7 @@ func (h *ProposalHandler) injectAndResize(appTxs [][]byte, injectTx []byte, maxS
 // ProcessProposalHandler returns a ProcessProposalHandler that will be called
 // by base app when a new block proposal needs to be verified. The ProcessProposalHandler
 // will verify that the vote extensions included in the proposal are valid and compose
-// a supermajority of signatures and vote extensions for the current block.
+// a super-majority of signatures and vote extensions for the current block.
 func (h *ProposalHandler) ProcessProposalHandler() sdk.ProcessProposalHandler {
 	return func(ctx sdk.Context, req *cometabci.RequestProcessProposal) (resp *cometabci.ResponseProcessProposal, err error) {
 		start := time.Now()

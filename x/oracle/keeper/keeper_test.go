@@ -13,45 +13,61 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
+	slinkytypes "github.com/skip-mev/slinky/pkg/types"
 	"github.com/skip-mev/slinky/x/oracle/keeper"
 	"github.com/skip-mev/slinky/x/oracle/types"
+	"github.com/skip-mev/slinky/x/oracle/types/mocks"
 )
 
 const (
 	moduleAuth = "authority"
 )
 
-var moduleAuthAddr = sdk.AccAddress([]byte(moduleAuth))
+var moduleAuthAddr = sdk.AccAddress(moduleAuth)
 
 type KeeperTestSuite struct {
 	suite.Suite
 
-	oracleKeeper keeper.Keeper
-	ctx          sdk.Context
+	oracleKeeper        keeper.Keeper
+	mockMarketMapKeeper *mocks.MarketMapKeeper
+	ctx                 sdk.Context
 }
 
 func (s *KeeperTestSuite) SetupTest() {
 	key := storetypes.NewKVStoreKey(types.StoreKey)
 	ss := runtime.NewKVStoreService(key)
 	encCfg := moduletestutil.MakeTestEncodingConfig()
-	s.oracleKeeper = keeper.NewKeeper(ss, encCfg.Codec, moduleAuthAddr)
+	s.mockMarketMapKeeper = mocks.NewMarketMapKeeper(s.T())
+	s.oracleKeeper = keeper.NewKeeper(ss, encCfg.Codec, s.mockMarketMapKeeper, moduleAuthAddr)
 	s.ctx = testutil.DefaultContext(key, storetypes.NewTransientStoreKey("transient_key"))
+
+	s.Require().NotPanics(func() {
+		s.oracleKeeper.InitGenesis(s.ctx, *types.DefaultGenesisState())
+	})
 }
 
 func TestKeeperTestSuite(t *testing.T) {
 	suite.Run(t, new(KeeperTestSuite))
 }
 
+func (s *KeeperTestSuite) SetupWithNoMMKeeper() {
+	key := storetypes.NewKVStoreKey(types.StoreKey)
+	ss := runtime.NewKVStoreService(key)
+	encCfg := moduletestutil.MakeTestEncodingConfig()
+	s.oracleKeeper = keeper.NewKeeper(ss, encCfg.Codec, nil, moduleAuthAddr)
+	s.ctx = testutil.DefaultContext(key, storetypes.NewTransientStoreKey("transient_key"))
+}
+
 func (s *KeeperTestSuite) TestSetPriceForCurrencyPair() {
 	tcs := []struct {
 		name       string
-		cp         types.CurrencyPair
+		cp         slinkytypes.CurrencyPair
 		price      types.QuotePrice
 		expectPass bool
 	}{
 		{
 			"if the currency pair is correctly formatted - pass",
-			types.CurrencyPair{
+			slinkytypes.CurrencyPair{
 				Base:  "AA",
 				Quote: "BB",
 			},
@@ -88,7 +104,7 @@ func (s *KeeperTestSuite) TestSetPriceForCurrencyPair() {
 
 func (s *KeeperTestSuite) TestSetPriceIncrementNonce() {
 	// insert a cp + qp pair, and check that the nonce is zero
-	cp := types.CurrencyPair{
+	cp := slinkytypes.CurrencyPair{
 		Base:  "AA",
 		Quote: "BB",
 	}
@@ -133,14 +149,14 @@ func checkQuotePriceEqual(t *testing.T, qp1, qp2 types.QuotePrice) {
 
 func (s *KeeperTestSuite) TestGetAllCPs() {
 	// insert multiple currency pairs
-	cp1 := types.CurrencyPair{
+	cp1 := slinkytypes.CurrencyPair{
 		Base:  "AA",
 		Quote: "BB",
 	}
 	qp1 := types.QuotePrice{
 		Price: sdkmath.NewInt(100),
 	}
-	cp2 := types.CurrencyPair{
+	cp2 := slinkytypes.CurrencyPair{
 		Base:  "CC",
 		Quote: "DD",
 	}
@@ -167,7 +183,7 @@ func (s *KeeperTestSuite) TestGetAllCPs() {
 }
 
 func (s *KeeperTestSuite) TestCreateCurrencyPair() {
-	cp := types.CurrencyPair{
+	cp := slinkytypes.CurrencyPair{
 		Base:  "NEW",
 		Quote: "PAIR",
 	}
@@ -201,12 +217,12 @@ func (s *KeeperTestSuite) TestCreateCurrencyPair() {
 }
 
 func (s *KeeperTestSuite) TestIDForCurrencyPair() {
-	cp1 := types.CurrencyPair{
+	cp1 := slinkytypes.CurrencyPair{
 		Base:  "PAIR",
 		Quote: "1",
 	}
 
-	cp2 := types.CurrencyPair{
+	cp2 := slinkytypes.CurrencyPair{
 		Base:  "PAIR",
 		Quote: "2",
 	}
@@ -268,7 +284,7 @@ func (s *KeeperTestSuite) TestIDForCurrencyPair() {
 	})
 
 	s.Run("insert another currency-pair, and expect that unusedID + 1 is used", func() {
-		cp3 := types.CurrencyPair{
+		cp3 := slinkytypes.CurrencyPair{
 			Base:  "PAIR",
 			Quote: "3",
 		}
@@ -281,5 +297,70 @@ func (s *KeeperTestSuite) TestIDForCurrencyPair() {
 
 		// check that the id is unusedID + 1
 		s.Require().Equal(unusedID+1, id)
+	})
+}
+
+func (s *KeeperTestSuite) TestRemoveCounter() {
+	s.Run("get 0 with no state", func() {
+		s.SetupTest()
+
+		removes, err := s.oracleKeeper.GetRemovedCPCounter(s.ctx)
+		s.Require().NoError(err)
+		s.Require().Equal(removes, uint64(0))
+	})
+
+	s.Run("get 1 with 1 remove", func() {
+		s.SetupTest()
+
+		s.Require().NoError(s.oracleKeeper.CreateCurrencyPair(s.ctx, slinkytypes.CurrencyPair{Base: "test", Quote: "coin1"}))
+		s.Require().NoError(s.oracleKeeper.RemoveCurrencyPair(s.ctx, slinkytypes.CurrencyPair{Base: "test", Quote: "coin1"}))
+
+		removes, err := s.oracleKeeper.GetRemovedCPCounter(s.ctx)
+		s.Require().NoError(err)
+		s.Require().Equal(removes, uint64(1))
+	})
+
+	s.Run("get 2 with 2 removes", func() {
+		s.SetupTest()
+
+		s.Require().NoError(s.oracleKeeper.CreateCurrencyPair(s.ctx, slinkytypes.CurrencyPair{Base: "test", Quote: "coin1"}))
+		s.Require().NoError(s.oracleKeeper.RemoveCurrencyPair(s.ctx, slinkytypes.CurrencyPair{Base: "test", Quote: "coin1"}))
+		s.Require().NoError(s.oracleKeeper.CreateCurrencyPair(s.ctx, slinkytypes.CurrencyPair{Base: "test", Quote: "coin2"}))
+		s.Require().NoError(s.oracleKeeper.RemoveCurrencyPair(s.ctx, slinkytypes.CurrencyPair{Base: "test", Quote: "coin2"}))
+
+		removes, err := s.oracleKeeper.GetRemovedCPCounter(s.ctx)
+		s.Require().NoError(err)
+		s.Require().Equal(removes, uint64(2))
+	})
+}
+
+func (s *KeeperTestSuite) TestCPCounter() {
+	s.Run("get 0 with no state", func() {
+		s.SetupTest()
+
+		removes, err := s.oracleKeeper.GetPrevBlockCPCounter(s.ctx)
+		s.Require().NoError(err)
+		s.Require().Equal(removes, uint64(0))
+	})
+
+	s.Run("get 1 with 1 cp", func() {
+		s.SetupTest()
+
+		s.Require().NoError(s.oracleKeeper.CreateCurrencyPair(s.ctx, slinkytypes.CurrencyPair{Base: "test", Quote: "coin1"}))
+
+		cps, err := s.oracleKeeper.GetPrevBlockCPCounter(s.ctx)
+		s.Require().NoError(err)
+		s.Require().Equal(cps, uint64(1))
+	})
+
+	s.Run("get 2 with 2 cp", func() {
+		s.SetupTest()
+
+		s.Require().NoError(s.oracleKeeper.CreateCurrencyPair(s.ctx, slinkytypes.CurrencyPair{Base: "test", Quote: "coin1"}))
+		s.Require().NoError(s.oracleKeeper.CreateCurrencyPair(s.ctx, slinkytypes.CurrencyPair{Base: "test", Quote: "coin2"}))
+
+		cps, err := s.oracleKeeper.GetPrevBlockCPCounter(s.ctx)
+		s.Require().NoError(err)
+		s.Require().Equal(cps, uint64(2))
 	})
 }

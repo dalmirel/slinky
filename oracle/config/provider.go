@@ -8,19 +8,19 @@ import (
 // config to the oracle configuration.
 type ProviderConfig struct {
 	// Name identifies which provider this config is for.
-	Name string `mapstructure:"name" toml:"name"`
+	Name string `json:"name"`
 
 	// API is the config for the API based data provider. If the provider does not
 	// support API based fetching, this field should be omitted.
-	API APIConfig `mapstructure:"api" toml:"api"`
+	API APIConfig `json:"api"`
 
 	// WebSocket is the config for the websocket based data provider. If the provider
 	// does not support websocket based fetching, this field should be omitted.
-	WebSocket WebSocketConfig `mapstructure:"web_socket" toml:"web_socket"`
+	WebSocket WebSocketConfig `json:"webSocket"`
 
-	// Market defines the provider's market configurations. In particular, this defines
-	// the mappings between on-chain and off-chain currency pairs.
-	Market MarketConfig `mapstructure:"market_config" toml:"market_config"`
+	// Type is the type of the provider (i.e. price, market map, other). This is used
+	// to determine how to construct the provider.
+	Type string `json:"type"`
 }
 
 func (c *ProviderConfig) ValidateBasic() error {
@@ -56,12 +56,8 @@ func (c *ProviderConfig) ValidateBasic() error {
 		}
 	}
 
-	if err := c.Market.ValidateBasic(); err != nil {
-		return fmt.Errorf("market config for %s is not formatted correctly: %w", c.Name, err)
-	}
-
-	if c.Name != c.Market.Name {
-		return fmt.Errorf("name must match market config name; %s != %s", c.Name, c.Market.Name)
+	if len(c.Type) == 0 {
+		return fmt.Errorf("type cannot be empty")
 	}
 
 	return nil

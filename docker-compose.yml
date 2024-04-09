@@ -8,12 +8,21 @@ services:
   oracle:
     build:
       context: .
-      dockerfile: contrib/images/slinky.e2e.oracle.Dockerfile
+      dockerfile: contrib/images/slinky.sidecar.prod.Dockerfile
     volumes:
-      - ./config/local/oracle.toml:/oracle/config.toml
+      - ./config/dydx/oracle.json:/oracle/oracle.json
+      - ./config/dydx/market.json:/oracle/market.json
+    entrypoint: [
+      "slinky", 
+      "--oracle-config-path", "/oracle/oracle.json", 
+      "--market-config-path", "/oracle/market.json", 
+      "--pprof-port", "6060", 
+      "--run-pprof",
+      ]
     ports:
       - "8080:8080" # main oracle port
       - "8002:8002" # oracle metrics port
+      - "6060:6060" # pprof port
     networks:
       - oracle_network
 
@@ -33,6 +42,7 @@ services:
     ports:
       - "26656:26656"
       - "26657:26657"
+      - "26660:26660" # chain side metrics
       - "1317:1317" # used to query the blockchain
       - "7171:7171"
       - "26655:26655"

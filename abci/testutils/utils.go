@@ -5,7 +5,7 @@ import (
 
 	storetypes "cosmossdk.io/store/types"
 	cometabci "github.com/cometbft/cometbft/abci/types"
-	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	cometproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/runtime"
 	"github.com/cosmos/cosmos-sdk/testutil"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -15,22 +15,26 @@ import (
 	"github.com/skip-mev/slinky/abci/ve/types"
 	"github.com/skip-mev/slinky/x/oracle/keeper"
 	oracletypes "github.com/skip-mev/slinky/x/oracle/types"
+	"github.com/skip-mev/slinky/x/oracle/types/mocks"
 )
 
 // CreateTestOracleKeeperWithGenesis creates a test oracle keeper with the given genesis state.
-func CreateTestOracleKeeperWithGenesis(ctx sdk.Context, key *storetypes.KVStoreKey, genesis oracletypes.GenesisState) keeper.Keeper {
+func CreateTestOracleKeeperWithGenesis(t *testing.T, ctx sdk.Context, key *storetypes.KVStoreKey, genesis oracletypes.GenesisState) keeper.Keeper {
+	t.Helper()
+
 	ss := runtime.NewKVStoreService(key)
 	encCfg := moduletestutil.MakeTestEncodingConfig()
 
-	keeper := keeper.NewKeeper(
+	k := keeper.NewKeeper(
 		ss,
 		encCfg.Codec,
-		sdk.AccAddress([]byte("authority")),
+		mocks.NewMarketMapKeeper(t),
+		sdk.AccAddress("authority"),
 	)
 
-	keeper.InitGenesis(ctx, genesis)
+	k.InitGenesis(ctx, genesis)
 
-	return keeper
+	return k
 }
 
 // CreateExtendedCommitInfo creates an extended commit info with the given commit info.
@@ -53,16 +57,28 @@ func CreateExtendedVoteInfo(
 	prices map[uint64][]byte,
 	codec compression.VoteExtensionCodec,
 ) (cometabci.ExtendedVoteInfo, error) {
+	return CreateExtendedVoteInfoWithPower(consAddr, 1, prices, codec)
+}
+
+// CreateExtendedVoteInfoWithPower CreateExtendedVoteInfo creates an extended vote info
+// with the given power, prices, timestamp and height.
+func CreateExtendedVoteInfoWithPower(
+	consAddr sdk.ConsAddress,
+	power int64,
+	prices map[uint64][]byte,
+	codec compression.VoteExtensionCodec,
+) (cometabci.ExtendedVoteInfo, error) {
 	ve, err := CreateVoteExtensionBytes(prices, codec)
 	if err != nil {
 		return cometabci.ExtendedVoteInfo{}, err
 	}
-
 	voteInfo := cometabci.ExtendedVoteInfo{
 		Validator: cometabci.Validator{
 			Address: consAddr,
+			Power:   power,
 		},
 		VoteExtension: ve,
+		BlockIdFlag:   cometproto.BlockIDFlagCommit,
 	}
 
 	return voteInfo, nil
@@ -71,8 +87,8 @@ func CreateExtendedVoteInfo(
 // UpdateContextWithVEHeight updates the context with the given height and enables vote extensions
 // for the given height.
 func UpdateContextWithVEHeight(ctx sdk.Context, height int64) sdk.Context {
-	params := cmtproto.ConsensusParams{
-		Abci: &cmtproto.ABCIParams{
+	params := cometproto.ConsensusParams{
+		Abci: &cometproto.ABCIParams{
 			VoteExtensionsEnableHeight: height,
 		},
 	}
@@ -82,13 +98,13 @@ func UpdateContextWithVEHeight(ctx sdk.Context, height int64) sdk.Context {
 }
 
 // CreateBaseSDKContextWithKeys creates a base sdk context with the given store key and transient key.
-func CreateBaseSDKContextWithKeys(t *testing.T, storekey storetypes.StoreKey, transientkey *storetypes.TransientStoreKey) sdk.Context {
+func CreateBaseSDKContextWithKeys(t *testing.T, storeKey storetypes.StoreKey, transientKey *storetypes.TransientStoreKey) sdk.Context {
 	t.Helper()
 
 	testCtx := testutil.DefaultContextWithDB(
 		t,
-		storekey,
-		transientkey,
+		storeKey,
+		transientKey,
 	)
 
 	return testCtx.Ctx

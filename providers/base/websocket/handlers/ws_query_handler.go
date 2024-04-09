@@ -24,6 +24,10 @@ type WebSocketQueryHandler[K providertypes.ResponseKey, V providertypes.Response
 	// the data (i.e. ids). All websocket responses should be sent to the response
 	// channel.
 	Start(ctx context.Context, ids []K, responseCh chan<- providertypes.GetResponse[K, V]) error
+
+	// Copy is used to create a copy of the query handler. This is useful for creating
+	// multiple connections to the same data provider.
+	Copy() WebSocketQueryHandler[K, V]
 }
 
 // WebSocketQueryHandlerImpl is the default websocket implementation of the
@@ -116,14 +120,23 @@ func (h *WebSocketQueryHandlerImpl[K, V]) Start(
 
 	h.ids = ids
 	if len(h.ids) == 0 {
-		h.logger.Debug("no ids to query")
+		h.logger.Info("no ids to query; exiting")
 		return nil
 	}
+
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
 
 	// Initialize the connection to the data provider and subscribe to the events
 	// for the corresponding IDs.
 	if err := h.start(); err != nil {
-		responseCh <- providertypes.NewGetResponseWithErr[K, V](ids, err)
+		responseCh <- providertypes.NewGetResponseWithErr[K, V](
+			ids,
+			providertypes.NewErrorWithCode(
+				err,
+				providertypes.ErrorWebsocketStartFail,
+			),
+		)
 		return fmt.Errorf("failed to start connection: %w", err)
 	}
 
@@ -165,10 +178,10 @@ func (h *WebSocketQueryHandlerImpl[K, V]) start() error {
 			h.metrics.AddWebSocketConnectionStatus(h.config.Name, metrics.WriteErr)
 			return errors.ErrWriteWithErr(err)
 		}
+		h.metrics.AddWebSocketConnectionStatus(h.config.Name, metrics.WriteSuccess)
 	}
 
 	h.logger.Debug("initial payload sent; websocket connection successfully started")
-	h.metrics.AddWebSocketConnectionStatus(h.config.Name, metrics.WriteSuccess)
 	return nil
 }
 
@@ -229,10 +242,9 @@ func (h *WebSocketQueryHandlerImpl[K, V]) recv(ctx context.Context, responseCh c
 		// Track the time it takes to receive a message from the data provider.
 		now := time.Now().UTC()
 
-		// Case 1: The context is cancelled. Close the connection and return.
-		// Case 2: The context is not cancelled. Wait for a message from the data provider.
 		select {
 		case <-ctx.Done():
+			// Case 1: The context is cancelled. Close the connection and return.
 			h.logger.Debug("context finished")
 			if err := h.close(); err != nil {
 				return err
@@ -240,10 +252,10 @@ func (h *WebSocketQueryHandlerImpl[K, V]) recv(ctx context.Context, responseCh c
 
 			return ctx.Err()
 		default:
-			// Wait for a message from the data provider.
+			// Case 2: The context is not cancelled. Wait for a message from the data provider.
 			message, err := h.connHandler.Read()
 			if err != nil {
-				h.logger.Error(
+				h.logger.Debug(
 					"failed to read message from websocket handler",
 					zap.String("message", string(message)),
 					zap.Error(err),
@@ -257,7 +269,7 @@ func (h *WebSocketQueryHandlerImpl[K, V]) recv(ctx context.Context, responseCh c
 					continue
 				}
 
-				h.logger.Error("max read errors reached")
+				h.logger.Error("max read errors reached", zap.Error(err))
 				if err := h.close(); err != nil {
 					return err
 				}
@@ -277,10 +289,21 @@ func (h *WebSocketQueryHandlerImpl[K, V]) recv(ctx context.Context, responseCh c
 			}
 
 			// Immediately send the response to the response channel. Even if this is
-			// empty, it will be handled by the provider.
-			responseCh <- response
-			h.logger.Debug("handled message successfully; sent response to response channel", zap.String("response", response.String()))
-			h.metrics.AddWebSocketDataHandlerStatus(h.config.Name, metrics.HandleMessageSuccess)
+			// empty, it will be handled by the provider. Note that if the context has been
+			// cancelled, we should not send the response to the channel. Otherwise, we risk
+			// sending a response to a closed channel.
+			select {
+			case <-ctx.Done():
+				h.logger.Debug("context finished")
+				if err := h.close(); err != nil {
+					return errors.ErrCloseWithErr(err)
+				}
+
+				return ctx.Err()
+			case responseCh <- response:
+				h.logger.Debug("handled message successfully; sent response to response channel", zap.String("response", response.String()))
+				h.metrics.AddWebSocketDataHandlerStatus(h.config.Name, metrics.HandleMessageSuccess)
+			}
 
 			// If the update messages are not nil, send it to the data provider.
 			if len(updateMessage) != 0 {
@@ -316,4 +339,16 @@ func (h *WebSocketQueryHandlerImpl[K, V]) close() error {
 	h.logger.Debug("connection closed")
 	h.metrics.AddWebSocketConnectionStatus(h.config.Name, metrics.CloseSuccess)
 	return nil
+}
+
+// Copy is used to create a copy of the query handler. This is useful for creating
+// multiple connections to the same data provider.
+func (h *WebSocketQueryHandlerImpl[K, V]) Copy() WebSocketQueryHandler[K, V] {
+	return &WebSocketQueryHandlerImpl[K, V]{
+		logger:      h.logger,
+		config:      h.config,
+		dataHandler: h.dataHandler.Copy(),
+		connHandler: h.connHandler.Copy(),
+		metrics:     h.metrics,
+	}
 }

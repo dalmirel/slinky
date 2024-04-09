@@ -3,7 +3,6 @@ package keeper
 import (
 	"context"
 
-	cmtabci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/skip-mev/slinky/x/alerts/types"
@@ -14,14 +13,14 @@ import (
 //	It is used to determine which Alerts are to be purged, and if they should be purged, the alerts will be removed from state.
 //
 // If the AlertStatus of the Alert is concluded, nothing will be done. If the AlertStatus
-// is Unconcluded, the alert will be Concluded positively (i.e the bond will be returned to the bond-address).
-func (k Keeper) EndBlocker(goCtx context.Context) ([]cmtabci.ValidatorUpdate, error) {
+// is Unconcluded, the alert will be Concluded positively (i.e, the bond will be returned to the bond-address).
+func (k *Keeper) EndBlocker(goCtx context.Context) error {
 	// unwrap the context
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	// check if Pruning is enabled, if not this is a no-op
 	if params := k.GetParams(ctx); !params.PruningParams.Enabled {
-		return nil, nil
+		return nil
 	}
 
 	// get the current block height
@@ -30,7 +29,7 @@ func (k Keeper) EndBlocker(goCtx context.Context) ([]cmtabci.ValidatorUpdate, er
 	// get all alerts
 	alerts, err := k.GetAllAlerts(ctx)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	// iterate through all alerts
@@ -45,15 +44,15 @@ func (k Keeper) EndBlocker(goCtx context.Context) ([]cmtabci.ValidatorUpdate, er
 		if status := alert.Status.ConclusionStatus; status != uint64(types.Concluded) {
 			// conclude the alert positively
 			if err := k.ConcludeAlert(ctx, alert.Alert, Positive); err != nil {
-				return nil, err
+				return err
 			}
 		}
 
 		// finally delete the alert
 		if err := k.RemoveAlert(ctx, alert.Alert); err != nil {
-			return nil, err
+			return err
 		}
 	}
 
-	return nil, nil
+	return nil
 }
